@@ -20,6 +20,8 @@ export const DEDUCTIBLE = [
   { label: "Importacions corrents", base: "32", vat: "33", missing: true },
   { label: "Adquisicions intracomunitàries corrents", base: "36", vat: "37" },
   { label: "Adquisicions intracomunitàries de béns d'inversió", base: "38", vat: "39" },
+  { label: "Rectificació de deduccions (factures rebudes negatives)", base: "40", vat: "41" },
+  { label: "Compensacions del règim especial agrari", vat: "42" },
   { label: "Regularització per la prorrata definitiva", vat: "44", missing: true }
 ];
 
@@ -67,6 +69,8 @@ export const MODEL_390 = [
       { label: "Adquisicions intracomunitàries de béns corrents", base: "56", vat: "57" },
       { label: "Adquisicions intracomunitàries de béns d'inversió", base: "58", vat: "59" },
       { label: "Adquisicions intracomunitàries de serveis", base: "597", vat: "598" },
+      { label: "Compensacions del règim especial agrari", base: "60", vat: "61" },
+      { label: "Rectificació de deduccions", base: "639", vat: "62" },
       { label: "Regularització per la prorrata definitiva", vat: "522" },
       { label: "Suma de deduccions", vat: "64", total: true }
     ]
@@ -142,12 +146,23 @@ export const REVERSE_CHARGE_LABELS = {
   none: "Res a autoliquidar"
 };
 
+// received lines with VAT
+export const VAT_SPECIAL_LABELS = {
+  none: "IVA espanyol deduïble",
+  reagp: "Compensació agrària (REAGP)",
+  foreign_vat: "IVA estranger, no deduïble"
+};
+
+const LABELS_BY_FIELD = { vat_operation: OPERATION_LABELS, reverse_charge: REVERSE_CHARGE_LABELS, vat_special: VAT_SPECIAL_LABELS };
+
 export function classificationLabel(field, value) {
   if (!value) return "";
-  return (field === "reverse_charge" ? REVERSE_CHARGE_LABELS : OPERATION_LABELS)[value] || value;
+  return (LABELS_BY_FIELD[field] || {})[value] || value;
 }
 
 export const ISSUE_LABELS = {
+  "received-reagp": "Rebudes al 12 % o 10,5 % (possible compensació agrària)",
+  "received-foreign-vat": "Rebudes de fora amb IVA (possiblement no deduïble)",
   "issued-zero": "Emeses al 0 % sense classificar",
   "unknown-rate": "Emeses a un tipus sense casella",
   "received-foreign-zero": "Rebudes de fora al 0 % (possible autoliquidació)"
@@ -213,7 +228,7 @@ export function rowVat(row) {
 export function vatRowsTotals(rows) {
   return {
     count: rows.length,
-    base: round2(rows.reduce((s, r) => s + (r.base || 0), 0)),
+    base: round2(rows.reduce((s, r) => s + (r.base_box ? r.base || 0 : 0), 0)),
     vat: round2(rows.reduce((s, r) => s + (rowVat(r) || 0), 0))
   };
 }
@@ -237,6 +252,8 @@ export function classifyItems(rows, field, value = null, rate = null) {
     if (seen.has(key) || (!v && value !== "clear")) continue;
     seen.add(key);
     const item = { kind: r.kind, id: r.id, value: v };
+    // a received invoice has two: reverse_charge (the default) and vat_special
+    if (field === "vat_special") item.field = field;
     if (field === "reverse_charge" && (v === "intracom" || v === "isp") && rate !== null && rate !== "") item.rate = Number(rate);
     items.push(item);
   }

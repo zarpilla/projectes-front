@@ -257,3 +257,33 @@ describe('phase 3: filed returns, final prorrata and the AEAT file', () => {
     expect(declarationTypesFor(0, 3)).toEqual(['N'])
   })
 })
+
+describe('agrarian compensation and foreign VAT', () => {
+  const special = [
+    { key: 'received-invoices:1:12:c', kind: 'received-invoices', id: 1, code: 'R1', contact: "L'hort del Puig", area: 'ES', date: '2026-01-10', quarter: 1, side: 'received', rate: 12, base: 100, vat: 12, deductible_pct: 100, deductible_vat: 12, issue: 'received-reagp', proposal: 'reagp', classify: { field: 'vat_special', value: null }, to: '/document/1/received-invoices' },
+    { key: 'received-invoices:2:12:c', kind: 'received-invoices', id: 2, code: 'R2', contact: "L'hort del Puig", area: 'ES', date: '2026-01-11', quarter: 1, side: 'received', rate: 12, base: 200, vat: 24, deductible_pct: 100, deductible_vat: 24, vat_box: '42', reagp: true, classify: { field: 'vat_special', value: 'reagp' }, to: '/document/2/received-invoices' }
+  ]
+
+  it('sends the vat_special field and labels it', () => {
+    expect(classifyItems(special, 'vat_special')).toEqual([{ kind: 'received-invoices', id: 1, value: 'reagp', field: 'vat_special' }])
+    expect(classifyItems(special, 'vat_special', 'foreign_vat').map(i => i.value)).toEqual(['foreign_vat', 'foreign_vat'])
+    expect(classificationLabel('vat_special', 'reagp')).toBe('Compensació agrària (REAGP)')
+    // box 42 has a quota only
+    expect(filterVatRows(special, { box: '42' }).map(r => r.id)).toEqual([2])
+    expect(vatRowsTotals(special.filter(r => r.vat_box))).toEqual({ count: 1, base: 0, vat: 24 })
+  })
+
+  it('offers the VAT classification for checked received lines with VAT', async () => {
+    get.mockReset()
+    get.mockResolvedValue({ data: { ...answer, rows: [...rows, ...special] } })
+    const w = mount(VatModelsTable, {
+      global: { plugins: [Buefy], stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+    })
+    await flushPromises()
+    await w.findAll('.vat-periods button')[0].trigger('click')
+    w.vm.checkedRows = w.vm.tableRows.filter(r => r.id === 1 && r.side === 'received')
+    await flushPromises()
+    expect(w.find('.vat-classify').text()).toContain("Classifica l'IVA (1)")
+    expect(w.text()).toContain('Proposta: Compensació agrària (REAGP)')
+  })
+})

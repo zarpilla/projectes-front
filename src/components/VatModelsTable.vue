@@ -264,6 +264,14 @@
           </label>
           <b-button size="is-small" :disabled="!reverseCharge || saving" @click="classify('reverse_charge', reverseCharge, reverseChargeRate)">Classifica les rebudes ({{ checkedReceived.length }})</b-button>
         </template>
+        <template v-if="checkedSpecial.length">
+          <b-select v-model="vatSpecial" size="is-small" aria-label="IVA de les rebudes">
+            <option :value="null">IVA de les rebudes…</option>
+            <option v-for="(label, code) in vatSpecialLabels" :key="code" :value="code">{{ label }}</option>
+            <option value="clear">Sense classificar</option>
+          </b-select>
+          <b-button size="is-small" :disabled="!vatSpecial || saving" @click="classify('vat_special', vatSpecial)">Classifica l'IVA ({{ checkedSpecial.length }})</b-button>
+        </template>
         <b-button v-if="checkedWithProposal.length" size="is-small" type="is-primary" :disabled="saving" @click="applyProposals">Aplica la proposta ({{ checkedWithProposal.length }})</b-button>
       </div>
       <b-table
@@ -304,7 +312,7 @@
         </b-table-column>
         <b-table-column sortable numeric label="Al model" field="returnVat" v-slot="props">
           <b>{{ money(props.row.returnVat) }}</b>
-          <small v-if="props.row.base_box && props.row.side === 'received' && props.row.deductible_pct < 100" class="has-text-muted"> ({{ props.row.deductible_pct }} %)</small>
+          <small v-if="props.row.vat_box && props.row.side === 'received' && props.row.deductible_pct < 100" class="has-text-muted"> ({{ props.row.deductible_pct }} %)</small>
         </b-table-column>
         <b-table-column sortable label="Caselles" field="boxesLabel" v-slot="props">
           <span v-if="props.row.boxesLabel">{{ props.row.boxesLabel }}</span>
@@ -361,7 +369,7 @@ import VatBoxValue from "@/components/VatBoxValue.vue";
 import VatReturnModal from "@/components/VatReturnModal.vue";
 import {
   ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, MODEL_390, DECLARATION_TYPES, CHANGE_LABELS, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
-  OPERATION_LABELS, REVERSE_CHARGE_LABELS,
+  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS,
   periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals, classificationLabel, classifyItems
 } from "@/domain/vatModels.js";
 
@@ -369,7 +377,7 @@ import {
 function boxesLabel(r) {
   const parts = [];
   if (r.accrued_boxes) parts.push(r.accrued_boxes.join(" / "));
-  if (r.base_box) parts.push(`${r.base_box} / ${r.vat_box}`);
+  if (r.vat_box) parts.push(r.base_box ? `${r.base_box} / ${r.vat_box}` : r.vat_box);
   if (r.info_box) parts.push(r.info_box);
   return parts.join(" · ");
 }
@@ -404,6 +412,8 @@ export default {
       savingProrrata: false,
       operationLabels: OPERATION_LABELS,
       reverseChargeLabels: REVERSE_CHARGE_LABELS,
+      vatSpecialLabels: VAT_SPECIAL_LABELS,
+      vatSpecial: null,
       checkedRows: [],
       operation: null,
       reverseCharge: null,
@@ -438,14 +448,14 @@ export default {
         ...r,
         typeLabel: KIND_LABELS[r.kind] || r.kind,
         areaLabel: AREA_LABELS[r.area] || r.area,
-        returnVat: r.base_box ? rowVat(r) : 0,
+        returnVat: r.vat_box ? rowVat(r) : 0,
         boxesLabel: boxesLabel(r),
         classLabel: r.classify ? classificationLabel(r.classify.field, r.classify.value) : "",
         proposalLabel: r.classify && r.proposal ? classificationLabel(r.classify.field, r.proposal) : ""
       }));
     },
     rowsTotals() {
-      return vatRowsTotals(this.tableRows.filter(r => r.base_box));
+      return vatRowsTotals(this.tableRows.filter(r => r.vat_box));
     },
     boxes390() {
       return (this.data.model390 && this.data.model390.boxes) || {};
@@ -469,6 +479,9 @@ export default {
     },
     checkedReceived() {
       return this.checkedRows.filter(r => r.classify && r.classify.field === "reverse_charge");
+    },
+    checkedSpecial() {
+      return this.checkedRows.filter(r => r.classify && r.classify.field === "vat_special");
     },
     checkedWithProposal() {
       return this.checkedRows.filter(r => r.classify && r.proposal);
@@ -513,7 +526,8 @@ export default {
     async applyProposals() {
       await this.sendClassification([
         ...classifyItems(this.checkedRows, "vat_operation"),
-        ...classifyItems(this.checkedRows, "reverse_charge")
+        ...classifyItems(this.checkedRows, "reverse_charge"),
+        ...classifyItems(this.checkedRows, "vat_special")
       ]);
     },
     openModal(mode) {
@@ -556,6 +570,7 @@ export default {
         this.checkedRows = [];
         this.operation = null;
         this.reverseCharge = null;
+        this.vatSpecial = null;
         await this.load();
       } catch (e) {
         const message = (e.response && e.response.data && e.response.data.error && e.response.data.error.message) || e.message;
