@@ -258,7 +258,7 @@
             <option v-for="(label, code) in reverseChargeLabels" :key="code" :value="code">{{ label }}</option>
             <option value="clear">Sense classificar</option>
           </b-select>
-          <label v-if="reverseCharge === 'intracom' || reverseCharge === 'isp'" class="vat-classify-rate">
+          <label v-if="selfAssessed.includes(reverseCharge)" class="vat-classify-rate">
             <span>% IVA</span>
             <input v-model="reverseChargeRate" class="input is-small" type="number" min="0" max="100" step="0.01" aria-label="% IVA autoliquidat">
           </label>
@@ -369,7 +369,7 @@ import VatBoxValue from "@/components/VatBoxValue.vue";
 import VatReturnModal from "@/components/VatReturnModal.vue";
 import {
   ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, MODEL_390, DECLARATION_TYPES, CHANGE_LABELS, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
-  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS,
+  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS, SELF_ASSESSED,
   periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals, classificationLabel, classifyItems
 } from "@/domain/vatModels.js";
 
@@ -391,6 +391,7 @@ export default {
     const current = moment().year();
     return {
       isLoading: false,
+      selfAssessed: SELF_ASSESSED,
       year: current,
       years: [current + 1, current, current - 1, current - 2, current - 3],
       // the quarter now, or the year for 390

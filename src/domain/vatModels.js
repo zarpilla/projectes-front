@@ -22,7 +22,7 @@ export const DEDUCTIBLE = [
   { label: "Adquisicions intracomunitàries de béns d'inversió", base: "38", vat: "39" },
   { label: "Rectificació de deduccions (factures rebudes negatives)", base: "40", vat: "41" },
   { label: "Compensacions del règim especial agrari", vat: "42" },
-  { label: "Regularització per la prorrata definitiva", vat: "44", missing: true }
+  { label: "Regularització per la prorrata definitiva", vat: "44" }
 ];
 
 export const RESULT = [
@@ -146,6 +146,9 @@ export const REVERSE_CHARGE_LABELS = {
   none: "Res a autoliquidar"
 };
 
+// the received classifications that self-assess VAT, at a rate (21 % by default)
+export const SELF_ASSESSED = ["intracom", "intracom_goods", "isp"];
+
 // received lines with VAT
 export const VAT_SPECIAL_LABELS = {
   none: "IVA espanyol deduïble",
@@ -254,7 +257,7 @@ export function classifyItems(rows, field, value = null, rate = null) {
     const item = { kind: r.kind, id: r.id, value: v };
     // a received invoice has two: reverse_charge (the default) and vat_special
     if (field === "vat_special") item.field = field;
-    if (field === "reverse_charge" && (v === "intracom" || v === "isp") && rate !== null && rate !== "") item.rate = Number(rate);
+    if (field === "reverse_charge" && SELF_ASSESSED.includes(v) && rate !== null && rate !== "") item.rate = Number(rate);
     items.push(item);
   }
   return items;

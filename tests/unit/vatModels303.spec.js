@@ -11,7 +11,7 @@ vi.mock('@/service/index', () => ({ default: () => ({ get, post }) }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
 import Vat from '@/views/Vat.vue'
-import { classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
+import { DEDUCTIBLE, classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
 import { canOpenPath } from '@/domain/routeAccess'
 import menu from '@/service/menu'
 
@@ -285,5 +285,48 @@ describe('agrarian compensation and foreign VAT', () => {
     await flushPromises()
     expect(w.find('.vat-classify').text()).toContain("Classifica l'IVA (1)")
     expect(w.text()).toContain('Proposta: Compensació agrària (REAGP)')
+  })
+})
+
+// 2026-11-04, validation of branch model-303: «Adquisició intracomunitària de
+// béns» (intracom_goods, phase 3) had no «% IVA» field and its rate was not
+// sent, so the backend wrote 21 % over it (books at 4 %, food at 10 %…).
+// And box 44 said «no calculat» though the 4T computes it.
+describe('self-assessed intra-EU goods at their rate', () => {
+  const goods = [
+    { key: 'received-invoices:9:0:c', kind: 'received-invoices', id: 9, code: 'R9', contact: 'Buchhandlung', area: 'EU', date: '2026-02-20', quarter: 1, side: 'received', rate: 0, base: 300, vat: 0, issue: 'received-foreign-zero', proposal: 'intracom', classify: { field: 'reverse_charge', value: null }, to: '/document/9/received-invoices' }
+  ]
+
+  it('sends the rate with intracom_goods', () => {
+    expect(classifyItems(goods, 'reverse_charge', 'intracom_goods', 4)).toEqual([
+      { kind: 'received-invoices', id: 9, value: 'intracom_goods', rate: 4 }
+    ])
+  })
+
+  it('asks for the rate when intracom_goods is chosen, and posts it', async () => {
+    post.mockReset()
+    post.mockResolvedValue({ data: { updated: 1 } })
+    get.mockReset()
+    get.mockResolvedValue({ data: { ...answer, rows: [...rows, ...goods] } })
+    const w = mount(VatModelsTable, {
+      global: { plugins: [Buefy], stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+    })
+    await flushPromises()
+    await w.findAll('.vat-periods button')[0].trigger('click')
+    w.vm.checkedRows = w.vm.tableRows.filter(r => r.id === 9)
+    w.vm.reverseCharge = 'intracom_goods'
+    await flushPromises()
+    const rate = w.find('.vat-classify-rate input')
+    expect(rate.exists()).toBe(true)
+    await rate.setValue('4')
+    await w.findAll('.vat-classify button').find(b => b.text().startsWith('Classifica les rebudes')).trigger('click')
+    await flushPromises()
+    expect(post).toHaveBeenCalledWith('treasuries/vat-models/classify', { items: [
+      { kind: 'received-invoices', id: 9, value: 'intracom_goods', rate: 4 }
+    ] })
+  })
+
+  it('does not say box 44 is not computed', () => {
+    expect(DEDUCTIBLE.find(r => r.vat === '44').missing).toBeFalsy()
   })
 })
