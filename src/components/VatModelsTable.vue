@@ -84,15 +84,16 @@
         <p>Si cal corregir-la, presenta'n una de rectificativa i torna-la a marcar.</p>
       </div>
       <div v-if="check390" class="notification is-warning is-light vat-return-changes" data-test="check390">
-        <b>El 390 no quadra amb els 303 presentats.</b>
-        <span>El 390 surt dels documents tal com són ara; han de sumar el mateix que els 303 que es van presentar.</span>
+        <b>{{ check390.title }}</b>
+        <span v-if="check390.differs">El 390 surt dels documents tal com són ara; han de sumar el mateix que els 303 que es van presentar.</span>
         <ul>
-          <li v-for="(l, i) in check390" :key="i">
+          <li v-for="(l, i) in check390.lines" :key="i">
             {{ l.text }}
             <b-button v-if="l.quarter" size="is-small" type="is-text" @click="selectPeriod(l.quarter)">Veure el T{{ l.quarter }}</b-button>
           </li>
         </ul>
-        <p>Si un document es va entrar o canviar després de presentar el trimestre, cal presentar-ne una rectificativa i tornar-la a marcar.</p>
+        <p v-if="check390.differs">Si un document es va entrar o canviar després de presentar el trimestre, cal presentar-ne una rectificativa i tornar-la a marcar.</p>
+        <p v-else>Quan els presentis, marca'ls: el 390 es compara amb el que es va presentar.</p>
       </div>
     </section>
 

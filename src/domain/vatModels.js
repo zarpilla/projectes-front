@@ -172,7 +172,8 @@ export const ISSUE_LABELS = {
   "received-foreign-vat": "Rebudes de fora amb IVA (possiblement no deduïble)",
   "issued-zero": "Emeses al 0 % sense classificar",
   "unknown-rate": "Emeses a un tipus sense casella",
-  "received-foreign-zero": "Rebudes de fora al 0 % (possible autoliquidació)"
+  "received-foreign-zero": "Rebudes de fora al 0 % (possible autoliquidació)",
+  "received-not-vat": "Rebudes al 0 % d'un contacte fora de l'IVA (p. ex. quota d'autònoms)"
 };
 
 export const AREA_LABELS = {
@@ -188,11 +189,15 @@ export const KIND_LABELS = {
 };
 
 /**
- * The 390 against the 303s marked as filed (backend `check390`): the lines of
- * the warning, or null when it adds up or no 303 is filed. `money` formats.
+ * The 390 against the 303s marked as filed (backend `check390`): the title and
+ * lines of the warning, or null when it adds up or no 303 is filed. Only
+ * quarters past their term missing: they are to file, the 390 is not wrong.
+ * `money` formats.
  */
 export function check390Lines(check, money) {
   if (!check || check.ok) return null;
+  const differs = (check.changed || []).length > 0 ||
+    (check.filed_result !== null && check.filed_result !== undefined && check.filed_result !== check.result);
   const lines = (check.changed || []).map(c => ({
     quarter: c.quarter,
     text: `${c.period}: ` + c.boxes.map(b => `casella ${b.box} ${money(b.filed)} → ${money(b.now)}`).join(", ")
@@ -203,7 +208,11 @@ export function check390Lines(check, money) {
   if (check.filed_result !== null && check.filed_result !== undefined && check.filed_result !== check.result) {
     lines.push({ quarter: null, text: `Resultat: els 303 presentats sumen ${money(check.filed_result)} (casella 46); el 390, ${money(check.result)} (casella 84).` });
   }
-  return lines;
+  return {
+    title: differs ? "El 390 no quadra amb els 303 presentats." : "Hi ha trimestres amb el termini passat sense marcar com a presentats.",
+    differs,
+    lines
+  };
 }
 
 /** The boxes of the period: a quarter (1–4) or the year (null). */

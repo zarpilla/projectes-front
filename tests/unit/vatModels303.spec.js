@@ -348,11 +348,21 @@ describe('the 390 against the 303s filed, and lines outside VAT', () => {
   }
 
   it('lists the quarters changed, the ones not filed and the results', () => {
-    expect(check390Lines(check, money)).toEqual([
-      { quarter: 3, text: '3T: casella 07 21935 € → 21935.5 €, casella 09 4606.35 € → 4606.46 €' },
-      { quarter: null, text: 'Sense marcar com a presentats: 2T.' },
-      { quarter: null, text: 'Resultat: els 303 presentats sumen 12011.99 € (casella 46); el 390, 12012.1 € (casella 84).' }
-    ])
+    expect(check390Lines(check, money)).toEqual({
+      title: 'El 390 no quadra amb els 303 presentats.',
+      differs: true,
+      lines: [
+        { quarter: 3, text: '3T: casella 07 21935 € → 21935.5 €, casella 09 4606.35 € → 4606.46 €' },
+        { quarter: null, text: 'Sense marcar com a presentats: 2T.' },
+        { quarter: null, text: 'Resultat: els 303 presentats sumen 12011.99 € (casella 46); el 390, 12012.1 € (casella 84).' }
+      ]
+    })
+    // validation of 2026-11-04: only quarters missing is no 390 that doesn't add up
+    expect(check390Lines({ ok: false, changed: [], unfiled: ['3T'], filed_result: null, result: 42 }, money)).toEqual({
+      title: 'Hi ha trimestres amb el termini passat sense marcar com a presentats.',
+      differs: false,
+      lines: [{ quarter: null, text: 'Sense marcar com a presentats: 3T.' }]
+    })
     expect(check390Lines({ ok: true, changed: [], unfiled: [] }, money)).toBe(null)
     expect(check390Lines(null, money)).toBe(null)
   })
@@ -375,6 +385,8 @@ describe('the 390 against the 303s filed, and lines outside VAT', () => {
 
   it('offers «Fora de l\'IVA» for received 0 % lines and lists the 230 of the 390', () => {
     expect(REVERSE_CHARGE_LABELS.not_vat).toBe("Fora de l'IVA (no és una compra: quota d'autònoms, impostos, taxes…)")
+    expect(periodIssues({ issues: [{ code: 'received-not-vat', count: 1 }] }, [{ quarter: 1, issue: 'received-not-vat', base: 624, area: 'ES' }], 1)[0].label)
+      .toBe("Rebudes al 0 % d'un contacte fora de l'IVA (p. ex. quota d'autònoms)")
     const rows = [
       { kind: 'received-invoices', id: 1, side: 'received', rate: 0, base: 624, not_in_return: true, annual_box: '230' },
       { kind: 'received-invoices', id: 2, side: 'received', rate: 0, base: 624, not_in_return: true, not_vat: true }
