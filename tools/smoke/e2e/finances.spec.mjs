@@ -27,6 +27,22 @@ const EXPENSE = `${NAME} despesa prevista`
 const DIET = `${NAME} despesa dieta`
 const YEAR = new Date().getFullYear()
 const idOf = relation => relation?.id ?? relation
+const round = (v, places) => Number(v.toFixed(places))
+
+// The figures below come from the database, not from the seed, so the spec also
+// runs on a copy of a tenant (another «% IVA deduïble», other €/km for diets).
+// A year's «% IVA deduïble» as «Previsió» takes it: a year without one is 100 %;
+// with no row for the year, Configuració's %, else 100.
+async function forecastVatPct (year) {
+  const [row] = await api('GET', `years?_where[year]=${year}&_limit=1`)
+  if (row) return Number(row.deductible_vat_pct || 100)
+  return Number((await api('GET', 'me?populate=options')).options?.deductible_vat_pct || 100)
+}
+// …and as a document of that year shows it in «IVA» (a year without one is 100 %, issues/338)
+async function documentVatPct (year) {
+  const [row] = await api('GET', `years?_where[year]=${year}&_limit=1`)
+  return row?.deductible_vat_pct == null ? 100 : Number(row.deductible_vat_pct)
+}
 
 // «Previsió»: the "Ingressos" and "Despeses" of each year in «Resum de la previsió»
 async function forecastFigures () {
@@ -92,8 +108,9 @@ test('a new project\'s budget adds to «Previsió»', async () => {
   const was = before[state.lineYear] || { incomes: 0, expenses: 0 }
   expect(after[state.lineYear], `a ${state.lineYear} column`).toBeTruthy()
   expect(after[state.lineYear].incomes - was.incomes).toBeCloseTo(1200, 2)
-  // 100 % of the VAT is deductible (the seeded year): only the bases count
-  expect(after[state.lineYear].expenses - was.expenses).toBeCloseTo(-450, 2)
+  // the bases (400 + 50) and the part of their 21 % VAT that is not deductible
+  const pct = await forecastVatPct(state.lineYear)
+  expect(after[state.lineYear].expenses - was.expenses).toBeCloseTo(-(450 + 450 * 0.21 * (1 - pct / 100)), 2)
 })
 
 test('«Previsió de facturació» lists the planned incomes not invoiced yet', async () => {
@@ -177,8 +194,9 @@ test('a received invoice\'s VAT is pending in «IVA» as supported VAT', async (
   await expect(pending).toContainText('Factura rebuda')
   await expect(pending).toContainText('400,00 €')
   await expect(pending).toContainText('84,00 €')
-  // supported VAT is deductible, 100 % in the seeded year
-  await expect(pending).toContainText(/\b100(,00)? %/)
+  // the supported VAT is deductible at the year's %
+  const pct = await documentVatPct(YEAR)
+  await expect(pending).toContainText(new RegExp(`\\b${Math.trunc(pct)}(,\\d+)? %`))
   await expect((await vatView('Documents previstos')).filter({ hasText: EXPENSE })).toHaveCount(0)
 })
 
@@ -244,6 +262,11 @@ test('«Anul·la i rectifica…» issues a rectificative with the amounts negate
 
 test('a diet ("Nova Dieta") is saved with its kilometres and goes to Tresoreria', async () => {
   test.skip(!state.projectId, 'needs the project')
+  const quotes = (await api('GET', 'me')).quotes
+  test.skip(!quotes?.diet_amount_total, 'no €/km for diets in Configuració on this database')
+  const without = round(Number(quotes.diet_amount_without_irpf || 0), 4)
+  const withIrpf = round(Number(quotes.diet_amount_total) - without, 4)
+  const km = { without, withIrpf, total: round(round(100 * without, 2) + round(100 * withIrpf, 2), 2) }
   // the person of a diet is a contact linked to a user, with a NIF
   ;[state.member] = await api('GET', `contacts?_where[users_permissions_user]=${state.me.id}&_sort=id:ASC&_limit=1`)
   state.member ??= await api('POST', 'contacts', { data: { name: `${NAME} sòcia`, nif: `E2ES${STAMP}`, users_permissions_user: state.me.id } })
@@ -256,8 +279,8 @@ test('a diet ("Nova Dieta") is saved with its kilometres and goes to Tresoreria'
   await pickAutocomplete('Projecte', PROJECT, PROJECT, diet)
   await field('Concepte', diet).locator('input').fill(`${NAME} dieta`)
   await field('Quilòmetres', diet).locator('input').fill('100')
-  // 0,26 €/km without IRPF + 0,06 €/km with it (the seeded rates)
-  await expect(diet).toContainText('Total: 32.00 €')
+  // Configuració's €/km: without IRPF, and the rest of the total with it (0,26 + 0,06 when seeded)
+  await expect(diet).toContainText(`Total: ${km.total.toFixed(2)} €`)
   await button('Crear Dieta', diet).click()
   await expect(diet).toBeHidden()
   await settle()
@@ -272,16 +295,19 @@ test('a diet ("Nova Dieta") is saved with its kilometres and goes to Tresoreria'
   expect(idOf(expense.contact)).toBe(state.member.id)
   expect(expense.emitted).toBe(isoToday())
   expect(expense.lines.map(l => [l.concept, Number(l.quantity), Number(l.base)])).toEqual([
-    [`${NAME} dieta - sense IRPF`, 100, 0.26],
-    [`${NAME} dieta - amb IRPF`, 100, 0.06]
+    [`${NAME} dieta - sense IRPF`, 100, km.without],
+    [`${NAME} dieta - amb IRPF`, 100, km.withIrpf]
   ])
-  expect([expense.total_base, expense.total_vat, expense.total].map(Number)).toEqual([32, 0, 32])
+  // the IRPF is the person's, on the second line only (0 % when seeded)
+  const irpf = Number(expense.total_irpf || 0)
+  expect(irpf).toBeCloseTo(round(100 * km.withIrpf * Number(expense.lines[1].irpf || 0) / 100, 2), 2)
+  expect([expense.total_base, expense.total_vat, expense.total].map(Number)).toEqual([km.total, 0, round(km.total - irpf, 2)])
   expect(expense.projects.map(p => p.id)).toEqual([state.projectId])
   const line = await phaseLine('expenses', DIET)
   expect(idOf(line.expense)).toBe(id)
 
   const rows = await treasuryRows(`/document/${id}/received-expenses`)
-  expect(rows.map(r => [r.type, r.total_amount])).toEqual([['Despesa rebuda (Dieta)', -32]])
+  expect(rows.map(r => [r.type, r.total_amount])).toEqual([['Despesa rebuda (Dieta)', -round(km.total - irpf, 2)]])
 })
 
 test('a payroll advance marked paid ("Pagada") is paid in Tresoreria', async () => {
