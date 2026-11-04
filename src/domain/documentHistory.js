@@ -49,6 +49,11 @@ export function fieldLabels (entity) {
     projects: 'Projectes',
     vat_paid_date: 'IVA liquidat',
     deductible_vat_pct: '% IVA deduïble',
+    // IVA › Models 303 i 390
+    vat_operation: "Tipus d'operació (línies al 0 %)",
+    reverse_charge: 'Autoliquidació',
+    reverse_charge_rate: '% IVA autoliquidat',
+    vat_special: "IVA de les línies (REAGP, estranger)",
     user_draft: 'Creada per',
     user_real: 'Emesa per',
     verifactu: 'VeriFactu',

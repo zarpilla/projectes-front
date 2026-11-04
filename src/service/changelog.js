@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Diners"],
+      text: ["Nova pestanya en proves «Models 303 i 390» a ", { to: "/iva?pestanya=models", label: "IVA" }, ": les caselles de l'autoliquidació d'IVA de cada trimestre (303) i la suma de l'any (390), a partir de les factures emeses i rebudes, amb els documents de cada casella. Les línies al 0 % es classifiquen des del detall, diversos documents alhora o aplicant-ne la proposta (la del mateix contacte o segons el país): exemptes, exportacions, lliuraments intracomunitaris, no subjectes (també per localització) i inversió del subjecte passiu a les emeses; adquisicions intracomunitàries i inversió del subjecte passiu a autoliquidar a les rebudes. Els tipus de despesa marcats com a «Béns d'inversió» (Taules auxiliars) van a les seves caselles. «Any (390)» mostra el model 390 amb la seva numeració. Cada trimestre i el 390 es poden marcar com a presentats (data, tipus de declaració i justificant): se'n desen les caselles i els documents, la pantalla avisa si després canvia algun document d'aquell període, i les quotes a compensar del període següent surten de la declaració presentada. La prorrata definitiva es fixa al T4 i la regularització va a la casella 44. «Fitxer per a l'AEAT» descarrega el 303 o el 390 en el format dels dissenys de registre de l'AEAT, per importar-lo a la Seu electrònica; les dades d'activitat, IAE i CNAE es posen a Configuració › Models d'IVA. Les despeses (tiquets, dietes…) no compten. Són xifres orientatives per contrastar amb la gestoria."]
+    },
+    {
+      type: "Novetats",
       modules: ["Diners", "Informes"],
       text: ["Cobraments i pagaments parcials: a les factures emeses, als altres ingressos, a les factures rebudes i a les despeses pots afegir cobraments o pagaments parcials, cadascun amb la data i l'import. El document queda «Cobrat» o «Pagat» quan sumen el total (no el poden superar), i fins llavors surt com a «Parcial» a les llistes, amb el que queda pendent. A ", { to: "/tresoreria", label: "Tresoreria" }, " i a la Previsió econòmica cada cobrament o pagament parcial és un moviment en la seva data, que es valida per separat, i el que falta queda previst en la data prevista de cobrament o de venciment."]
     }
