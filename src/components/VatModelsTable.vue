@@ -231,7 +231,7 @@
           <li v-if="boxes.unclassified_base">Línies al 0 % sense classificar: {{ money(boxes.unclassified_base) }}. No sumen al volum d'operacions.</li>
           <li v-if="data.model390 && data.model390.unmapped">{{ data.model390.unmapped }} {{ data.model390.unmapped === 1 ? "línia rebuda" : "línies rebudes" }} a un tipus que el 390 no té (base {{ money(data.model390.unmapped_base) }}): sumen al total però a cap tipus.</li>
           <li>El 390 porta també les dades de l'entitat (Configuració › Models d'IVA): activitat, clau, epígraf IAE i CNAE.</li>
-          <li>No es calculen el règim simplificat, el recàrrec d'equivalència, les importacions ni les deduccions de sectors diferenciats.</li>
+          <li>No es calculen el criteri de caixa, el recàrrec d'equivalència, el règim simplificat, la finestreta única (OSS), les importacions ni les deduccions de sectors diferenciats.</li>
         </ul>
       </section>
     </div>
