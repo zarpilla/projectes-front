@@ -11,14 +11,9 @@ const post = vi.fn()
 const put = vi.fn()
 vi.mock('@/service/index', () => ({ default: () => ({ get, post, put }) }))
 const saved = []
-vi.mock('@/helpers/html2pdf', () => ({
-  default: () => {
-    const chain = { opt: null, el: null }
-    chain.set = o => { chain.opt = o; return chain }
-    chain.from = el => { chain.el = el; return chain }
-    chain.save = async () => { saved.push({ filename: chain.opt.filename, text: chain.el.textContent }) }
-    return chain
-  }
+// the PDF builder (helpers/vatModelPdf.js, tested in vatModelPdfText.spec.js)
+vi.mock('@/helpers/vatModelPdf', () => ({
+  buildModel303Pdf: async (sheet) => ({ save: (filename) => { saved.push({ filename, sheet }) } })
 }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
@@ -145,11 +140,11 @@ describe('the quarter: receipt and PDF', () => {
     await flushPromises()
     expect(saved).toHaveLength(1)
     expect(saved[0].filename).toBe('303_2025_1T_esborrany.pdf')
-    expect(saved[0].text).toContain('Model 303 · 1T 2025')
-    expect(saved[0].text).toContain('Coop Prova · NIF F12345678')
-    expect(saved[0].text).toContain('20.808,25')
-    expect(saved[0].text).toContain('I · Ingrés')
-    // the sheet is drawn only while the PDF is made
+    expect(saved[0].sheet.title).toBe('Model 303 · 1T 2025')
+    expect(saved[0].sheet.entity).toBe('Coop Prova · NIF F12345678')
+    expect(saved[0].sheet.sections[0].lines.find(l => l.base && l.base.box === '07').base.value).toBe(20808.25)
+    expect(saved[0].sheet.settlement.label).toBe('I · Ingrés')
+    // nothing is drawn on the page any more
     expect(w.find('#vat-pdf').exists()).toBe(false)
   })
 })
