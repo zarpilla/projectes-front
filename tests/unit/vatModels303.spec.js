@@ -270,7 +270,7 @@ describe('agrarian compensation and foreign VAT', () => {
     expect(classificationLabel('vat_special', 'reagp')).toBe('Compensació agrària (REAGP)')
     // 2026-11-04: Spanish VAT charged by a provider from abroad, self-assessed by the reverse charge
     expect(classificationLabel('vat_special', 'wrong_vat')).toBe('IVA espanyol mal repercutit des de fora (autoliquidar la base, no deduir-lo)')
-    expect(Object.keys(VAT_SPECIAL_LABELS)).toEqual(['none', 'reagp', 'foreign_vat', 'wrong_vat'])
+    expect(Object.keys(VAT_SPECIAL_LABELS)).toEqual(['none', 'reagp', 'foreign_vat', 'wrong_vat', 'not_deductible'])
     // box 42 has a quota only
     expect(filterVatRows(special, { box: '42' }).map(r => r.id)).toEqual([2])
     expect(vatRowsTotals(special.filter(r => r.vat_box))).toEqual({ count: 1, base: 0, vat: 24 })
