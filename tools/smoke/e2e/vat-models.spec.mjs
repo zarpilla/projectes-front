@@ -63,7 +63,7 @@ test('the quarter adds up its invoices, box by box', async () => {
   const local = await contactWithNif('iva')
   const eu = await api('POST', 'contacts', { data: { name: `${NAME} Fournisseur`, nif: `FR${STAMP}`, country: 'França' } })
   // (the contact stays: the issued invoice keeps it)
-  // a series, as the form sends one (without it the document lifecycle answers 500)
+  // a series, as the form sends one: the invoices get a code of it
   const [serie] = await api('GET', 'series?_limit=1&_sort=id:DESC')
   const received = data => api('POST', 'received-invoices', { data: { emitted: isoToday(), serial: serie.id, contact_invoice_number: `${NAME} ${data.contact}`, ...data } })
   const domestic = await received({ contact: local.id, lines: [{ concept: `${NAME} compra`, quantity: 1, base: 200, vat: 21 }] })
