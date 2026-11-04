@@ -61,6 +61,11 @@
           <span>
             el {{ date(currentFiled.filed_date) }}<template v-if="currentFiled.declaration_type"> · {{ currentFiled.declaration_type }} ({{ typeLabels[currentFiled.declaration_type] }})</template><template v-if="currentFiled.receipt"> · justificant {{ currentFiled.receipt }}</template>
           </span>
+          <a v-if="currentFiled.receipt_file" :href="receiptUrl(currentFiled.receipt_file)" target="_blank" rel="noopener" data-test="receipt-link">Justificant de l'AEAT (PDF)</a>
+          <label v-else class="button is-small is-text vat-receipt-attach" data-test="receipt-attach">
+            Adjunta el justificant (PDF)
+            <input type="file" accept="application/pdf,.pdf" class="is-hidden" @change="attachReceipt">
+          </label>
         </template>
         <template v-else>
           <span class="tag is-light">Sense presentar</span>
@@ -69,6 +74,7 @@
       </div>
       <div class="vat-return-actions">
         <b-button size="is-small" icon-left="download" data-test="aeat-file" @click="openModal('download')">Fitxer per a l'AEAT</b-button>
+        <b-button v-if="quarter" size="is-small" icon-left="file-pdf-box" data-test="model-pdf" :loading="makingPdf" @click="downloadPdf">PDF del model</b-button>
         <b-button size="is-small" type="is-primary" data-test="mark-filed" @click="openModal('file')">{{ currentFiled ? "Torna a marcar" : "Marca com a presentada" }}</b-button>
         <b-button v-if="currentFiled" size="is-small" type="is-text" data-test="unfile" @click="unfile">Desmarca</b-button>
       </div>
@@ -358,6 +364,8 @@
       </ul>
     </section>
 
+    <vat-model-pdf ref="pdf" :sheet="pdfSheet" />
+
     <vat-return-modal
       :is-active="!!modal"
       :mode="modal || 'file'"
@@ -380,9 +388,11 @@ import { startLoad } from "@/domain/latestLoad.js";
 import { formatMoney } from "@/helpers/format-number";
 import VatBoxValue from "@/components/VatBoxValue.vue";
 import VatReturnModal from "@/components/VatReturnModal.vue";
+import { attachVatReceipt, receiptUrl } from "@/service/vatReceipt.js";
+import VatModelPdf from "@/components/VatModelPdf.vue";
 import {
   ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, MODEL_390, DECLARATION_TYPES, CHANGE_LABELS, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
-  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS, SELF_ASSESSED, check390Lines,
+  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS, SELF_ASSESSED, check390Lines, model303Sheet,
   periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals, classificationLabel, classifyItems
 } from "@/domain/vatModels.js";
 
@@ -399,7 +409,7 @@ const EMPTY = { quarters: [], annual: {}, model390: { boxes: {} }, issues: [], n
 
 export default {
   name: "VatModelsTable",
-  components: { BoxValue: VatBoxValue, VatReturnModal },
+  components: { BoxValue: VatBoxValue, VatReturnModal, VatModelPdf },
   data() {
     const current = moment().year();
     return {
@@ -428,6 +438,8 @@ export default {
       reverseChargeLabels: REVERSE_CHARGE_LABELS,
       vatSpecialLabels: VAT_SPECIAL_LABELS,
       vatSpecial: null,
+      pdfSheet: null,
+      makingPdf: false,
       checkedRows: [],
       operation: null,
       reverseCharge: null,
@@ -556,9 +568,47 @@ export default {
       this.modal = null;
       if (reload) await this.load();
     },
+    receiptUrl,
+    // the quarter as a PDF in the app's style (the AEAT's boxes), with the entity's name and NIF
+    async downloadPdf() {
+      if (!this.quarter) return;
+      this.makingPdf = true;
+      try {
+        const me = (await service({ requiresAuth: true }).get("me", { cached: true })).data || {};
+        this.pdfSheet = model303Sheet({
+          year: this.year,
+          quarter: this.quarter,
+          boxes: this.boxes,
+          entity: { name: me.name, nif: me.nif },
+          filed: this.currentFiled,
+          declarationType: this.currentQuarter ? this.currentQuarter.declaration_type : null,
+          formatDate: d => this.date(d)
+        });
+        await this.$nextTick();
+        await this.$refs.pdf.download();
+      } catch (e) {
+        this.$buefy.toast.open({ message: `No s'ha pogut fer el PDF: ${e.message}`, type: "is-danger" });
+      } finally {
+        this.pdfSheet = null;
+        this.makingPdf = false;
+      }
+    },
+    async attachReceipt(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (!file || !this.currentFiled) return;
+      try {
+        await attachVatReceipt(this.currentFiled.id, file);
+        this.$buefy.toast.open({ message: "Justificant adjuntat", type: "is-success" });
+        await this.load();
+      } catch (e) {
+        const message = (e.response && e.response.data && e.response.data.error && e.response.data.error.message) || e.message;
+        this.$buefy.toast.open({ message: `No s'ha pogut adjuntar: ${message}`, type: "is-danger", duration: 6000 });
+      }
+    },
     async unfile() {
       if (!this.currentFiled) return;
-      if (!window.confirm("Es desmarcarà com a presentada i se n'esborrarà la foto de caselles i documents. Segueixes?")) return;
+      if (!window.confirm("Es desmarcarà com a presentada i se n'esborraran la foto de caselles i documents i el justificant adjuntat. Segueixes?")) return;
       try {
         await service({ requiresAuth: true }).delete(`treasuries/vat-models/returns/${this.currentFiled.id}`);
         await this.load();

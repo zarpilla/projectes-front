@@ -26,6 +26,9 @@
             <b-field label="Notes">
               <b-input v-model="form.notes" type="textarea" rows="2" />
             </b-field>
+            <b-field label="Justificant de l'AEAT (PDF)" :message="filed && filed.receipt_file ? `Ara: ${filed.receipt_file.name}. Si en tries un altre, el substitueix.` : 'El PDF que dona la Seu en presentar-la. Opcional: també es pot adjuntar després.'">
+              <input type="file" accept="application/pdf,.pdf" data-test="receipt-file" @change="pickReceipt">
+            </b-field>
             <p class="vat-return-help">
               Es desen les caselles i els documents tal com són ara. Si després canvia algun document d'aquest període, la pantalla ho avisarà.
               {{ model === '303' ? "Les quotes a compensar del període següent sortiran d'aquesta declaració." : "" }}
@@ -57,6 +60,7 @@ import moment from "moment";
 import service from "@/service/index";
 import { formatMoney } from "@/helpers/format-number";
 import { DECLARATION_TYPES, declarationTypesFor } from "@/domain/vatModels.js";
+import { attachVatReceipt, isPdf } from "@/service/vatReceipt.js";
 
 // the API's message, also when the answer was asked for as a file (a Blob)
 async function errorMessage(error) {
@@ -92,7 +96,8 @@ export default {
       isModalActive: false,
       saving: false,
       typeLabels: DECLARATION_TYPES,
-      form: { declaration_type: null, filed_date: "", receipt: "", notes: "", iban: "" }
+      form: { declaration_type: null, filed_date: "", receipt: "", notes: "", iban: "" },
+      receiptFile: null
     };
   },
   computed: {
@@ -133,6 +138,17 @@ export default {
         notes: filed.notes || "",
         iban: this.defaultIban || ""
       };
+      this.receiptFile = null;
+    },
+    pickReceipt(event) {
+      const file = event.target.files && event.target.files[0];
+      if (file && !isPdf(file)) {
+        this.$buefy.toast.open({ message: "El justificant ha de ser un PDF.", type: "is-danger" });
+        event.target.value = "";
+        this.receiptFile = null;
+        return;
+      }
+      this.receiptFile = file || null;
     },
     cancel() {
       this.$emit("cancel");
@@ -143,8 +159,16 @@ export default {
         if (this.mode === "file") {
           const body = { model: this.model, year: this.year, period: this.period, filed_date: this.form.filed_date, receipt: this.form.receipt, notes: this.form.notes };
           if (this.model === "303") body.declaration_type = this.form.declaration_type;
-          await service({ requiresAuth: true }).post("treasuries/vat-models/returns", body);
+          const filed = (await service({ requiresAuth: true }).post("treasuries/vat-models/returns", body)).data;
           this.$buefy.toast.open({ message: "Declaració marcada com a presentada", type: "is-success" });
+          if (this.receiptFile && filed && filed.id) {
+            try {
+              await attachVatReceipt(filed.id, this.receiptFile);
+            } catch (error) {
+              // the return is filed; the PDF can be attached again from the bar
+              this.$buefy.toast.open({ message: `No s'ha pogut adjuntar el justificant: ${await errorMessage(error)}`, type: "is-warning", duration: 6000 });
+            }
+          }
         } else {
           const params = { model: this.model, year: this.year, period: this.period };
           if (this.model === "303") params.declaration_type = this.form.declaration_type;

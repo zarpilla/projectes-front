@@ -5,7 +5,9 @@
 // chosen rate: 10/11 and 36/37; an issued service to an EU client with the
 // proposal, not subject by place of supply: 120), marking the quarter as filed
 // keeps its boxes and warns when a document changes afterwards, and «Fitxer per
-// a l'AEAT» downloads the 303 in the AEAT's register design.
+// a l'AEAT» downloads the 303 in the AEAT's register design. Added 2026-11-04:
+// the AEAT's PDF is attached to the filed quarter (and goes with it when it is
+// unmarked), and «PDF del model» downloads the quarter as a PDF.
 //
 // Added 2026-11-04 with the validation of branch model-303. Works on the
 // current quarter, whatever else the database has in it: the boxes are compared
@@ -14,7 +16,7 @@
 
 import { test, expect } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
-import { useE2E, onCleanup, page, api, NAME, STAMP, visit, settle, button, modal, isoToday, parseNumber, contactWithNif } from './helpers.mjs'
+import { useE2E, onCleanup, page, api, API_URL, NAME, STAMP, visit, settle, button, modal, isoToday, parseNumber, contactWithNif } from './helpers.mjs'
 
 useE2E()
 
@@ -161,12 +163,36 @@ test('a quarter marked as filed keeps its boxes and warns when a document change
   // the next quarter would compensate from the filed return, not from the documents
   expect(quarterOf(await models()).filed.boxes['71']).toBe(result)
 
-  // and unmarking it
+  // the AEAT's PDF, attached from the bar: linked and served
+  await page.locator('[data-test="receipt-attach"] input').setInputFiles({
+    name: `303_${YEAR}_${PERIOD}.pdf`, mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n%%EOF\n')
+  })
+  await expect(page.locator('.toast', { hasText: 'Justificant adjuntat' })).toBeVisible()
+  await settle()
+  await expect(page.locator('[data-test="receipt-link"]')).toHaveText("Justificant de l'AEAT (PDF)")
+  const receipt = quarterOf(await models()).filed.receipt_file
+  expect(receipt.name).toBe(`303_${YEAR}_${PERIOD}.pdf`)
+  expect((await fetch(`${API_URL}${receipt.url}`)).status).toBe(200)
+
+  // and unmarking it: the receipt goes with it
   page.once('dialog', d => d.accept())
   await button('Desmarca').click()
   await settle()
   await expect(page.locator('[data-test="return-bar"] .tag', { hasText: 'Sense presentar' })).toBeVisible()
   expect(quarterOf(await models()).filed).toBe(null)
+  expect((await fetch(`${API_URL}${receipt.url}`)).status).toBe(404)
+})
+
+test('«PDF del model» downloads the quarter as a PDF, a draft until it is filed', async () => {
+  await openModels()
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.locator('[data-test="model-pdf"]').click()
+  ])
+  expect(download.suggestedFilename()).toBe(`303_${YEAR}_${PERIOD}_esborrany.pdf`)
+  const bytes = await readFile(await download.path())
+  expect(bytes.subarray(0, 5).toString()).toBe('%PDF-')
+  expect(bytes.length).toBeGreaterThan(5000)
 })
 
 test('«Fitxer per a l\'AEAT» downloads the 303 of the quarter', async () => {

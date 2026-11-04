@@ -188,6 +188,53 @@ export const KIND_LABELS = {
   "received-invoices": "Factura rebuda"
 };
 
+const SETTLEMENT = {
+  I: { label: "Ingrés", box: "71" },
+  U: { label: "Ingrés per domiciliació", box: "71" },
+  C: { label: "A compensar", box: "72" },
+  D: { label: "Devolució", box: "73" },
+  N: { label: "Sense activitat o resultat zero", box: null }
+};
+
+/**
+ * The sheet of the model 303 PDF (in the app's style, with the AEAT's
+ * sections and box numbers): from a quarter's boxes, the entity's name and
+ * NIF, and the return as filed when it was. Not the AEAT's form nor a receipt:
+ * a draft says so. Every box of a section is listed, as the form does.
+ */
+export function model303Sheet({ year, quarter, boxes = {}, entity = {}, filed = null, declarationType = null, formatDate = d => d }) {
+  const value = box => Number(boxes[box]) || 0;
+  const cell = box => (box ? { box, value: value(box) } : null);
+  const line = d => ({ label: d.label, base: cell(d.base), rate: d.rate ? { box: d.rate, value: value(d.rate), pct: true } : null, vat: cell(d.vat) });
+  const type = (filed && filed.declaration_type) || declarationType || declarationTypesFor(value("71"), quarter)[0];
+  const settlement = SETTLEMENT[type] || SETTLEMENT.N;
+  return {
+    title: `Model 303 · ${quarter}T ${year}`,
+    entity: [entity.name, entity.nif ? `NIF ${entity.nif}` : null].filter(Boolean).join(" · "),
+    status: filed
+      ? `Presentada el ${formatDate(filed.filed_date)}${filed.receipt ? ` · justificant ${filed.receipt}` : ""}`
+      : "Esborrany: no és el formulari de l'AEAT ni un justificant de presentació.",
+    draft: !filed,
+    sections: [
+      { title: "IVA meritat", rates: true, lines: ACCRUED.map(line), total: { label: "Total quota meritada", box: "27", value: value("27") } },
+      {
+        title: "IVA deduïble",
+        lines: DEDUCTIBLE.filter(d => !d.missing).map(line),
+        total: { label: "Total per deduir", box: "45", value: value("45") }
+      },
+      { title: "Informació addicional", lines: INFORMATION.map(d => ({ label: d.label, vat: cell(d.box) })) },
+      { title: "Resultat", lines: RESULT.map(d => ({ label: d.label, vat: { box: d.box, value: value(d.box), pct: !!d.pct }, total: !!d.total })) }
+    ],
+    settlement: {
+      type,
+      label: `${type} · ${settlement.label}`,
+      box: settlement.box,
+      amount: settlement.box ? Math.abs(value("71")) : 0
+    },
+    filename: `303_${year}_${quarter}T${filed ? "" : "_esborrany"}.pdf`
+  };
+}
+
 /**
  * The 390 against the 303s marked as filed (backend `check390`): the title and
  * lines of the warning, or null when it adds up or no 303 is filed. Only
