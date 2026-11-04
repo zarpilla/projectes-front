@@ -83,6 +83,17 @@
         </ul>
         <p>Si cal corregir-la, presenta'n una de rectificativa i torna-la a marcar.</p>
       </div>
+      <div v-if="check390" class="notification is-warning is-light vat-return-changes" data-test="check390">
+        <b>El 390 no quadra amb els 303 presentats.</b>
+        <span>El 390 surt dels documents tal com són ara; han de sumar el mateix que els 303 que es van presentar.</span>
+        <ul>
+          <li v-for="(l, i) in check390" :key="i">
+            {{ l.text }}
+            <b-button v-if="l.quarter" size="is-small" type="is-text" @click="selectPeriod(l.quarter)">Veure el T{{ l.quarter }}</b-button>
+          </li>
+        </ul>
+        <p>Si un document es va entrar o canviar després de presentar el trimestre, cal presentar-ne una rectificativa i tornar-la a marcar.</p>
+      </div>
     </section>
 
     <section v-if="showFinalProrrata" class="a-box vat-final-prorrata" data-test="final-prorrata">
@@ -317,6 +328,7 @@
         <b-table-column sortable label="Caselles" field="boxesLabel" v-slot="props">
           <span v-if="props.row.boxesLabel">{{ props.row.boxesLabel }}</span>
           <span v-else-if="props.row.issue" class="tag is-warning is-light">Per revisar</span>
+          <span v-else-if="props.row.not_vat" class="tag is-light">Fora de l'IVA</span>
           <span v-else class="tag is-light">Fora del 303{{ props.row.annual_box ? ` · 390: ${props.row.annual_box}` : "" }}</span>
         </b-table-column>
         <b-table-column sortable searchable label="Classificació" field="classLabel" v-slot="props">
@@ -369,7 +381,7 @@ import VatBoxValue from "@/components/VatBoxValue.vue";
 import VatReturnModal from "@/components/VatReturnModal.vue";
 import {
   ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, MODEL_390, DECLARATION_TYPES, CHANGE_LABELS, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
-  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS, SELF_ASSESSED,
+  OPERATION_LABELS, REVERSE_CHARGE_LABELS, VAT_SPECIAL_LABELS, SELF_ASSESSED, check390Lines,
   periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals, classificationLabel, classifyItems
 } from "@/domain/vatModels.js";
 
@@ -466,6 +478,10 @@ export default {
     },
     currentFiled() {
       return this.quarter ? (this.currentQuarter && this.currentQuarter.filed) || null : this.data.filed390 || null;
+    },
+    // the year: the 390 against the 303s filed
+    check390() {
+      return this.quarter ? null : check390Lines(this.data.check390, v => this.money(v));
     },
     currentChanges() {
       return this.quarter ? (this.currentQuarter && this.currentQuarter.changes) || null : this.data.changes390 || null;

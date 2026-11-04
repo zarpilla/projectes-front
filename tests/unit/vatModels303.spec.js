@@ -11,7 +11,7 @@ vi.mock('@/service/index', () => ({ default: () => ({ get, post }) }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
 import Vat from '@/views/Vat.vue'
-import { DEDUCTIBLE, classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals, VAT_SPECIAL_LABELS } from '@/domain/vatModels.js'
+import { DEDUCTIBLE, classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals, VAT_SPECIAL_LABELS, REVERSE_CHARGE_LABELS, check390Lines } from '@/domain/vatModels.js'
 import { canOpenPath } from '@/domain/routeAccess'
 import menu from '@/service/menu'
 
@@ -331,5 +331,54 @@ describe('self-assessed intra-EU goods at their rate', () => {
 
   it('does not say box 44 is not computed', () => {
     expect(DEDUCTIBLE.find(r => r.vat === '44').missing).toBeFalsy()
+  })
+})
+
+// 2026-11-04: invoices entered after a quarter was filed left the 390 not
+// adding up the 303s filed, silently; and the self-employed quota (a 0 %
+// received invoice) went to the 390's 230 as an exempt purchase.
+describe('the 390 against the 303s filed, and lines outside VAT', () => {
+  const money = v => `${v} €`
+  const check = {
+    ok: false,
+    changed: [{ quarter: 3, period: '3T', boxes: [{ box: '07', filed: 21935, now: 21935.5 }, { box: '09', filed: 4606.35, now: 4606.46 }] }],
+    unfiled: ['2T'],
+    filed_result: 12011.99,
+    result: 12012.1
+  }
+
+  it('lists the quarters changed, the ones not filed and the results', () => {
+    expect(check390Lines(check, money)).toEqual([
+      { quarter: 3, text: '3T: casella 07 21935 € → 21935.5 €, casella 09 4606.35 € → 4606.46 €' },
+      { quarter: null, text: 'Sense marcar com a presentats: 2T.' },
+      { quarter: null, text: 'Resultat: els 303 presentats sumen 12011.99 € (casella 46); el 390, 12012.1 € (casella 84).' }
+    ])
+    expect(check390Lines({ ok: true, changed: [], unfiled: [] }, money)).toBe(null)
+    expect(check390Lines(null, money)).toBe(null)
+  })
+
+  it('warns on the year and opens the quarter that changed', async () => {
+    get.mockResolvedValue({ data: { ...answer, check390: check } })
+    const w = mount(VatModelsTable, {
+      global: { plugins: [Buefy], stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+    })
+    await flushPromises()
+    await w.findAll('.vat-periods button')[4].trigger('click')
+    const box = w.find('[data-test="check390"]')
+    expect(box.exists()).toBe(true)
+    expect(box.text()).toContain('El 390 no quadra amb els 303 presentats.')
+    expect(box.text()).toContain('3T: casella 07 21.935,00 € → 21.935,50 €')
+    await box.findAll('button').find(b => b.text() === 'Veure el T3').trigger('click')
+    expect(w.find('.vat-periods button.is-on').text()).toBe('T3')
+    expect(w.find('[data-test="check390"]').exists()).toBe(false)
+  })
+
+  it('offers «Fora de l\'IVA» for received 0 % lines and lists the 230 of the 390', () => {
+    expect(REVERSE_CHARGE_LABELS.not_vat).toBe("Fora de l'IVA (no és una compra: quota d'autònoms, impostos, taxes…)")
+    const rows = [
+      { kind: 'received-invoices', id: 1, side: 'received', rate: 0, base: 624, not_in_return: true, annual_box: '230' },
+      { kind: 'received-invoices', id: 2, side: 'received', rate: 0, base: 624, not_in_return: true, not_vat: true }
+    ]
+    expect(filterVatRows(rows, { box: '230' }).map(r => r.id)).toEqual([1])
   })
 })

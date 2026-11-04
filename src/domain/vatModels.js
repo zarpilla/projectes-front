@@ -102,7 +102,7 @@ export const MODEL_390 = [
   {
     title: "Operacions específiques i prorrata",
     lines: [
-      { label: "Adquisicions interiors exemptes", vat: "230" },
+      { label: "Adquisicions interiors exemptes", vat: "230", from: "230" },
       { label: "Prorrata: import total d'operacions", vat: "115" },
       { label: "Prorrata: operacions amb dret a deduir", vat: "116" },
       { label: "Prorrata: %", vat: "118", pct: true }
@@ -143,7 +143,9 @@ export const REVERSE_CHARGE_LABELS = {
   intracom: "Adquisició intracomunitària de serveis (autoliquidar)",
   intracom_goods: "Adquisició intracomunitària de béns (autoliquidar)",
   isp: "Inversió del subjecte passiu (autoliquidar)",
-  none: "Res a autoliquidar"
+  none: "Res a autoliquidar",
+  // not a VAT operation at all: out of the 390's 230 too
+  not_vat: "Fora de l'IVA (no és una compra: quota d'autònoms, impostos, taxes…)"
 };
 
 // the received classifications that self-assess VAT, at a rate (21 % by default)
@@ -184,6 +186,25 @@ export const KIND_LABELS = {
   "received-incomes": "Ingrés",
   "received-invoices": "Factura rebuda"
 };
+
+/**
+ * The 390 against the 303s marked as filed (backend `check390`): the lines of
+ * the warning, or null when it adds up or no 303 is filed. `money` formats.
+ */
+export function check390Lines(check, money) {
+  if (!check || check.ok) return null;
+  const lines = (check.changed || []).map(c => ({
+    quarter: c.quarter,
+    text: `${c.period}: ` + c.boxes.map(b => `casella ${b.box} ${money(b.filed)} → ${money(b.now)}`).join(", ")
+  }));
+  if (check.unfiled && check.unfiled.length) {
+    lines.push({ quarter: null, text: `Sense marcar com a presentats: ${check.unfiled.join(", ")}.` });
+  }
+  if (check.filed_result !== null && check.filed_result !== undefined && check.filed_result !== check.result) {
+    lines.push({ quarter: null, text: `Resultat: els 303 presentats sumen ${money(check.filed_result)} (casella 46); el 390, ${money(check.result)} (casella 84).` });
+  }
+  return lines;
+}
 
 /** The boxes of the period: a quarter (1–4) or the year (null). */
 export function periodBoxes(data, quarter) {
