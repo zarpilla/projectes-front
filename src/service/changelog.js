@@ -19,7 +19,50 @@ export const CHANGELOG_MODULES = [
   "Integracions", "Administració", "Plataforma"
 ]
 
+// Which permissions see each module's entries in Novetats: a member or a driver
+// doesn't read about invoices, an hours-only worker doesn't read about routes.
+// An entry shows when any of its modules is hers; Plataforma is for everyone
+// and `admin` sees all.
+const WORK = ['projects', 'hours']
+const LOGISTICS = ['orders', 'orders_admin', 'orders_delivery']
+export const CHANGELOG_MODULE_PERMISSIONS = {
+  Projectes: WORK,
+  Hores: WORK,
+  Diners: WORK,
+  Subvencions: WORK,
+  Informes: WORK,
+  Integracions: WORK,
+  Logística: LOGISTICS,
+  Administració: [],
+  Plataforma: null
+}
+
+/** Whether a changelog item concerns a user with these permissions; unknown permissions (null) see all. */
+export const changelogItemVisible = (item, permissions) => {
+  if (!permissions || permissions.includes('admin')) return true
+  return (item.modules || []).some(m => {
+    const needed = CHANGELOG_MODULE_PERMISSIONS[m]
+    return needed === null || needed === undefined || needed.some(p => permissions.includes(p))
+  })
+}
+
+/** The changelog with only the items for these permissions, dropping the days left empty. */
+export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
+  changelog
+    .map(e => ({ ...e, items: e.items.filter(i => changelogItemVisible(i, permissions)) }))
+    .filter(e => e.items.length)
+
 export const CHANGELOG = [
+{
+  date: "2026.11.04",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Plataforma"],
+      text: "Les Novetats només mostren els canvis dels mòduls que fas servir: les de logística a qui té permisos de comandes (sòcies, oficina, transportistes) i les de projectes, hores, diners, subvencions, informes i integracions a qui té permís de projectes o d'hores. Les d'administració, a les administradores, que ho veuen tot."
+    }
+  ]
+},
 {
   date: "2026.11.03",
   items: [

@@ -72,7 +72,7 @@
 <script>
 import { canOpenPath, storedPermissions } from "@/domain/routeAccess";
 import TitleBar from "@/components/TitleBar.vue";
-import { CHANGELOG, CHANGELOG_MODULES, changelogDate } from "@/service/changelog";
+import { CHANGELOG_MODULES, changelogDate, visibleChangelog } from "@/service/changelog";
 import { openTickets, ticketsErrorMessage } from "@/service/tickets";
 
 const textOf = item =>
@@ -85,7 +85,8 @@ export default {
   components: { TitleBar },
   data() {
     return {
-      changeLog: CHANGELOG,
+      // only the entries about modules she uses
+      changeLog: visibleChangelog(storedPermissions()),
       search: "",
       type: "all",
       module: "all",
@@ -108,7 +109,9 @@ export default {
     },
     // an item counts for every module it touches, not only the main one
     modules() {
-      return CHANGELOG_MODULES.map(id => ({ id, count: this.allItems.filter(i => (i.modules || []).includes(id)).length }));
+      return CHANGELOG_MODULES
+        .map(id => ({ id, count: this.allItems.filter(i => (i.modules || []).includes(id)).length }))
+        .filter(m => m.count);
     },
     years() {
       const counts = {};

@@ -106,7 +106,7 @@
 import { canOpenPath, storedPermissions } from "@/domain/routeAccess";
 import service from '@/service/index'
 import { logout } from '@/service/auth'
-import { CHANGELOG, changelogDate } from '@/service/changelog'
+import { changelogDate, visibleChangelog } from '@/service/changelog'
 import { getThemeChoice, setThemeChoice } from '@/service/theme'
 import { permissionLabel } from '@/domain/permissions'
 
@@ -138,7 +138,7 @@ export default {
       return (this.me.permissions || []).map(p => p.permission).filter(Boolean)
     },
     latest () {
-      return CHANGELOG[0] || null
+      return visibleChangelog(storedPermissions())[0] || null
     }
   },
   async mounted () {
