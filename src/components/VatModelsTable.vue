@@ -54,6 +54,52 @@
       </div>
     </div>
 
+    <section class="a-box vat-return-bar" data-test="return-bar">
+      <div class="vat-return-status">
+        <template v-if="currentFiled">
+          <span class="tag is-success is-light">Presentada</span>
+          <span>
+            el {{ date(currentFiled.filed_date) }}<template v-if="currentFiled.declaration_type"> · {{ currentFiled.declaration_type }} ({{ typeLabels[currentFiled.declaration_type] }})</template><template v-if="currentFiled.receipt"> · justificant {{ currentFiled.receipt }}</template>
+          </span>
+        </template>
+        <template v-else>
+          <span class="tag is-light">Sense presentar</span>
+          <span class="has-text-muted">Quan la presentis, marca-la: se'n desen les caselles i els documents.</span>
+        </template>
+      </div>
+      <div class="vat-return-actions">
+        <b-button size="is-small" icon-left="download" data-test="aeat-file" @click="openModal('download')">Fitxer per a l'AEAT</b-button>
+        <b-button size="is-small" type="is-primary" data-test="mark-filed" @click="openModal('file')">{{ currentFiled ? "Torna a marcar" : "Marca com a presentada" }}</b-button>
+        <b-button v-if="currentFiled" size="is-small" type="is-text" data-test="unfile" @click="unfile">Desmarca</b-button>
+      </div>
+      <div v-if="currentChanges" class="notification is-danger is-light vat-return-changes" data-test="changes">
+        <b>Han canviat dades d'aquest període des que es va presentar.</b>
+        <ul>
+          <li v-for="c in currentChanges.boxes" :key="'b' + c.box">Casella {{ c.box }}: {{ money(c.filed) }} → {{ money(c.now) }}</li>
+          <li v-for="d in currentChanges.documents || []" :key="d.key">
+            {{ changeLabels[d.change] }}: <router-link :to="`/document/${d.id}/${d.kind}`">{{ d.code || d.id }}</router-link>
+            {{ d.contact ? `(${d.contact})` : "" }} · IVA {{ money(d.vat) }}<template v-if="d.filed"> (era {{ money(d.filed.vat) }})</template>
+          </li>
+        </ul>
+        <p>Si cal corregir-la, presenta'n una de rectificativa i torna-la a marcar.</p>
+      </div>
+    </section>
+
+    <section v-if="showFinalProrrata" class="a-box vat-final-prorrata" data-test="final-prorrata">
+      <div>
+        <b>Prorrata definitiva de {{ year }}</b>
+        <p class="has-text-muted">
+          Provisional {{ data.deductible_pct }} %<template v-if="data.prorrata && data.prorrata.definitive !== null"> · estimada {{ data.prorrata.definitive }} % (a partir de les operacions classificades)</template>.
+          La regularització va a la casella 44 del T4 i a la 522 del 390.
+        </p>
+      </div>
+      <div class="vat-final-prorrata-form">
+        <b-input v-model="finalPct" type="number" min="0" max="100" step="1" size="is-small" aria-label="Prorrata definitiva (%)" placeholder="%" />
+        <b-button size="is-small" :loading="savingProrrata" @click="saveFinalProrrata(finalPct)">Desa</b-button>
+        <b-button v-if="data.final_deductible_pct !== null" size="is-small" type="is-text" @click="saveFinalProrrata(null)">Treu-la</b-button>
+      </div>
+    </section>
+
     <section v-if="issues.length" class="a-box list-box vat-issues">
       <header class="box-head">
         <h2>Per revisar</h2>
@@ -71,7 +117,7 @@
       </ul>
     </section>
 
-    <div class="vat-form">
+    <div v-if="quarter" class="vat-form">
       <section class="a-box list-box">
         <header class="box-head">
           <h2>IVA meritat</h2>
@@ -153,29 +199,40 @@
         </div>
       </section>
 
-      <section v-if="!quarter" class="a-box list-box">
+    </div>
+
+    <!-- the year: the model 390, in its own numbering -->
+    <div v-else class="vat-form">
+      <section v-for="sec in model390" :key="sec.title" class="a-box list-box vat-390">
         <header class="box-head">
-          <h2>Volum d'operacions (390)</h2>
+          <h2>{{ sec.title }}</h2>
+          <span v-if="sec.title === 'IVA meritat'" class="box-hint">Model 390, amb la seva numeració</span>
         </header>
         <div class="table-wrap">
           <table class="table is-fullwidth vat-boxes">
+            <thead v-if="sec.lines.some(l => l.base)">
+              <tr><th scope="col"></th><th scope="col" class="has-text-right">Base</th><th scope="col" class="has-text-right">Quota</th></tr>
+            </thead>
             <tbody>
-              <tr v-for="r in volume" :key="r.box" :class="{ 'is-total': r.total }">
-                <th scope="row">{{ r.label }}</th>
-                <td class="has-text-right"><box-value :box="r.box" :value="boxes[r.box]" :on="box" :pickable="!['80', '88'].includes(r.box)" @pick="selectBox" /></td>
-              </tr>
-              <tr v-if="boxes.unclassified_base" class="is-missing">
-                <th scope="row">Línies al 0 % sense classificar<small class="not-computed">no sumen</small></th>
-                <td class="has-text-right">{{ money(boxes.unclassified_base) }}</td>
+              <tr v-for="l in sec.lines" :key="l.vat" :class="{ 'is-total': l.total }">
+                <th scope="row">{{ l.label }}</th>
+                <td v-if="sec.lines.some(x => x.base)" class="has-text-right"><box-value v-if="l.base" :box="l.base" :value="boxes390[l.base] || 0" /></td>
+                <td class="has-text-right">
+                  <box-value :box="l.vat" :value="l.pct ? (boxes390[l.vat] === undefined ? null : boxes390[l.vat]) : boxes390[l.vat] || 0" :pct="l.pct" :on="box" :pickable="!!l.from" @pick="selectBox(l.from)" />
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p v-if="data.prorrata" class="vat-prorrata">
-          <b>Prorrata definitiva estimada: {{ data.prorrata.definitive }} %</b> (provisional {{ data.prorrata.provisional }} %).
-          La regularització del 4T (casella 44) seria de {{ money(data.prorrata.regularisation) }}.
-          És una estimació a partir de les operacions classificades: no es posa al model.
-        </p>
+      </section>
+      <section class="a-box list-box">
+        <header class="box-head"><h2>Per completar</h2></header>
+        <ul class="vat-390-notes">
+          <li v-if="boxes.unclassified_base">Línies al 0 % sense classificar: {{ money(boxes.unclassified_base) }}. No sumen al volum d'operacions.</li>
+          <li v-if="data.model390 && data.model390.unmapped">{{ data.model390.unmapped }} {{ data.model390.unmapped === 1 ? "línia rebuda" : "línies rebudes" }} a un tipus que el 390 no té (base {{ money(data.model390.unmapped_base) }}): sumen al total però a cap tipus.</li>
+          <li>El 390 porta també les dades de l'entitat (Configuració › Models d'IVA): activitat, clau, epígraf IAE i CNAE.</li>
+          <li>No es calculen el règim simplificat, el recàrrec d'equivalència, les importacions ni les deduccions de sectors diferenciats.</li>
+        </ul>
       </section>
     </div>
 
@@ -279,6 +336,19 @@
         </li>
       </ul>
     </section>
+
+    <vat-return-modal
+      :is-active="!!modal"
+      :mode="modal || 'file'"
+      :model="quarter ? '303' : '390'"
+      :year="year"
+      :quarter="quarter"
+      :result="quarter ? boxes['71'] : boxes390['86'] || 0"
+      :default-type="currentQuarter ? currentQuarter.declaration_type : null"
+      :filed="currentFiled"
+      @cancel="modal = null"
+      @done="modalDone"
+    />
   </div>
 </template>
 
@@ -288,8 +358,9 @@ import service from "@/service/index";
 import { startLoad } from "@/domain/latestLoad.js";
 import { formatMoney } from "@/helpers/format-number";
 import VatBoxValue from "@/components/VatBoxValue.vue";
+import VatReturnModal from "@/components/VatReturnModal.vue";
 import {
-  ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, VOLUME, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
+  ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, MODEL_390, DECLARATION_TYPES, CHANGE_LABELS, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
   OPERATION_LABELS, REVERSE_CHARGE_LABELS,
   periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals, classificationLabel, classifyItems
 } from "@/domain/vatModels.js";
@@ -303,11 +374,11 @@ function boxesLabel(r) {
   return parts.join(" · ");
 }
 
-const EMPTY = { quarters: [], annual: {}, issues: [], notes: [], rows: [], deductible_pct: 100 };
+const EMPTY = { quarters: [], annual: {}, model390: { boxes: {} }, issues: [], notes: [], rows: [], deductible_pct: 100, final_deductible_pct: null };
 
 export default {
   name: "VatModelsTable",
-  components: { BoxValue: VatBoxValue },
+  components: { BoxValue: VatBoxValue, VatReturnModal },
   data() {
     const current = moment().year();
     return {
@@ -325,7 +396,12 @@ export default {
       accrued: ACCRUED,
       deductible: DEDUCTIBLE,
       information: INFORMATION,
-      volume: VOLUME,
+      model390: MODEL_390,
+      typeLabels: DECLARATION_TYPES,
+      changeLabels: CHANGE_LABELS,
+      modal: null,
+      finalPct: null,
+      savingProrrata: false,
       operationLabels: OPERATION_LABELS,
       reverseChargeLabels: REVERSE_CHARGE_LABELS,
       checkedRows: [],
@@ -370,6 +446,23 @@ export default {
     },
     rowsTotals() {
       return vatRowsTotals(this.tableRows.filter(r => r.base_box));
+    },
+    boxes390() {
+      return (this.data.model390 && this.data.model390.boxes) || {};
+    },
+    currentQuarter() {
+      return this.quarter ? this.data.quarters.find(q => q.quarter === this.quarter) || null : null;
+    },
+    currentFiled() {
+      return this.quarter ? (this.currentQuarter && this.currentQuarter.filed) || null : this.data.filed390 || null;
+    },
+    currentChanges() {
+      return this.quarter ? (this.currentQuarter && this.currentQuarter.changes) || null : this.data.changes390 || null;
+    },
+    // the last quarter and the year, when there is a prorrata to settle
+    showFinalProrrata() {
+      if (this.quarter && this.quarter !== 4) return false;
+      return this.data.deductible_pct < 100 || this.data.final_deductible_pct !== null || !!(this.data.prorrata && this.data.prorrata.definitive !== null && this.data.prorrata.definitive < 100);
     },
     checkedIssued() {
       return this.checkedRows.filter(r => r.classify && r.classify.field === "vat_operation");
@@ -423,6 +516,36 @@ export default {
         ...classifyItems(this.checkedRows, "reverse_charge")
       ]);
     },
+    openModal(mode) {
+      this.modal = mode;
+    },
+    async modalDone() {
+      const reload = this.modal === "file";
+      this.modal = null;
+      if (reload) await this.load();
+    },
+    async unfile() {
+      if (!this.currentFiled) return;
+      if (!window.confirm("Es desmarcarà com a presentada i se n'esborrarà la foto de caselles i documents. Segueixes?")) return;
+      try {
+        await service({ requiresAuth: true }).delete(`treasuries/vat-models/returns/${this.currentFiled.id}`);
+        await this.load();
+      } catch (e) {
+        this.$buefy.toast.open({ message: `No s'ha pogut desmarcar: ${e.message}`, type: "is-danger" });
+      }
+    },
+    async saveFinalProrrata(pct) {
+      this.savingProrrata = true;
+      try {
+        await service({ requiresAuth: true }).post("treasuries/vat-models/final-prorrata", { year: this.year, pct: pct === "" ? null : pct });
+        await this.load();
+      } catch (e) {
+        const message = (e.response && e.response.data && e.response.data.error && e.response.data.error.message) || e.message;
+        this.$buefy.toast.open({ message: `No s'ha pogut desar: ${message}`, type: "is-danger" });
+      } finally {
+        this.savingProrrata = false;
+      }
+    },
     async sendClassification(items) {
       if (!items.length) return;
       this.saving = true;
@@ -448,6 +571,7 @@ export default {
         const answer = (await service({ requiresAuth: true }).get(`treasuries/vat-models?year=${this.year}`)).data;
         if (isStale()) return;
         this.data = answer && answer.rows ? answer : EMPTY;
+        this.finalPct = this.data.final_deductible_pct;
       } finally {
         if (!isStale()) this.isLoading = false;
       }
@@ -505,6 +629,61 @@ export default {
   font-size: .75rem;
   font-style: italic;
 }
+.vat-return-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+  margin-bottom: 1rem;
+  padding: .875rem 1.25rem;
+}
+.vat-return-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.vat-return-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.vat-return-changes {
+  flex-basis: 100%;
+  margin: 0;
+}
+.vat-return-changes ul {
+  margin: .5rem 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.vat-final-prorrata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+  margin-bottom: 1rem;
+  padding: .875rem 1.25rem;
+}
+.vat-final-prorrata p {
+  font-size: .8125rem;
+}
+.vat-final-prorrata-form {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.vat-final-prorrata-form .control {
+  width: 6rem;
+}
+.vat-390-notes {
+  margin: 0;
+  padding: .75rem 1.25rem 1rem 2.25rem;
+  list-style: disc;
+  font-size: .875rem;
+}
 .vat-classify {
   display: flex;
   flex-wrap: wrap;
@@ -533,12 +712,6 @@ export default {
 .vat-proposal {
   color: var(--a-muted);
   font-style: italic;
-}
-.vat-prorrata {
-  margin: 0;
-  padding: .875rem 1.25rem;
-  border-top: 1px solid var(--a-line);
-  font-size: .875rem;
 }
 .vat-issues,
 .vat-notes {

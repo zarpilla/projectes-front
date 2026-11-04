@@ -43,16 +43,86 @@ export const INFORMATION = [
   { label: "Subjectes amb inversió del subjecte passiu", box: "122" }
 ];
 
-// the year's volume of operations (390)
-export const VOLUME = [
-  { label: "Operacions en règim general", box: "80" },
-  { label: "Exemptes sense dret a deducció", box: "83" },
-  { label: "No subjectes per regles de localització", box: "84" },
-  { label: "Lliuraments intracomunitaris exempts", box: "93" },
-  { label: "Exportacions i altres exemptes amb dret a deducció", box: "94" },
-  { label: "Subjectes amb inversió del subjecte passiu", box: "125" },
-  { label: "Total volum d'operacions", box: "88", total: true }
+// the year's model 390, in its own numbering (backend vat-models.js boxes390).
+// `rows`: the 303's boxes behind it, to show their documents
+export const MODEL_390 = [
+  {
+    title: "IVA meritat",
+    lines: [
+      { label: "Règim ordinari 4 %", base: "01", vat: "02" },
+      { label: "Règim ordinari 10 %", base: "03", vat: "04" },
+      { label: "Règim ordinari 21 %", base: "05", vat: "06" },
+      { label: "Adquisicions intracomunitàries de béns", base: "25", vat: "26", others: [["21", "22"], ["23", "24"]] },
+      { label: "Adquisicions intracomunitàries de serveis", base: "551", vat: "552", others: [["545", "546"], ["547", "548"]] },
+      { label: "Inversió del subjecte passiu", base: "27", vat: "28" },
+      { label: "Modificació de bases i quotes", base: "29", vat: "30" },
+      { label: "Total bases i quotes", base: "33", vat: "34", total: true }
+    ]
+  },
+  {
+    title: "IVA deduïble",
+    lines: [
+      { label: "Operacions interiors corrents", base: "48", vat: "49" },
+      { label: "Operacions interiors amb béns d'inversió", base: "50", vat: "51" },
+      { label: "Adquisicions intracomunitàries de béns corrents", base: "56", vat: "57" },
+      { label: "Adquisicions intracomunitàries de béns d'inversió", base: "58", vat: "59" },
+      { label: "Adquisicions intracomunitàries de serveis", base: "597", vat: "598" },
+      { label: "Regularització per la prorrata definitiva", vat: "522" },
+      { label: "Suma de deduccions", vat: "64", total: true }
+    ]
+  },
+  {
+    title: "Resultat",
+    lines: [
+      { label: "Resultat règim general", vat: "65" },
+      { label: "Suma de resultats", vat: "84" },
+      { label: "Compensació de quotes de l'exercici anterior", vat: "85" },
+      { label: "Resultat de la liquidació", vat: "86", total: true },
+      { label: "Total a ingressar de les autoliquidacions de l'any", vat: "95" },
+      { label: "Últim període: a compensar", vat: "97" },
+      { label: "Últim període: a retornar", vat: "98" }
+    ]
+  },
+  {
+    title: "Volum d'operacions",
+    lines: [
+      { label: "Operacions en règim general", vat: "99", from: "80" },
+      { label: "Lliuraments intracomunitaris exempts", vat: "103", from: "93" },
+      { label: "Exportacions i altres exemptes amb dret a deducció", vat: "104", from: "94" },
+      { label: "Exemptes sense dret a deducció", vat: "105", from: "83" },
+      { label: "No subjectes per regles de localització", vat: "110", from: "84" },
+      { label: "Subjectes amb inversió del subjecte passiu", vat: "125", from: "125" },
+      { label: "Total volum d'operacions", vat: "108", total: true }
+    ]
+  },
+  {
+    title: "Operacions específiques i prorrata",
+    lines: [
+      { label: "Adquisicions interiors exemptes", vat: "230" },
+      { label: "Prorrata: import total d'operacions", vat: "115" },
+      { label: "Prorrata: operacions amb dret a deduir", vat: "116" },
+      { label: "Prorrata: %", vat: "118", pct: true }
+    ]
+  }
 ];
+
+// I, U, C, D and N of the 303's «Tipus de declaració»
+export const DECLARATION_TYPES = {
+  I: "Ingrés",
+  U: "Domiciliació de l'ingrés",
+  C: "A compensar",
+  D: "Devolució",
+  N: "Sense activitat o resultat zero"
+};
+
+/** The types a quarter can be filed with, from its result (D only in the 4T). */
+export function declarationTypesFor(result, quarter) {
+  if (result > 0) return ["I", "U"];
+  if (result < 0) return quarter === 4 ? ["C", "D"] : ["C"];
+  return ["N"];
+}
+
+export const CHANGE_LABELS = { added: "Afegit", removed: "Tret", changed: "Canviat" };
 
 // issued 0 % lines: Verifactu's codes (backend services/vat-models.js OPERATIONS)
 export const OPERATION_LABELS = {
@@ -66,7 +136,8 @@ export const OPERATION_LABELS = {
 
 // received 0 % invoices
 export const REVERSE_CHARGE_LABELS = {
-  intracom: "Adquisició intracomunitària (autoliquidar)",
+  intracom: "Adquisició intracomunitària de serveis (autoliquidar)",
+  intracom_goods: "Adquisició intracomunitària de béns (autoliquidar)",
   isp: "Inversió del subjecte passiu (autoliquidar)",
   none: "Res a autoliquidar"
 };

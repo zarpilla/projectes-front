@@ -113,6 +113,21 @@
             <p class="cfg-note">Les sèries de numeració es gestionen a part. <router-link to="/administracio/series">Gestiona les sèries →</router-link></p>
           </section>
 
+          <!-- IVA › Models 303 i 390: what the AEAT files carry besides the boxes -->
+          <section id="cfg-aeat" class="form-box">
+            <h2>Models d'IVA (AEAT)</h2>
+            <p class="form-box-sub">Dades que porten els fitxers dels models 303 i 390 (IVA › Models 303 i 390).</p>
+            <div class="cfg-grid">
+              <b-field label="Activitat principal" message="Com al 390, fins a 40 caràcters." class="is-wide"><b-input v-model="form.aeat_activity" maxlength="40" /></b-field>
+              <b-field label="Clau d'activitat" message="3 caràcters, p. ex. A03."><b-input v-model="form.aeat_activity_code" maxlength="3" /></b-field>
+              <b-field label="Epígraf IAE" message="4 caràcters."><b-input v-model="form.aeat_iae" maxlength="4" /></b-field>
+              <b-field label="Codi CNAE" message="4 xifres, per a la prorrata."><b-input v-model="form.aeat_cnae" maxlength="4" /></b-field>
+              <b-field label="Exonerada del model 390" message="Llavors el 303 del 4T porta el resum de l'any." class="is-wide">
+                <b-switch v-model="form.aeat_vat_390_exempt">{{ form.aeat_vat_390_exempt ? "Sí" : "No" }}</b-switch>
+              </b-field>
+            </div>
+          </section>
+
           <section id="cfg-face" class="form-box">
             <h2>Factura electrònica (FACe)</h2>
             <p class="form-box-sub">Enviament de factures a les administracions públiques.</p>
@@ -383,6 +398,7 @@ export default {
         { id: "cfg-logo", label: "Logo" },
         { id: "cfg-comptes", label: "Comptes bancaris" },
         { id: "cfg-facturacio", label: "Facturació" },
+        { id: "cfg-aeat", label: "Models d'IVA" },
         { id: "cfg-face", label: "FACe" },
         { id: "cfg-peus", label: "Textos de peu" },
         { id: "cfg-contacte", label: "Formulari de contacte" },
@@ -427,6 +443,11 @@ export default {
         face_test_endpoint: '',
         face_real_endpoint: '',
         face_invoice_format: 'facturae',
+        aeat_activity: '',
+        aeat_activity_code: '',
+        aeat_iae: '',
+        aeat_cnae: '',
+        aeat_vat_390_exempt: false,
         contact_form_email: '',
         contact_form_text: '',
         contact_form_thankyou: '',

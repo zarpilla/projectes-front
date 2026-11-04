@@ -11,7 +11,7 @@ vi.mock('@/service/index', () => ({ default: () => ({ get, post }) }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
 import Vat from '@/views/Vat.vue'
-import { classificationLabel, classifyItems, filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
+import { classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
 import { canOpenPath } from '@/domain/routeAccess'
 import menu from '@/service/menu'
 
@@ -32,6 +32,10 @@ const answer = {
     { quarter: 4, deadline: '2027-01-30', boxes: boxes() }
   ],
   annual: boxes({ '07': 1100, '09': 231, '27': 231, '28': 400, '29': 67.2, '45': 67.2, '46': 163.8, '71': 163.8, '80': 1100, unclassified_base: 500 }),
+  model390: { boxes: { '05': 1100, '06': 231, '33': 1100, '34': 231, '605': 400, '606': 67.2, '48': 400, '49': 67.2, '64': 67.2, '65': 163.8, '84': 163.8, '86': 163.8, '99': 1100, '108': 1100 }, unmapped: 0, unmapped_base: 0 },
+  filed390: null,
+  changes390: null,
+  final_deductible_pct: null,
   issues: [{ code: 'issued-zero', text: 'Línies emeses al 0 % sense classificar', count: 1, base: 500 }],
   notes: [{ code: 'expenses-excluded', text: 'Les despeses no compten.', count: 2, vat: 12 }],
   rows
@@ -110,8 +114,11 @@ describe('VAT models page', () => {
     expect(w.find('.beta-notice').text()).toContain('Beta')
     await w.findAll('.vat-periods button')[4].trigger('click')
     const text = w.text()
+    // the year: the 390, in its own numbering
     expect(text).toContain('1.100,00 €')
-    expect(text).toContain('[80]')
+    expect(text).toContain('[99]')
+    expect(text).toContain('[86]')
+    expect(text).not.toContain('[80]')
     expect(text).toContain('Les despeses no compten.')
   })
 
@@ -187,5 +194,66 @@ describe('phase 2: classifying the 0 % lines', () => {
     ] })
     expect(get).toHaveBeenCalledTimes(2)
     expect(w.vm.checkedRows).toEqual([])
+  })
+})
+
+describe('phase 3: filed returns, final prorrata and the AEAT file', () => {
+  const mountWith = async (data) => {
+    get.mockReset()
+    get.mockResolvedValue({ data })
+    post.mockReset()
+    post.mockResolvedValue({ data: {} })
+    const w = mount(VatModelsTable, {
+      global: { plugins: [Buefy], stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+    })
+    await flushPromises()
+    await w.findAll('.vat-periods button')[0].trigger('click')
+    return w
+  }
+
+  it('says a quarter is filed and what changed since', async () => {
+    const quarters = answer.quarters.map(q => q.quarter === 1
+      ? { ...q, declaration_type: 'I', filed: { id: 5, declaration_type: 'I', filed_date: '2026-04-18', receipt: '3031234567890', boxes: q.boxes },
+          changes: { boxes: [{ box: '09', filed: 189, now: 210 }], documents: [{ key: 'emitted-invoices:1:21', kind: 'emitted-invoices', id: 1, code: 'F1', contact: 'Client', vat: 21, change: 'added' }] } }
+      : q)
+    const w = await mountWith({ ...answer, quarters })
+    const bar = w.find('[data-test="return-bar"]').text()
+    expect(bar).toContain('Presentada')
+    expect(bar).toContain('18/04/2026')
+    expect(bar).toContain('justificant 3031234567890')
+    const changes = w.find('[data-test="changes"]').text()
+    expect(changes).toContain('Casella 09: 189,00 € → 210,00 €')
+    expect(changes).toContain('Afegit: F1')
+    expect(w.find('[data-test="unfile"]').exists()).toBe(true)
+  })
+
+  it('marks a quarter as filed with its declaration type, date and receipt', async () => {
+    const w = await mountWith({ ...answer, quarters: answer.quarters.map(q => ({ ...q, declaration_type: 'I', filed: null, changes: null })) })
+    expect(w.find('[data-test="return-bar"]').text()).toContain('Sense presentar')
+    await w.find('[data-test="mark-filed"]').trigger('click')
+    await flushPromises()
+    const modal = w.findComponent({ name: 'VatReturnModal' })
+    expect(modal.props()).toMatchObject({ mode: 'file', model: '303', quarter: 1, result: 142.8, defaultType: 'I' })
+    // a positive result: to pay, or by direct debit
+    expect(modal.vm.types).toEqual(['I', 'U'])
+    modal.vm.form.receipt = '3030000000001'
+    await modal.vm.submit()
+    expect(post).toHaveBeenCalledWith('treasuries/vat-models/returns', expect.objectContaining({ model: '303', year: 2026, period: '1T', declaration_type: 'I', receipt: '3030000000001' }))
+  })
+
+  it('offers the final prorrata in the last quarter when there is a prorrata', async () => {
+    const w = await mountWith({ ...answer, prorrata: { provisional: 80, definitive: 77, regularisation: -5, with_right: 770, total: 1000 } })
+    expect(w.find('[data-test="final-prorrata"]').exists()).toBe(false)
+    await w.findAll('.vat-periods button')[3].trigger('click')
+    expect(w.find('[data-test="final-prorrata"]').text()).toContain('estimada 77 %')
+    await w.vm.saveFinalProrrata(77)
+    expect(post).toHaveBeenCalledWith('treasuries/vat-models/final-prorrata', { year: 2026, pct: 77 })
+  })
+
+  it('lists the declaration types a result allows', () => {
+    expect(declarationTypesFor(10, 1)).toEqual(['I', 'U'])
+    expect(declarationTypesFor(-10, 2)).toEqual(['C'])
+    expect(declarationTypesFor(-10, 4)).toEqual(['C', 'D'])
+    expect(declarationTypesFor(0, 3)).toEqual(['N'])
   })
 })
