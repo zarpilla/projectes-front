@@ -153,7 +153,9 @@ export const SELF_ASSESSED = ["intracom", "intracom_goods", "isp"];
 export const VAT_SPECIAL_LABELS = {
   none: "IVA espanyol deduïble",
   reagp: "Compensació agrària (REAGP)",
-  foreign_vat: "IVA estranger, no deduïble"
+  foreign_vat: "IVA estranger, no deduïble",
+  // a provider from abroad charging Spanish VAT for a service: the base is self-assessed (10/11 + 36/37 from the EU)
+  wrong_vat: "IVA espanyol mal repercutit des de fora (autoliquidar la base, no deduir-lo)"
 };
 
 const LABELS_BY_FIELD = { vat_operation: OPERATION_LABELS, reverse_charge: REVERSE_CHARGE_LABELS, vat_special: VAT_SPECIAL_LABELS };

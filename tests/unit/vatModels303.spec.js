@@ -11,7 +11,7 @@ vi.mock('@/service/index', () => ({ default: () => ({ get, post }) }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
 import Vat from '@/views/Vat.vue'
-import { DEDUCTIBLE, classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
+import { DEDUCTIBLE, classificationLabel, classifyItems, declarationTypesFor, filterVatRows, periodBoxes, periodIssues, vatRowsTotals, VAT_SPECIAL_LABELS } from '@/domain/vatModels.js'
 import { canOpenPath } from '@/domain/routeAccess'
 import menu from '@/service/menu'
 
@@ -268,6 +268,9 @@ describe('agrarian compensation and foreign VAT', () => {
     expect(classifyItems(special, 'vat_special')).toEqual([{ kind: 'received-invoices', id: 1, value: 'reagp', field: 'vat_special' }])
     expect(classifyItems(special, 'vat_special', 'foreign_vat').map(i => i.value)).toEqual(['foreign_vat', 'foreign_vat'])
     expect(classificationLabel('vat_special', 'reagp')).toBe('Compensació agrària (REAGP)')
+    // 2026-11-04: Spanish VAT charged by a provider from abroad, self-assessed by the reverse charge
+    expect(classificationLabel('vat_special', 'wrong_vat')).toBe('IVA espanyol mal repercutit des de fora (autoliquidar la base, no deduir-lo)')
+    expect(Object.keys(VAT_SPECIAL_LABELS)).toEqual(['none', 'reagp', 'foreign_vat', 'wrong_vat'])
     // box 42 has a quota only
     expect(filterVatRows(special, { box: '42' }).map(r => r.id)).toEqual([2])
     expect(vatRowsTotals(special.filter(r => r.vat_box))).toEqual({ count: 1, base: 0, vat: 24 })
