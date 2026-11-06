@@ -17,7 +17,7 @@ Generat a partir de [TOPICS.md](../TOPICS.md). Els capítols encara no escrits n
 - [13. Imputar hores dedicades](13-imputar-hores.md) · [14. Registre de jornada](14-registre-jornada.md) · [15. Persones i jornades laborals](15-persones-jornades.md) · [16. Saldo d'hores i hores anuals](16-saldo-hores.md)
 
 ## D. Diners
-- [17. Factures emeses](17-factures-emeses.md) · [18. Verifactu i FACe](18-verifactu-face.md) · [19. Factures rebudes](19-factures-rebudes.md) · [20. Bestretes](20-bestretes.md) · [21. IVA](21-iva.md) · [22. Tresoreria](22-tresoreria.md) · [23. Importar, exportar i Contasol](23-importar-exportar-contasol.md)
+- [17. Factures emeses](17-factures-emeses.md) · [18. Verifactu i FACe](18-verifactu-face.md) · [19. Factures rebudes](19-factures-rebudes.md) · [20. Bestretes](20-bestretes.md) · [21. IVA](21-iva.md) · [22. Tresoreria](22-tresoreria.md) · [23. Importar, exportar i Contasol](23-importar-exportar-contasol.md) · [39. Conciliació bancària](39-conciliacio-bancaria.md)
 
 ## E. Consulta de dades
 - [24. Taules dinàmiques](24-taules-dinamiques.md) · [25. Informes de projectes i econòmics](25-informes-projectes-economics.md) · [26. Informes de dedicació](26-informes-dedicacio.md)

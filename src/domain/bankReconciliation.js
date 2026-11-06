@@ -66,6 +66,24 @@ export function partialAmount(movement, line) {
   return Math.abs(movement.amount) < Math.abs(line.amount) ? round2(movement.amount) : null;
 }
 
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * What the «Extracte pujat» dialog says, one paragraph per item, from the
+ * answer of POST bank-movements/import; `money` and `date` format the values.
+ */
+export function importSummary(r, { money, date }) {
+  const created = r.accounts.reduce((s, a) => s + a.created, 0);
+  const duplicate = r.accounts.reduce((s, a) => s + a.duplicate, 0);
+  const auto = r.auto.matched + r.auto.transfers + r.auto.ruled;
+  return [
+    `${plural(created, "moviment nou", "moviments nous")}${duplicate ? ` (${plural(duplicate, "ja s'havia pujat", "ja s'havien pujat")})` : ""}.`,
+    `${auto} ${auto === 1 ? "conciliat" : "conciliats"} automàticament: ${r.auto.matched} amb línies de Tresoreria, ` +
+      `${plural(r.auto.transfers, "traspàs", "traspassos")} i ${r.auto.ruled} per regles.`,
+    ...r.accounts.map((a) => `${a.bank_account}: saldo de ${money(a.closing)} a ${date(a.to)}.`)
+  ];
+}
+
 /** The file as base64, for POST bank-movements/import. */
 export function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {

@@ -381,6 +381,7 @@ import {
   acceptPayload,
   partialAmount,
   readFileAsBase64,
+  importSummary,
   reconciliationApi,
   errorMessage
 } from "@/domain/bankReconciliation.js";
@@ -514,15 +515,11 @@ export default {
       try {
         const content = await readFileAsBase64(file);
         const r = await reconciliationApi.importFile(file.name, content);
-        const created = r.accounts.reduce((s, a) => s + a.created, 0);
-        const duplicate = r.accounts.reduce((s, a) => s + a.duplicate, 0);
-        const auto = r.auto.matched + r.auto.transfers + r.auto.ruled;
         this.$buefy.dialog.alert({
           title: "Extracte pujat",
-          message:
-            `<p>${created} moviments nous${duplicate ? ` (${duplicate} ja s'havien pujat)` : ""}.</p>` +
-            `<p>${auto} conciliats automàticament: ${r.auto.matched} amb línies de Tresoreria, ${r.auto.transfers} traspassos i ${r.auto.ruled} per regles.</p>` +
-            r.accounts.map((a) => `<p>${a.bank_account}: saldo de ${formatMoney(a.closing)} a ${this.date(a.to)}.</p>`).join(""),
+          message: importSummary(r, { money: formatMoney, date: this.date })
+            .map((p) => `<p>${p}</p>`)
+            .join(""),
           confirmText: "D'acord"
         });
         this.status = "pending";

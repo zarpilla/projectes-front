@@ -3,7 +3,7 @@
 // document: a partial collection) and only lets them be accepted when they
 // are the movement's amount; it labels what the backend proposed and did.
 import { describe, it, expect } from 'vitest'
-import { selectionTotals, acceptPayload, partialAmount, suggestionLabel, matchLabel } from '@/domain/bankReconciliation.js'
+import { selectionTotals, acceptPayload, partialAmount, suggestionLabel, matchLabel, importSummary } from '@/domain/bankReconciliation.js'
 
 const line = (id, amount, pending = false) => ({ id, amount, pending })
 
@@ -39,5 +39,30 @@ describe('bank reconciliation selection (issues/413)', () => {
     expect(matchLabel({ status: 'matched', match_kind: 'transfer' })).toBe('Traspàs entre comptes')
     expect(matchLabel({ status: 'matched', match_kind: 'annotation', rule: 'Comissions' })).toBe('Operació de tresoreria (regla «Comissions»)')
     expect(matchLabel({ status: 'ignored' })).toBe('Ignorat')
+  })
+})
+
+describe('import summary (issues/413)', () => {
+  const fmt = { money: (v) => `${v} €`, date: (d) => d }
+  it('says one movement and one transfer in the singular', () => {
+    const r = { accounts: [{ bank_account: 'Banc', created: 1, duplicate: 1, closing: 10, to: '2026-06-16' }], auto: { matched: 0, transfers: 1, ruled: 0 } }
+    expect(importSummary(r, fmt)).toEqual([
+      "1 moviment nou (1 ja s'havia pujat).",
+      '1 conciliat automàticament: 0 amb línies de Tresoreria, 1 traspàs i 0 per regles.',
+      'Banc: saldo de 10 € a 2026-06-16.'
+    ])
+  })
+  it('adds up every account of the file', () => {
+    const r = {
+      accounts: [
+        { bank_account: 'A', created: 12, duplicate: 0, closing: 1, to: 'x' },
+        { bank_account: 'B', created: 2, duplicate: 0, closing: 2, to: 'y' }
+      ],
+      auto: { matched: 7, transfers: 2, ruled: 1 }
+    }
+    expect(importSummary(r, fmt).slice(0, 2)).toEqual([
+      '14 moviments nous.',
+      '10 conciliats automàticament: 7 amb línies de Tresoreria, 2 traspassos i 1 per regles.'
+    ])
   })
 })

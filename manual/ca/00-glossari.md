@@ -28,6 +28,8 @@ de l'exercici, semblant a una nòmina. A ESSTRAPIS es registren per mes i person
 
 **Comanda de recollida (-R)** — Comanda que agrupa les comandes d'una sòcia que es recullen el mateix dia a la seva finca. El número acaba en «-R».
 
+**Conciliació bancària** — Comprovar que cada moviment del banc correspon a un cobrament o un pagament de l'ESSTRAPIS, pujant-ne l'extracte en format Norma 43. Vegeu [39. Conciliació bancària](39-conciliacio-bancaria.md).
+
 **Cost per hora** — El que costa a l'entitat una hora de treball d'una persona. Es defineix a la seva
 jornada laboral i s'aplica a les hores que imputa als projectes.
 
@@ -71,6 +73,8 @@ part de la seva activitat està exempta d'IVA. Compta com a despesa del projecte
 
 **Justificació** — Document que demostra a qui finança una subvenció com s'han fet servir els diners
 (nòmines, factures, hores).
+
+**Norma 43** — Format dels fitxers d'extracte que descarreguen els bancs espanyols (també dit «Cuaderno 43» o «CSB43»). És el que es puja a la conciliació bancària.
 
 **Original** — Pressupost inicial d'un projecte, que es manté com a referència.
 
