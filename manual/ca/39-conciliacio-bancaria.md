@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 39
 roles: [projects]
-routes: ["/conciliacio"]
+routes: ["/tresoreria"]
 lang: ca
 updated: 2026-11-06
 ---
@@ -23,7 +23,7 @@ En aquesta pantalla es puja l'extracte del banc i es lliga cada moviment amb una
 - les factures i despeses que encara eren pendents queden **cobrades o pagades amb la data del banc**;
 - el saldo final de l'extracte passa a ser el **saldo real** del compte.
 
-És a **Diners › Conciliació**.
+És a **Diners › Tresoreria**, a la pestanya **Conciliació**.
 
 ## Abans de començar
 
@@ -37,7 +37,7 @@ En aquesta pantalla es puja l'extracte del banc i es lliga cada moviment amb una
 
 ![La pantalla abans de pujar cap extracte](img/39-conciliacio-bancaria/02-pantalla-buida.png)
 
-La pantalla té tres pestanyes: **Moviments** (la feina de cada dia), **Regles** i **Extractes**.
+La pestanya té tres apartats: **Moviments** (la feina de cada dia), **Regles** i **Extractes**.
 
 ## Pas a pas
 
@@ -121,7 +121,7 @@ Les **regles** diuen què fer amb els moviments que es repeteixen i no tenen doc
 rebuts de la targeta… S'apliquen en pujar un extracte i amb **Concilia automàticament**, però només quan el
 moviment no coincideix amb cap línia de Tresoreria.
 
-A la pestanya **Regles**, **Afegeix una regla**:
+A l'apartat **Regles**, **Afegeix una regla**:
 
 | Camp | Què vol dir |
 |---|---|
@@ -140,7 +140,7 @@ A la pestanya **Regles**, **Afegeix una regla**:
 
 ### 5. Els extractes pujats
 
-La pestanya **Extractes** llista els últims 20 fitxers pujats, un per compte. Per a cadascun mostra quan es
+L'apartat **Extractes** llista els últims 20 fitxers pujats, un per compte. Per a cadascun mostra quan es
 va pujar, el període, quants moviments eren nous, quants ja s'havien pujat i el saldo final.
 
 ![Els extractes pujats](img/39-conciliacio-bancaria/12-extractes.png)

@@ -315,15 +315,9 @@ const routes = [
     props: true,
   },
   {
-    // issues/413
-    meta: {
-      title: "Conciliació",
-      requiresAuth: true
-    },
+    // issues/413: Conciliació is a tab of Tresoreria; the old address still works
     path: "/conciliacio",
-    name: "conciliacio.view",
-    component: () =>
-      import("../views/Conciliacio.vue"),
+    redirect: { path: "/tresoreria", query: { pestanya: "conciliacio" } },
   },
   {
     meta: {

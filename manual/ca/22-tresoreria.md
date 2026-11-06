@@ -21,7 +21,8 @@ La **tresoreria** diu quants diners hi ha als comptes avui i quants n'hi haurà 
   encara no facturades (amb la seva **previsió de pagament**), bestretes, Seguretat Social, IRPF i IVA per
   pagar.
 
-És a **Diners › Tresoreria**.
+És a **Diners › Tresoreria**. La pantalla té dues pestanyes: **Previsió i moviments**, que s'explica aquí, i
+**Conciliació**, on es puja l'extracte del banc (vegeu [39. Conciliació bancària](39-conciliacio-bancaria.md)).
 
 ## Abans de començar
 

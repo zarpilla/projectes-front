@@ -34,12 +34,12 @@ test('39-conciliacio-bancaria', async ({ page }) => {
   await start(page, '39-conciliacio-bancaria', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('/conciliacio')
+  await page.goto('/tresoreria?pestanya=conciliacio')
   await page.getByText('Moviments del banc').waitFor({ timeout: 60_000 })
   await settle(page, 800)
 
   // a rule for the bank fees, before the upload so it applies
-  await page.getByRole('tab', { name: 'Regles' }).click()
+  await page.getByRole('tab', { name: 'Regles', exact: true }).click()
   await page.getByRole('button', { name: 'Afegeix una regla' }).click()
   const form = page.locator('.recon-rule-form')
   await field(form, 'Nom').locator('input').fill('Comissions bancàries')
@@ -52,7 +52,7 @@ test('39-conciliacio-bancaria', async ({ page }) => {
   await settle(page, 600)
 
   // the upload
-  await page.getByRole('tab', { name: 'Moviments' }).click()
+  await page.getByRole('tab', { name: 'Moviments', exact: true }).click()
   await settle(page, 400)
   await shot(page, 'pantalla-buida')
   await page.locator('input[type=file]').setInputFiles(statement)
@@ -63,7 +63,7 @@ test('39-conciliacio-bancaria', async ({ page }) => {
   await settle(page, 800)
   await shot(page, 'pendents')
 
-  await page.getByRole('tab', { name: 'Tots' }).click()
+  await page.getByRole('tab', { name: 'Tots', exact: true }).click()
   await settle(page, 800)
   await shot(page, 'tots', { fullPage: true })
 
@@ -73,7 +73,7 @@ test('39-conciliacio-bancaria', async ({ page }) => {
   await page.keyboard.press('Escape')
   await settle(page, 400)
 
-  await page.getByRole('tab', { name: 'Pendents' }).click()
+  await page.getByRole('tab', { name: 'Pendents', exact: true }).click()
   await settle(page, 800)
 
   // a proposal (same amount, dates a few days apart)
@@ -117,11 +117,11 @@ test('39-conciliacio-bancaria', async ({ page }) => {
   await detail.getByRole('button', { name: /Crea la despesa/ }).click()
   await settle(page, 800)
 
-  await page.getByRole('tab', { name: 'Regles' }).click()
+  await page.getByRole('tab', { name: 'Regles', exact: true }).click()
   await settle(page, 600)
   await shot(page, 'regles')
 
-  await page.getByRole('tab', { name: 'Extractes' }).click()
+  await page.getByRole('tab', { name: 'Extractes', exact: true }).click()
   await settle(page, 600)
   await shot(page, 'extractes')
 })
