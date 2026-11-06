@@ -1094,7 +1094,7 @@
                   línia de pressupost del projecte. Si la línia no existís, es
                   pot crear en aquest moment o també es pot desdoblar alguna
                   existent. Per assignar-lo, cal marcar la casella de 'Facturat
-                  (Fact.)' i clicar al botó de 'Document (Doc.)'. Un cop
+                  (Fact.)' i clicar al botó 'Assignar' (columna Doc.). Un cop
                   assignat, caldrà guardar la factura.
                 </div>
               </div>

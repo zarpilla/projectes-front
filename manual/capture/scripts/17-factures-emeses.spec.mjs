@@ -85,7 +85,7 @@ test('17-factures-emeses', async ({ page }) => {
   await line.scrollIntoViewIfNeeded()
   await line.locator('.checkbox').last().click()
   await settle(page, 300)
-  await line.locator('.invoice-tag', { hasText: 'Document' }).click()
+  await line.locator('.invoice-tag', { hasText: 'Assignar' }).click()
   await settle(page, 500)
   await page.evaluate(() => document.querySelectorAll('.table-wrapper').forEach(w => { w.scrollLeft = w.scrollWidth }))
   await line.evaluate(el => { el.scrollIntoView({ block: 'center' }) })

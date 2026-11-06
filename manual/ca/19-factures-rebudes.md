@@ -58,7 +58,7 @@ més projectes i, dins del projecte, a la línia de despesa prevista que paga.
 
 A sota, les **Línies** (concepte, quantitat, preu, descompte, IVA i IRPF) amb els totals, i el **DETALL DEL
 PROJECTE** per assignar la factura a la línia de despesa que paga: es marca **Fact.** a la línia i es clica
-l'etiqueta **Document** perquè passi a **Assignat** (com a les factures emeses, vegeu
+el botó **Assignar**, que passa a **Assignat** (com a les factures emeses, vegeu
 [17](17-factures-emeses.md#1-fer-una-factura)). Després, **Guardar**.
 
 Les factures rebudes no tenen esborrany: es poden canviar mentre siguin **Modificables**.

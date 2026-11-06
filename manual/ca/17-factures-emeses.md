@@ -58,7 +58,7 @@ canviar; per corregir-la cal una factura **rectificativa**).
    ![La clienta i el projecte triats](img/17-factures-emeses/09-nova-client-projecte.png)
 
 3. En triar un projecte, a sota apareix **DETALL DEL PROJECTE** amb les seves fases i línies d'ingrés. A la
-   línia que aquesta factura paga, marcar **Fact.** i clicar l'etiqueta **Document**, que passa a
+   línia que aquesta factura paga, marcar **Fact.** i clicar el botó **Assignar**, que passa a
    **Assignat**. Si la factura no correspon a cap línia prevista, el **+** d'una fase hi afegeix una línia
    nova i ofereix associar-li la factura (*Vols crear una nova línia i associar-li el document
    automàticament?*).

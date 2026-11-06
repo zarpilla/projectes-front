@@ -414,11 +414,11 @@ export async function budgetLine (concept) {
   throw new Error(`no budget line "${concept}" in the project detail`)
 }
 
-// marks the budget line as invoiced ("Fact.") and assigns it to this document ("Document" → "Assignat")
+// marks the budget line as invoiced ("Fact.") and assigns it to this document ("Assignar" → "Assignat")
 export async function assignBudgetLine (concept) {
   const row = await budgetLine(concept)
   await row.locator('.checkbox, .b-checkbox').last().click()
-  await row.locator('.invoice-tag', { hasText: 'Document' }).click()
+  await row.locator('.invoice-tag', { hasText: 'Assignar' }).click()
   await expect(row.locator('.invoice-tag', { hasText: 'Assignat' })).toBeVisible()
 }
 

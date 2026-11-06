@@ -459,12 +459,15 @@
                       !props.row.grant
                   "
                   :disabled="!editable"
-                  class="tag is-warning invoice-tag clickable"
+                  class="tag invoice-tag clickable"
+                  :class="
+                    props.row.assign === true ? 'doc-assigned' : 'doc-assign'
+                  "
                   @click="
                     setInvoice('incomes', props.row, subphase, phi, props.index)
                   "
                   >{{
-                    props.row.assign === true ? "Assignat" : "Document"
+                    props.row.assign === true ? "Assignat" : "Assignar"
                   }}</span
                 >
               </b-field>
@@ -819,12 +822,15 @@
                       !props.row.grant
                   "
                   :disabled="!editable"
-                  class="tag is-warning invoice-tag clickable"
+                  class="tag invoice-tag clickable"
+                  :class="
+                    props.row.assign === true ? 'doc-assigned' : 'doc-assign'
+                  "
                   @click="
                     setInvoice('expenses', props.row, subphase, phi, props.index)
                   "
                   >{{
-                    props.row.assign === true ? "Assignat" : "Document"
+                    props.row.assign === true ? "Assignat" : "Assignar"
                   }}</span
                 >
               </b-field>
@@ -2611,6 +2617,23 @@ export default {
   background: var(--a-danger-bg);
   color: var(--a-danger-fg);
   border: 1px solid var(--a-danger-line);
+}
+/* The Doc. column's assign toggle: an outlined «Assignar» button while the
+   line waits for this document, a green chip once it is assigned */
+.tag.invoice-tag.doc-assign {
+  background: var(--a-surface);
+  color: var(--a-fg-2);
+  border: 1px solid var(--a-input);
+}
+.tag.invoice-tag.doc-assign:hover {
+  background: var(--a-accent-soft);
+  color: var(--a-accent);
+  border-color: var(--a-accent);
+}
+.tag.invoice-tag.doc-assigned {
+  background: var(--a-accent-soft);
+  color: var(--a-accent);
+  border: 1px solid var(--a-focus);
 }
 .inline {
   display: inline;
