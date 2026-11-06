@@ -406,7 +406,7 @@
 
 <script>
 import ModalBox from "@/components/ModalBox.vue";
-import { projectTrashDialog } from "@/domain/projectTrash";
+import { projectTrashDialog, projectTrashErrorMessage } from "@/domain/projectTrash";
 import { withoutMothers } from "@/domain/motherFigures";
 import service from "@/service/index";
 import moment from "moment";
@@ -679,10 +679,15 @@ export default {
     async trashConfirm() {
       this.isModalActive = false;
 
-      await service({
-        requiresAuth: true
-      }).put(`projects/${this.trashObject.id}`, { published_at: null });
-      // await service({ requiresAuth: true }).delete(`projects/${this.trashObject.id}`)
+      try {
+        await service({
+          requiresAuth: true
+        }).put(`projects/${this.trashObject.id}`, { published_at: null });
+      } catch (err) {
+        // a project with documents or hours stays (the backend says why)
+        this.$buefy.toast.open({ message: projectTrashErrorMessage(err), type: "is-danger", duration: 8000, queue: false });
+        return;
+      }
       this.projectsData = this.projectsData.filter(
         p => p.id !== this.trashObject.id
       );

@@ -2605,7 +2605,7 @@ import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import { projectDocuments, projectDocumentAmounts, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { isDuplicateCodeError, projectSaveErrorMessage, DUPLICATE_CODE_FIELD_MESSAGE } from "@/domain/projectSaveError";
-import { projectTrashDialog } from "@/domain/projectTrash";
+import { projectTrashDialog, projectTrashErrorMessage } from "@/domain/projectTrash";
 import { serieIdOf, seriesOffered, projectSerieCode, withSerie, formName, copyNameFields } from "@/domain/projectSeries";
 import { projectBasicDataError, projectEndBeforeStart, PROJECT_DATES_MESSAGE, REQUIRED_FIELD_MESSAGE } from "@/domain/projectBasicData";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
@@ -5074,7 +5074,13 @@ export default {
     // same as the projects list: the project is unpublished, not removed
     async deleteConfirmed() {
       this.isDeleteModalActive = false;
-      await service({ requiresAuth: true }).put(`projects/${this.form.id}`, { published_at: null });
+      try {
+        await service({ requiresAuth: true }).put(`projects/${this.form.id}`, { published_at: null });
+      } catch (err) {
+        // a project with documents or hours stays (the backend says why)
+        this.$buefy.toast.open({ message: projectTrashErrorMessage(err), type: "is-danger", duration: 8000, queue: false });
+        return;
+      }
       this.dirty = false;
       this.$buefy.snackbar.open({ message: "Esborrat", queue: false });
       this.$router.push({ name: "projectes.view" });
