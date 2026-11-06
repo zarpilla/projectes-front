@@ -126,9 +126,59 @@ export const treasuryDisplayDate = row => {
 const isMarker = r => r.type === 'Inici Any' || r.type === 'Avui'
 const isAccountBalance = r => r.is_balance_annotation || r.is_real_balance_adjustment
 
-/** The rows of one project (and the markers), from all treasury rows. */
-export function projectTreasuryRows (rows, projectId) {
-  return (rows || []).filter(r => !isAccountBalance(r) && (isMarker(r) || r.project_id === projectId))
+/**
+ * The rows of the chosen projects (and the markers), from all treasury rows.
+ * `projectIds` is one id or, since issues/416, a Set / array of ids.
+ */
+export function projectTreasuryRows (rows, projectIds) {
+  const ofProject = projectIds instanceof Set
+    ? id => projectIds.has(id)
+    : Array.isArray(projectIds) ? id => projectIds.includes(id) : id => id === projectIds
+  return (rows || []).filter(r => !isAccountBalance(r) && (isMarker(r) || ofProject(r.project_id)))
+}
+
+// Tresoreria filter by several projects, project types or scopes (issues/416):
+// one kind at a time, any number of values; applied in the browser to the
+// treasury already loaded. A type / scope «Sense …» option takes the projects
+// without one.
+export const PROJECT_FILTER_MODES = [
+  { id: 'project', label: 'Projectes', placeholder: 'Filtra per projectes' },
+  { id: 'type', label: 'Tipus', placeholder: 'Filtra per tipus de projecte' },
+  { id: 'scope', label: 'Àmbits', placeholder: 'Filtra per àmbits' }
+]
+const FILTER_FIELD = { type: 'project_type', scope: 'project_scope' }
+const NONE_LABEL = { type: 'Sense tipus', scope: 'Sense àmbit' }
+export const NONE_OPTION_ID = 'sense'
+
+const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ca')
+const refId = r => (r && r.id ? r.id : NONE_OPTION_ID)
+
+/** What can be picked for a mode: [{ id, name }], by name («Sense …» last). */
+export function projectFilterOptions (projects, mode) {
+  const list = projects || []
+  if (mode === 'project') return list.map(p => ({ id: p.id, name: p.name })).sort(byName)
+  const field = FILTER_FIELD[mode]
+  if (!field) return []
+  const options = new Map()
+  let none = false
+  list.forEach(p => {
+    const ref = p[field]
+    if (ref && ref.id) options.set(ref.id, { id: ref.id, name: ref.name })
+    else none = true
+  })
+  const sorted = [...options.values()].sort(byName)
+  return none ? [...sorted, { id: NONE_OPTION_ID, name: NONE_LABEL[mode] }] : sorted
+}
+
+/** The ids of the projects the filter takes (a Set), or null when nothing is picked. */
+export function projectIdsOfFilter (projects, mode, valueIds) {
+  if (!valueIds || !valueIds.length) return null
+  const picked = new Set(valueIds)
+  const list = projects || []
+  if (mode === 'project') return picked
+  const field = FILTER_FIELD[mode]
+  if (!field) return null
+  return new Set(list.filter(p => picked.has(refId(p[field]))).map(p => p.id))
 }
 
 /** The same rows (sorted by date) with `subtotal` = the project's running saldo from 0. */

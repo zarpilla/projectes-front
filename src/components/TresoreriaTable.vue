@@ -96,21 +96,37 @@
     </div>
 
     <div class="treasury-row">
-      <b-autocomplete
-        v-model="projectSearch"
+      <!-- issues/416: several projects, project types or scopes (one kind at a time) -->
+      <div class="segmented" role="group" aria-label="Filtra per">
+        <button
+          v-for="mode in projectFilterModes"
+          :key="mode.id"
+          type="button"
+          :class="{ 'is-on': projectFilterMode === mode.id }"
+          :aria-pressed="projectFilterMode === mode.id ? 'true' : 'false'"
+          @click="setProjectFilterMode(mode.id)"
+        >
+          {{ mode.label }}
+        </button>
+      </div>
+      <b-taginput
+        v-model="projectFilterValues"
         class="treasury-project"
-        placeholder="Filtra per projecte"
-        aria-label="Projecte"
-        icon="folder-outline"
-        :keep-first="false"
-        :open-on-focus="true"
-        :data="filteredProjects"
+        :data="filteredProjectOptions"
         field="name"
-        :clearable="true"
-        @select="projectSelected"
+        autocomplete
+        icon="folder-outline"
+        :open-on-focus="true"
+        :keep-first="true"
+        :allow-new="false"
+        :placeholder="projectFilterPlaceholder"
+        :aria-label="projectFilterPlaceholder"
+        aria-close-label="Treu"
+        @typing="projectSearch = $event"
+        @add="projectSearch = ''"
       >
-        <template #empty>Cap projecte trobat</template>
-      </b-autocomplete>
+        <template #empty>Cap opció trobada</template>
+      </b-taginput>
       <div class="treasury-dates">
         <b-datepicker
           v-model="filterDateStart"
@@ -140,7 +156,7 @@
           @update:model-value="applyDateFilters"
         />
       </div>
-      <b-button v-if="selectedProject || filterDateStart || filterDateEnd" type="is-text" @click="clearFilters">Netejar filtres</b-button>
+      <b-button v-if="filterProjectIds || filterDateStart || filterDateEnd" type="is-text" @click="clearFilters">Netejar filtres</b-button>
     </div>
     </div>
 
@@ -645,7 +661,7 @@ import { ofWord } from "@/helpers/catalan";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
-import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
+import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday, PROJECT_FILTER_MODES, projectFilterOptions, projectIdsOfFilter } from "@/domain/projectTreasury.js";
 import { setValidationKeys, canValidate, validationAction, settleDate, settleRow } from "@/domain/treasuryValidation.js";
 import { dateEditKey, isoOfDatef, movementDateChanges, saveMovementDates } from "@/domain/treasuryMovementDates.js";
 
@@ -715,7 +731,10 @@ export default {
       selectedBankAccountIds: [],
       pivotIdentifier: "tresoreria-pivot",
       projectSearch: "",
-      selectedProject: null,
+      // issues/416: «Projectes», «Tipus» or «Àmbits» and the picked options
+      projectFilterModes: PROJECT_FILTER_MODES,
+      projectFilterMode: "project",
+      projectFilterValues: [],
       filterDateStart: null,
       filterDateEnd: null,
       // issues/370: «Edita dates» of Moviments bancaris; new date per movement key
@@ -797,8 +816,8 @@ export default {
         );
 
       // only the project's movements and the markers, from 0 (issues/284)
-      if (this.selectedProject) {
-        treasuryData = projectTreasuryRows(treasuryData, this.selectedProject.id);
+      if (this.filterProjectIds) {
+        treasuryData = projectTreasuryRows(treasuryData, this.filterProjectIds);
       }
 
       // Apply date filters (exclude balance annotations from filtering)
@@ -904,7 +923,7 @@ export default {
     // "Avui" rows, one per account)
     accountRows() {
       // the accounts' balances are the company's: not in a project's view (issues/284)
-      if (this.selectedProject) return [];
+      if (this.filterProjectIds) return [];
       const start = this.treasuryData.filter(t => t.type === (this.view === "today" ? "Avui" : "Inici Any"));
       const today = this.treasuryData.filter(t => t.type === "Avui");
       return today.map(t => {
@@ -941,14 +960,14 @@ export default {
       return `calc((100% - 3rem) * ${(-min) / span})`;
     },
     todayBalanceScope() {
-      if (this.selectedProject) return "només el projecte, des de 0 a l'1 de gener";
+      if (this.filterProjectIds) return `${this.filterProjectIds.size === 1 ? "només el projecte" : "només els projectes triats"}, des de 0 a l'1 de gener`;
       if (!this.isSingleAccountView) return "suma dels comptes";
       const name = (this.singleAccountName || "").trim();
       return name && name !== "-" ? name : "el compte";
     },
     todayBalance() {
-      if (this.selectedProject) {
-        return projectSaldoToday(projectTreasuryRows(this.treasuryData, this.selectedProject.id), this.selectedYear, moment().format("YYYYMMDD"));
+      if (this.filterProjectIds) {
+        return projectSaldoToday(projectTreasuryRows(this.treasuryData, this.filterProjectIds), this.selectedYear, moment().format("YYYYMMDD"));
       }
       const today = this.treasuryData.find(t => t.type === "Avui");
       if (!today) return 0;
@@ -967,7 +986,7 @@ export default {
     yearEnd() {
       const year = String(this.selectedYear);
       const total = this.pivotData.find(d => d.month === "00" && d.year === year);
-      if (total || !this.selectedProject) return total || null;
+      if (total || !this.filterProjectIds) return total || null;
       // a project without December movements (issues/284): the last month of the
       // year with movements, else the start (0), carries to 31/12
       const months = this.pivotData.filter(d => d.year === year && d.month !== "00" && d.month !== "99");
@@ -1071,7 +1090,7 @@ export default {
       // a project's view starts at 0 on 1 January, not at the company's
       // balance; «Des d'avui» starts at the project's saldo today, so both
       // modes reach the same «Saldo a 31/12» (issues/284)
-      if (this.selectedProject) return this.view === "today" ? this.todayBalance : 0;
+      if (this.filterProjectIds) return this.view === "today" ? this.todayBalance : 0;
       // With multiple bank accounts, we have multiple "Today"/"Start of Year" entries
       // We'll use the subtotal from the first one found, as they should all have the same subtotal
       // (the running balance is calculated across all accounts)
@@ -1097,8 +1116,8 @@ export default {
       );
 
       // only the project's movements and the markers, saldo from 0 (issues/284)
-      if (this.selectedProject) {
-        treasuryDataOfYear = withProjectSaldo(projectTreasuryRows(treasuryDataOfYear, this.selectedProject.id));
+      if (this.filterProjectIds) {
+        treasuryDataOfYear = withProjectSaldo(projectTreasuryRows(treasuryDataOfYear, this.filterProjectIds));
       }
 
       // Apply date filters (exclude balance annotations from filtering)
@@ -1126,19 +1145,21 @@ export default {
 
       return _.reverse(treasuryDataOfYear);
     },
-    filteredProjects() {
-      if (!this.projectSearch) {
-        return this.projects;
-      }
-      return this.projects.filter(option => {
-        return (
-          option.name &&
-          option.name
-            .toString()
-            .toLowerCase()
-            .indexOf(this.projectSearch.toLowerCase()) >= 0
-        );
-      });
+    // issues/416: the projects the filter takes (a Set), null without a filter
+    filterProjectIds() {
+      return projectIdsOfFilter(this.projects, this.projectFilterMode, this.projectFilterValues.map(v => v.id));
+    },
+    projectFilterPlaceholder() {
+      const mode = this.projectFilterModes.find(m => m.id === this.projectFilterMode);
+      return mode ? mode.placeholder : "";
+    },
+    // the options of the chosen kind not picked yet, matching what is typed
+    filteredProjectOptions() {
+      const picked = new Set(this.projectFilterValues.map(v => v.id));
+      const q = (this.projectSearch || "").toLowerCase();
+      return projectFilterOptions(this.projects, this.projectFilterMode).filter(
+        o => !picked.has(o.id) && (!q || String(o.name || "").toLowerCase().includes(q))
+      );
     },
     isSingleAccountView() {
       return this.selectedBankAccountIds.length === 1;
@@ -1286,7 +1307,7 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     displayBalance(row) {
-      if (this.selectedProject) return row.subtotal;
+      if (this.filterProjectIds) return row.subtotal;
       // If viewing a single account, show that account's balance
       // Otherwise show the global balance across all accounts
       if (this.isSingleAccountView && row.account_subtotal !== undefined) {
@@ -1420,15 +1441,25 @@ export default {
     excelFormat(value) {
       return format(this.user, value);
     },
-    projectSelected(option) {
-      this.selectedProject = option;
+    // another kind of filter starts empty: projects, types and scopes don't mix
+    setProjectFilterMode(mode) {
+      if (mode === this.projectFilterMode) return;
+      this.projectFilterMode = mode;
+      this.projectFilterValues = [];
+      this.projectSearch = "";
+    },
+    // issues/416: pick a kind and its options (by id) in one go
+    setProjectFilter(mode, ids) {
+      this.setProjectFilterMode(mode);
+      const options = projectFilterOptions(this.projects, mode);
+      this.projectFilterValues = options.filter(o => ids.includes(o.id));
     },
     applyDateFilters() {
       // Trigger reactivity by updating the computed property
       this.$forceUpdate();
     },
     clearFilters() {
-      this.selectedProject = null;
+      this.projectFilterValues = [];
       this.projectSearch = "";
       this.filterDateStart = null;
       this.filterDateEnd = null;
@@ -1896,7 +1927,7 @@ export default {
 }
 .treasury-project {
   flex: 1 1 14rem;
-  max-width: 22rem;
+  max-width: 32rem;
 }
 .treasury-dates {
   display: flex;

@@ -55,7 +55,7 @@ describe('Tresoreria with a project chosen (issues/284)', () => {
         config: { warnHandler: () => {} }
       }
     })
-    await w.setData({ selectedYear: 2026, treasuryData: rows() })
+    await w.setData({ selectedYear: 2026, treasuryData: rows(), projects: [P, { id: 8, name: 'Altre' }] })
     await flushPromises()
     return w
   }
@@ -65,7 +65,7 @@ describe('Tresoreria with a project chosen (issues/284)', () => {
     // the company: start 50.000, year end = 50.000 + 1.000 + 5.000 − 300,50 + 200
     expect(w.vm.todaySubTotal).toBe(50000)
     expect(w.vm.yearEnd.subtotal).toBeCloseTo(55899.5)
-    w.vm.projectSelected(P)
+    w.vm.setProjectFilter('project', [P.id])
     await flushPromises()
     expect(w.vm.todaySubTotal).toBe(0)
     expect(w.vm.yearEnd.subtotal).toBeCloseTo(699.5)
@@ -94,7 +94,7 @@ describe('Tresoreria project view follow-ups (issues/284)', () => {
         config: { warnHandler: () => {} }
       }
     })
-    await w.setData({ selectedYear: 2026, treasuryData: rows() })
+    await w.setData({ selectedYear: 2026, treasuryData: rows(), projects: [P, { id: 8, name: 'Altre' }] })
     await flushPromises()
     return w
   }
@@ -104,7 +104,7 @@ describe('Tresoreria project view follow-ups (issues/284)', () => {
     vi.setSystemTime(new Date(2026, 2, 1, 12))
     try {
       const w = await mountTreasury()
-      w.vm.projectSelected(P)
+      w.vm.setProjectFilter('project', [P.id])
       await flushPromises()
       expect(w.vm.yearEnd.subtotal).toBeCloseTo(699.5)
       await w.setData({ view: 'today' })
@@ -131,7 +131,7 @@ describe('Tresoreria project view follow-ups (issues/284)', () => {
     const cells = () => w.vm.pivotGridInstance.dataSource.data().map(c => c.value)
     // Resultat, Cobraments, Pagaments (grand total, then 2026)
     expect(cells().slice(0, 3)).toEqual([5899.5, 6200, -300.5])
-    w.vm.projectSelected(P)
+    w.vm.setProjectFilter('project', [P.id])
     await flushPromises()
     expect(cells().slice(0, 3)).toEqual([699.5, 1000, -300.5])
     w.unmount()
