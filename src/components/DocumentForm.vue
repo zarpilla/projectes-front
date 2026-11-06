@@ -57,6 +57,18 @@
             </span>
           </div>
 
+          <!-- the parser's own checks: lines that don't add up, missing fields -->
+          <div
+            v-if="invoiceWarnings.length"
+            class="notification is-warning is-light invoice-match invoice-warnings"
+          >
+            <span class="icon"><b-icon icon="alert" /></span>
+            <span>
+              <span v-for="w in invoiceWarnings" :key="w" class="is-block">{{ w }}</span>
+              Revisa els imports abans de desar.
+            </span>
+          </div>
+
           <!-- Friendly summary -->
           <div v-if="parsedInvoice" class="invoice-summary">
             <div class="columns is-multiline is-mobile">
@@ -113,6 +125,9 @@
               </b-table-column>
               <b-table-column label="IVA" numeric v-slot="props">
                 {{ props.row.vat_rate != null ? props.row.vat_rate + "%" : "—" }}
+              </b-table-column>
+              <b-table-column v-if="invoiceHasIrpf" label="IRPF" numeric v-slot="props">
+                {{ props.row.irpf_rate ? props.row.irpf_rate + "%" : "—" }}
               </b-table-column>
               <b-table-column label="Total" numeric v-slot="props">
                 {{ props.row.total }}
@@ -1146,6 +1161,7 @@ import DocumentHistory from "@/components/DocumentHistory.vue";
 
 // Services
 import service from "@/service/index";
+import { findContactByTaxId, linesFromParsedInvoice, parsedInvoiceWarnings } from "@/service/parsedInvoice.js";
 import getConfig from "@/config";
 import { payrollCode, payrollLabel, payrollTotal } from "@/domain/payrollForm";
 import { upperCase } from "lodash";
@@ -1241,6 +1257,12 @@ export default {
     };
   },
   computed: {
+    invoiceWarnings() {
+      return parsedInvoiceWarnings(this.parsedInvoice);
+    },
+    invoiceHasIrpf() {
+      return ((this.parsedInvoice && this.parsedInvoice.line_items) || []).some(l => Number(l.irpf_rate) > 0);
+    },
     ...mapState(useMainStore, ["me"]),
     // The bank a bestreta is paid from; Tresoreria shows its net payment
     // there (issues/042). Saved as { id }, like the other relations.
@@ -3279,27 +3301,12 @@ export default {
       this.isInvoiceModalActive = false;
     },
     /**
-     * Normalize a Spanish tax id by stripping anything that is not a letter or
-     * digit (spaces, dashes, dots) and lowercasing it, so that "B-73347494",
-     * "B73347494" and "b73347494" all match.
-     */
-    normalizeTaxId(value) {
-      if (!value) return "";
-      return String(value)
-        .replace(/[^a-z0-9]/gi, "")
-        .toLowerCase();
-    },
-    /**
      * Find an existing contact whose `nif` matches the given vendor tax id.
      * Returns the contact object or null.
      */
     findContactByTaxId(taxId) {
-      const normalized = this.normalizeTaxId(taxId);
-      if (!normalized) return null;
-      return (
-        this.clients.find(c => this.normalizeTaxId(c.nif) === normalized) ||
-        null
-      );
+      // "ESB73347494" finds the contact saved as "B73347494" and vice versa
+      return findContactByTaxId(this.clients, taxId);
     },
     formatInvoiceDate(value) {
       if (!value) return "—";
@@ -3357,31 +3364,10 @@ export default {
         this.contact = contact;
       }
 
-      // Line items
-      if (Array.isArray(data.line_items) && data.line_items.length > 0) {
-        const pricesIncludeTax = data.prices_include_tax === true;
-        this.form.lines = data.line_items.map(item => {
-          const vat = parseFloat(item.vat_rate) || 0;
-          let unitPrice = parseFloat(item.unit_price) || 0;
-          // If the invoice prints prices with tax included (gross), convert
-          // to the net/tax-exclusive unit price the form expects in `base`.
-          if (pricesIncludeTax && vat > 0) {
-            unitPrice = unitPrice / (1 + vat / 100);
-          }
-          return {
-            concept: item.description || "",
-            quantity: parseFloat(item.quantity) || 1,
-            base: unitPrice,
-            discount: 0,
-            vat: vat,
-            irpf: 0,
-            comments: "",
-            show: false,
-            date: new Date(),
-            product: null,
-            productSearch: ""
-          };
-        });
+      // Line items: net unit price, VAT and IRPF per line
+      const lines = linesFromParsedInvoice(data);
+      if (lines.length > 0) {
+        this.form.lines = lines;
       }
 
       this.isInvoiceModalActive = false;
