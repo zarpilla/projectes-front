@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.06",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "El PDF d'una factura, despesa o dieta s'obre encara que el nom del contacte o el número tinguin caràcters com «/», «#», «?» o «%»: abans la pestanya del PDF deia «Not Found»."
+    }
+  ]
+},
+{
   date: "2026.11.04",
   items: [
     {
