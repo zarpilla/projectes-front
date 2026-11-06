@@ -4,22 +4,23 @@
   <div class="recon-page">
     <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false" />
 
-    <div class="segmented recon-tabs" role="tablist" aria-label="Apartat">
-      <button
-        v-for="t in tabs"
-        :key="t.id"
-        type="button"
-        role="tab"
-        :class="{ 'is-on': tab === t.id }"
-        :aria-selected="tab === t.id ? 'true' : 'false'"
-        @click="tab = t.id"
-      >
-        {{ t.label }}
-      </button>
-    </div>
-
-    <template v-if="tab === 'movements'">
-      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+    <!-- one bar: the section (issues/413, a tab of Tresoreria already sits
+         above), the movements' filters, and the upload, always at hand -->
+    <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+      <div class="segmented recon-sections" role="tablist" aria-label="Apartat">
+        <button
+          v-for="t in tabs"
+          :key="t.id"
+          type="button"
+          role="tab"
+          :class="{ 'is-on': tab === t.id }"
+          :aria-selected="tab === t.id ? 'true' : 'false'"
+          @click="tab = t.id"
+        >
+          {{ t.label }}
+        </button>
+      </div>
+      <template v-if="tab === 'movements'">
         <label class="filter-select">
           <span>Compte</span>
           <b-select v-model="bankAccount" aria-label="Compte">
@@ -40,16 +41,19 @@
             {{ s.label }}
           </button>
         </div>
-        <div class="recon-actions">
-          <b-upload v-model="file" accept=".n43,.N43,.txt,.TXT,.aeb,.q43,.csb,.dat" @update:model-value="upload">
-            <span class="button is-primary is-small">
-              <b-icon icon="upload" size="is-small" />
-              <span>Puja un extracte (Norma 43)</span>
-            </span>
-          </b-upload>
-          <b-button size="is-small" icon-left="auto-fix" @click="runAuto">Concilia automàticament</b-button>
-        </div>
-      </form>
+      </template>
+      <div class="recon-actions">
+        <b-upload v-model="file" accept=".n43,.N43,.txt,.TXT,.aeb,.q43,.csb,.dat" @update:model-value="upload">
+          <span class="button is-primary is-small">
+            <b-icon icon="upload" size="is-small" />
+            <span>Puja un extracte</span>
+          </span>
+        </b-upload>
+        <b-button size="is-small" icon-left="auto-fix" @click="runAuto">Concilia automàticament</b-button>
+      </div>
+    </form>
+
+    <template v-if="tab === 'movements'">
       <p class="recon-help">
         Descarregueu l'extracte del banc en format <b>Norma 43</b> (també dit «Cuaderno 43» o «CSB43») des de la banca en línia i pugeu-lo aquí.
         Els moviments que ja s'havien pujat no es dupliquen. Els que coincideixen clarament amb una línia de Tresoreria es concilien sols: els documents
@@ -522,6 +526,7 @@ export default {
             .join(""),
           confirmText: "D'acord"
         });
+        this.tab = "movements";
         this.status = "pending";
         await this.load();
       } catch (error) {
@@ -536,6 +541,7 @@ export default {
       try {
         const r = await reconciliationApi.auto();
         this.done(`${r.matched + r.transfers + r.ruled} moviments conciliats automàticament`);
+        this.tab = "movements";
         await this.load();
       } catch (error) {
         this.fail(error, "No s'ha pogut conciliar");
@@ -669,9 +675,6 @@ export default {
 </script>
 
 <style scoped>
-.recon-tabs {
-  margin-bottom: 1rem;
-}
 .recon-actions {
   display: flex;
   flex-wrap: wrap;

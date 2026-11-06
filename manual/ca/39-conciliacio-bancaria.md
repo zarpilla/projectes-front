@@ -37,13 +37,14 @@ En aquesta pantalla es puja l'extracte del banc i es lliga cada moviment amb una
 
 ![La pantalla abans de pujar cap extracte](img/39-conciliacio-bancaria/02-pantalla-buida.png)
 
-La pestanya té tres apartats: **Moviments** (la feina de cada dia), **Regles** i **Extractes**.
+La pestanya té tres apartats, triats a l'esquerra de la barra de filtres: **Moviments** (la feina de cada
+dia), **Regles** i **Extractes**. Els filtres de **Compte** i d'estat només surten a **Moviments**.
 
 ## Pas a pas
 
 ### 1. Pujar l'extracte
 
-**Puja un extracte (Norma 43)** i triar el fitxer. En acabar, un avís resumeix què ha passat:
+**Puja un extracte** i triar el fitxer. El botó hi és a tots tres apartats. En acabar, un avís resumeix què ha passat:
 
 - quants moviments són nous;
 - quants s'han conciliat sols, i com: amb línies de Tresoreria, com a traspassos entre comptes o per regles;
