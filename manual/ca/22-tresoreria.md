@@ -8,7 +8,7 @@ order: 22
 roles: [projects]
 routes: ["/tresoreria"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-06
 ---
 # 22. Tresoreria
 
@@ -87,7 +87,8 @@ bancari**. La taula s'obre a la pàgina dels moviments d'avui.
 
 - **Tots**, **Pròxims**, **Endarrerits** i **Executats** filtren per estat.
 - **Cerca concepte, projecte o contacte**, i **Filtres per columna** per filtrar cada columna.
-- A **Accions**, la casella marca un moviment com a **validat** (comprovat amb el banc).
+- A **Accions**, la casella marca un moviment com a **validat** (comprovat amb el banc). En una factura o
+  despesa encara **pendent**, a més, la marca com a **cobrada o pagada** (vegeu el pas 3).
 
 ![Els moviments bancaris](img/22-tresoreria/05-moviments.png)
 
@@ -99,7 +100,8 @@ bancari**. La taula s'obre a la pàgina dels moviments d'avui.
    endarrerir pagaments.
 2. Revisar els **Previstos endarrerits**: cobraments que s'haurien d'haver fet (cal reclamar-los o canviar-ne la
    data al projecte) o pagaments pendents.
-3. Validar els moviments executats amb l'extracte del banc.
+3. Validar els moviments executats amb l'extracte del banc, a mà (pas 3) o pujant-lo a
+   [39. Conciliació bancària](39-conciliacio-bancaria.md).
 
 ### 2. Afegir una operació
 
@@ -115,10 +117,34 @@ Cada bloc té el seu botó **Enviar**.
 
 ![Nova operació](img/22-tresoreria/06-nova-operacio.png)
 
+### 3. Marcar un cobrament o un pagament amb el check
+
+El check de la columna **Accions** de **Moviments bancaris** també serveix per a les factures emeses, els
+altres ingressos, les factures rebudes i les despeses que encara estan **pendents**. Passant el ratolí per
+sobre, diu què farà: «Marcar com a cobrat i validat» o «Marcar com a pagat i validat».
+
+- Si la data de la línia ja ha passat, el document queda **cobrat o pagat amb aquella data**, i la línia,
+  validada.
+- Si la data encara no ha arribat, la pantalla demana quin dia s'ha cobrat o pagat (avui o abans, mai una
+  data futura). La data prevista del document i la de les seves línies al projecte passen a aquest dia.
+- Si el document ja tenia cobraments o pagaments parcials, el que queda pendent s'afegeix com un parcial més.
+- També funciona amb una factura rebuda que ja no és «Modificable».
+
+El canvi queda apuntat a l'**Historial** del document, amb qui l'ha fet. Una factura en esborrany no es pot
+marcar: primer s'ha d'emetre.
+
+![La data d'un cobrament que estava previst més endavant](img/22-tresoreria/07-marcar-cobrat.png)
+
+**Treure el check** desfà el que va fer: el document torna a pendent, amb les dates d'abans. Si algú ha
+canviat el document després (per exemple, n'ha corregit la data de pagament), només es treu la validació i
+el document es queda com està.
+
 ## Preguntes freqüents
 
 **El saldo d'avui no coincideix amb el del banc.** Afegiu un **saldo real** al compte amb la data i l'import de
 l'extracte.
+
+**He marcat una factura com a cobrada per error.** Traieu el check: torna a pendent.
 
 **Un cobrament previst surt en un mes que no toca.** La data surt de la **Previsió pag.** de la línia del projecte
 (o de la **Previsió cobrament** de la factura). Canvieu-la allà.
@@ -128,3 +154,4 @@ l'extracte.
 - [05. Fases i pressupost del projecte](05-fases-pressupost.md)
 - [17. Factures emeses](17-factures-emeses.md) · [19. Factures rebudes](19-factures-rebudes.md)
 - [20. Bestretes](20-bestretes.md) · [21. IVA](21-iva.md)
+- [39. Conciliació bancària](39-conciliacio-bancaria.md)

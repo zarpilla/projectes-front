@@ -82,6 +82,13 @@ const menu = [
       permission: "projects"
     },
     {
+      // issues/413
+      to: "/conciliacio",
+      icon: "check-circle-outline",
+      label: "Conciliació",
+      permission: "projects"
+    },
+    {
       to: "/pressupostos",
       icon: "file-document-outline",
       label: "Pressupostos",

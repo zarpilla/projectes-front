@@ -57,6 +57,16 @@ export const CHANGELOG = [
   date: "2026.11.06",
   items: [
     {
+      type: "Novetats",
+      modules: ["Diners"],
+      text: ["Nova pantalla ", { to: "/conciliacio", label: "Conciliació" }, " per conciliar els comptes amb el banc: pugeu l'extracte en format Norma 43 (el «Cuaderno 43» que es descarrega de la banca en línia) i cada moviment es compara amb les línies de Tresoreria. Els que coincideixen clarament es concilien sols: les factures i despeses pendents queden cobrades o pagades amb la data del banc i validades. La resta surten amb propostes (també cobraments parcials i diverses línies que sumen l'import), es poden triar a mà, convertir en una operació de tresoreria o en una despesa pagada, marcar com a traspàs entre comptes o ignorar, i tot es pot desfer. Les regles («si el concepte conté…») resolen soles les comissions i altres moviments sense document. El saldo final de l'extracte passa a ser el saldo real del compte. Funciona amb diversos comptes, en un o més fitxers."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", marcar com a validada una factura, un ingrés o una despesa pendent també la marca com a cobrada o pagada en la data de la línia (si en té de parcials, el que queda pendent s'hi afegeix com un cobrament o pagament parcial). Si la data encara no ha arribat, es demana el dia del cobrament o del pagament, i el document i les línies del projecte passen a aquesta data. Desmarcar-la ho torna a deixar com estava."]
+    },
+    {
       type: "Correccions",
       modules: ["Diners"],
       text: "El PDF d'una factura, despesa o dieta s'obre encara que el nom del contacte o el número tinguin caràcters com «/», «#», «?» o «%»: abans la pestanya del PDF deia «Not Found»."

@@ -43,5 +43,5 @@ describe('template event handlers', () => {
       if (names.length) missing[f] = names
     }
     expect(missing).toEqual({})
-  })
+  }, 20000) // reads every component: on a busy machine it took over the 5 s default
 })

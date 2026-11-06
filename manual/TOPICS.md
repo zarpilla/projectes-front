@@ -48,8 +48,9 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 | 19 | Despeses: factures rebudes | Registrar factures de proveïdors i altres despeses, tipus de despesa, assignar a projecte/fase, pagament. | `/received-invoices`, `/document/:id/:type` | projects | done (2026-10-18) |
 | 20 | Bestretes (nòmines) | Bestretes i nòmines per període, com s'imputen als projectes segons les hores. | `/salary` | projects | done (2026-10-18) |
 | 21 | IVA | Resum d'IVA repercutit i suportat per trimestre. | `/vat` | projects | done (2026-10-18) |
-| 22 | Tresoreria | Previsió de tresoreria, comptes bancaris, anotacions manuals, validació. | `/tresoreria` | projects | done (2026-10-18) |
+| 22 | Tresoreria | Previsió de tresoreria, comptes bancaris, anotacions manuals, validació (el check marca cobrat/pagat). | `/tresoreria` | projects | done (2026-11-06) |
 | 23 | Importar, exportar i Contasol | Importar dades (CSV), exportar, enviar clients/proveïdors/factures a Contasol. | `/import-export`, `/contasol` | projects | done (2026-10-18) |
+| 39 | Conciliació bancària | Pujar l'extracte (Norma 43), conciliació automàtica, propostes, triar línies, parcials, traspassos, operacions i despeses des d'un moviment, desfer, regles, extractes. | `/conciliacio` | projects | done (2026-11-06) |
 
 ## E. Consulta de dades (informes)
 
