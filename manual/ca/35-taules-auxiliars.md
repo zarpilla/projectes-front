@@ -8,7 +8,7 @@ order: 35
 roles: [admin]
 routes: ["/administracio/*"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-06
 ---
 # 35. Taules auxiliars
 
@@ -42,6 +42,7 @@ cal, es pot canviar de nom o deixar de fer-lo servir.
 | **Estats de projecte** | Actiu, Tancat, Sol·licitat… Cada estat diu si **Admet hores** (s'hi poden imputar hores) i si **Admet documents** (s'hi poden assignar factures). |
 | **Probabilitats de projecte** | Per als projectes no aprovats (s'usen a la previsió econòmica i de dedicació). |
 | **Tipus de projecte** | Classificació lliure dels projectes. |
+| **Sèries de projecte** | Les numeracions dels projectes, com *[2026-001] Nom* (vegeu més avall). Sense cap sèrie, els projectes no es numeren. |
 | **Estratègies** | Les línies estratègiques de l'entitat (informe d'estratègies). |
 | **Tipus de dedicació** | La classificació de les hores (H1 facturable, H2 gestió…). |
 | **Estats de tasca** | Les columnes del tauler de tasques; l'última és la d'acabades. Vegeu [10. Tasques](10-tasques.md). |
@@ -82,6 +83,29 @@ pes:
 Cada sèrie té un **Nom** (que fa de prefix: *2026* dona *2026-001*), els **Zeros a l'esquerra** del número, el
 **Número de factura** (l'últim número fet) i si és **Rectificativa** (les factures rectificatives han de tenir la
 seva pròpia sèrie). Normalment es fa una sèrie nova cada any (vegeu [36](36-inici-any-manteniment.md)).
+
+## Les sèries de projecte
+
+Una sèrie de projecte numera els projectes que la fan servir: el projecte es diu amb el codi de la sèrie, el
+número i el nom, per exemple *[2026-013] Taller de cuina de proximitat*. Quan n'hi ha almenys una d'activa, el
+formulari del projecte demana la **Sèrie** abans del **Codi** (vegeu
+[04. Crear i editar un projecte](04-crear-editar-projecte.md#projectes-numerats-amb-una-sèrie)).
+
+![Les sèries de projecte](img/35-taules-auxiliars/07-series-projecte.png)
+
+![Una sèrie de projecte](img/35-taules-auxiliars/08-serie-projecte-fitxa.png)
+
+| Camp | Què vol dir |
+|---|---|
+| **Codi** * | El codi de la sèrie, per exemple *2026*. Ha de ser únic. |
+| **Caràcter inicial** i **Caràcter final** | Opcionals: el que va abans i després del número. Amb *[* i *]*, el projecte es diu *[2026-001] Nom*; sense, *2026-001 Nom*. |
+| **Zeros a l'esquerra** | Les xifres del número: amb 3, *001*. |
+| **Últim número** | El número de l'últim projecte de la sèrie; el següent en tindrà un més. Es pot canviar per continuar una numeració que ja es feia servir (per exemple, posar-hi 40 perquè el projecte següent sigui el 41). |
+| **Activa** | Desmarcada, la sèrie ja no surt per triar en els projectes nous; els que ja la tenen la conserven. |
+
+El número el posa l'aplicació en desar el projecte, i no es pot escriure a mà. Si s'esborra l'últim projecte
+d'una sèrie, el seu número queda lliure i el reaprofita el projecte següent; si se n'esborra un d'enmig, la
+numeració queda amb un salt.
 
 ## Tipus de despesa i comptes bancaris
 

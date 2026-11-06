@@ -8,7 +8,7 @@ order: 3
 roles: [projects]
 routes: ["/projectes"]
 lang: ca
-updated: 2026-10-17
+updated: 2026-11-06
 ---
 # 03. Llistat de projectes
 
@@ -97,7 +97,8 @@ canvia la taula: hi surten **Nom**, **Coordina**, **Àmbit**, **Probabilitat**, 
 3. Clicar el mateix botó, que ara és un disquet, per desar-los. Surt l'avís **Guardat**.
 
 Mentre una fila està oberta, les altres no es poden editar. La paperera vermella esborra el projecte,
-després de demanar-ne confirmació. **Torna al llistat** torna a la taula normal.
+després de demanar-ne confirmació (només si no té documents ni hores; vegeu
+[04. Crear i editar un projecte](04-crear-editar-projecte.md#duplicar-i-esborrar)). **Torna al llistat** torna a la taula normal.
 
 ![Edició ràpida amb una fila oberta](img/03-llistat-projectes/06-edicio-rapida.png)
 

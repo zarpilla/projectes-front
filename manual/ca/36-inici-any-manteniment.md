@@ -8,7 +8,7 @@ order: 36
 roles: [admin, projects]
 routes: ["/administracio/anys*", "/recalcul"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-06
 ---
 # 36. Inici d'any i manteniment
 
@@ -30,6 +30,8 @@ Abans de començar l'any (o el primer dia):
    ![La fitxa d'un any](img/36-inici-any-manteniment/02-any-fitxa.png)
 2. **Les sèries**: a **Taules auxiliars › Sèries**, una sèrie nova per a les factures emeses (per exemple, *2027*)
    i, si cal, per a les rectificatives i les despeses. Vegeu [35](35-taules-auxiliars.md#les-sèries).
+   Si numereu els projectes, també una **sèrie de projecte** nova a **Taules auxiliars › Sèries de projecte**
+   (i desmarcar **Activa** a la de l'any anterior). Vegeu [35](35-taules-auxiliars.md#les-sèries-de-projecte).
 3. **Els festius**: els oficials (estatals i autonòmics) són comuns a tothom. Una persona administradora els afegeix
    a **Hores dedicades › Festiu** amb el tipus **Festiu Estatal** o **Festiu Catalunya** (surten amb *TOTES*); cal
    comprovar al calendari que hi són tots. Els **festius locals** s'apunten a

@@ -8,7 +8,7 @@ order: 100
 roles: []
 routes: []
 lang: ca
-updated: 2026-10-30
+updated: 2026-11-06
 ---
 # Glossari
 
@@ -105,6 +105,8 @@ local, administració) que no són de cap projecte concret.
 
 **Sèrie** — Numeració de les factures o pressupostos (per exemple, una sèrie per a cada any o per a les
 factures rectificatives).
+
+**Sèrie de projecte** — Numeració dels projectes: el projecte es diu amb el codi de la sèrie, el número i el nom, per exemple *[2026-013] Taller de cuina*. És opcional. Vegeu [35. Taules auxiliars](35-taules-auxiliars.md#les-sèries-de-projecte).
 
 **Sòcia (logística)** — Productora que encarrega a la cooperativa el transport de les seves comandes i el paga. Té una usuària amb el permís de sòcia i una fitxa de contacte a nom de la qual es factura. Vegeu [38. Guia per a sòcies](38-guia-socies-logistica.md).
 

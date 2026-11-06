@@ -1,6 +1,6 @@
 ---
 title: "Crear i editar un projecte"
-description: "L'assistent per crear un projecte, la pestanya Dades i com es desa, es duplica i s'esborra."
+description: "L'assistent per crear un projecte, les sèries de projecte, la pestanya Dades i com es desa, es duplica i s'esborra."
 product: esstrapis
 manual: usuari
 module: projectes
@@ -8,7 +8,7 @@ order: 4
 roles: [projects]
 routes: ["/projecte/:id"]
 lang: ca
-updated: 2026-10-30
+updated: 2026-11-06
 ---
 # 04. Crear i editar un projecte
 
@@ -56,6 +56,25 @@ propòsit, notes internes, estratègies, subvencions… Es poden omplir ara o m�
 
 Si falta algun camp obligatori, **Continuar** avisa: *Omple els camps obligatoris (\*): codi, estat, àmbit,
 qui coordina i dates.*
+
+#### Projectes numerats amb una sèrie
+
+Si l'entitat té **sèries de projecte** (es creen a **Administració › Taules auxiliars › Sèries de projecte**,
+vegeu [35. Taules auxiliars](35-taules-auxiliars.md#les-sèries-de-projecte)), abans del **Codi** surt el camp
+**Sèrie**. Una sèrie numera els projectes, com les sèries de les factures: amb la sèrie *2026*, el projecte
+es diu, per exemple, *[2026-013] Taller de cuina de proximitat*.
+
+En triar una sèrie, el **Codi** es divideix en dues parts: a l'esquerra, el número que tindrà el projecte
+(no es pot canviar), i a la dreta, el nom, que sí que s'escriu. El número definitiu es posa en desar el
+projecte: si una altra persona n'ha desat un a la mateixa sèrie mentrestant, aquest agafarà el següent.
+
+![Un projecte nou a la sèrie 2026](img/04-crear-editar-projecte/17-serie-nou.png)
+
+A totes les llistes, informes i documents, el projecte surt amb el número davant del nom.
+
+![El projecte numerat a la llista de projectes](img/04-crear-editar-projecte/18-serie-llistat.png)
+
+Amb **Sense sèrie**, el projecte funciona com sempre: el **Codi** és el nom sencer i no porta número.
 
 ### Pas 2. Fases i pressupost
 
@@ -154,7 +173,8 @@ La pestanya està dividida en blocs.
 
 | Camp | Què vol dir |
 |---|---|
-| **Codi** * | El nom del projecte. Ha de ser únic. |
+| **Sèrie** | Només surt si hi ha sèries de projecte. La sèrie que numera el projecte, o **Sense sèrie**. Vegeu [Projectes numerats amb una sèrie](#projectes-numerats-amb-una-sèrie). |
+| **Codi** * | El nom del projecte. Ha de ser únic. En un projecte amb sèrie, el número surt a l'esquerra i només s'escriu el nom. |
 | **Estat** * | Actiu, Tancat, Sol·licitat… (els defineix l'entitat). |
 | **Àmbit** * | L'àrea de l'entitat a què pertany. |
 | **Coordina** * | La persona responsable. |
@@ -242,22 +262,49 @@ dates originals**.
 
 ![La finestra Duplicar projecte](img/04-crear-editar-projecte/11-duplicar.png)
 
+Si hi ha sèries de projecte, la finestra també demana la **Sèrie** de la còpia. Proposa la del projecte
+original; es pot triar una altra sèrie o **Sense sèrie**. Dins d'una sèrie, la còpia conserva el nom (sense
+«(còpia)») i agafa el número següent de la sèrie en desar-la. Sense sèrie, porta el nom seguit de «(còpia)».
+
+![Duplicar un projecte a la sèrie 2026](img/04-crear-editar-projecte/19-duplicar-serie.png)
+
 En clicar **Duplica**, la còpia s'obre per revisar-la (canviar-ne el nom, ajustar-ne les fases…), però
 encara no està desada: la barra de baix diu *Còpia sense desar*. **Confirmar duplicat** la desa com a
 projecte nou; **Cancel·lar** la descarta.
 
-**Esborrar projecte** demana confirmació i el treu de totes les llistes.
+**Esborrar projecte** demana confirmació i envia el projecte a la paperera. Un projecte esborrat deixa de
+sortir a tot arreu: a les llistes, als informes (Ingressos i despeses, Preu hora, Dedicació…) i a les
+previsions (la previsió de tresoreria, l'IVA previst, la previsió de facturació i la de dedicació). Les
+línies de previsió del projecte ja no compten enlloc.
 
 ![La confirmació abans d'esborrar](img/04-crear-editar-projecte/12-esborrar.png)
 
-Abans d'esborrar un projecte, valoreu si no és millor posar-lo en estat **Tancat** o **Renunciat**: així se'n
-conserva l'històric als informes.
+Només es pot esborrar un projecte que **no té documents ni hores**: factures emeses o rebudes, despeses,
+ingressos, subvencions, pressupostos, dietes, moviments de tresoreria o hores imputades. Aquests documents i
+hores són reals i continuen comptant a la tresoreria, a l'IVA i a les hores de cada persona; si el projecte
+desaparegués, els informes per projecte no quadrarien. En aquest cas l'aplicació no l'esborra i diu què té:
+
+![Un projecte amb documents i hores no es pot esborrar](img/04-crear-editar-projecte/20-esborrar-no.png)
+
+Un projecte així es tanca canviant-ne l'**Estat** (per exemple, a **Tancat** o **Renunciat**): se'n conserva
+l'històric als informes.
+
+Si el projecte esborrat era l'últim numerat d'una sèrie, el seu número queda lliure i el tornarà a fer
+servir el projecte següent de la sèrie. Si n'hi ha de posteriors, el número no es reaprofita: la numeració
+queda amb un salt.
 
 ## Preguntes freqüents
 
 **En fer Continuar o Guardar surt «Error: This attribute must be unique».** Ja hi ha un altre projecte amb
 el mateix **Codi**. Cal canviar-lo; fixeu-vos també en els projectes tancats (filtre **Estat › Tots** de la
 llista).
+
+**«No es pot esborrar el projecte: té…».** El projecte té documents o hores (vegeu
+[Duplicar i esborrar](#duplicar-i-esborrar)). Si ja no s'hi treballa, canvieu-ne l'**Estat** a **Tancat**.
+
+**Vull canviar la sèrie o el número d'un projecte.** A la pestanya **Dades** es pot triar una altra sèrie: el
+projecte agafa el número següent de la nova sèrie (si era l'últim de l'anterior, aquell número queda lliure).
+Amb **Sense sèrie**, el projecte perd el número i es queda amb el nom. El número no es pot escriure a mà.
 
 **No trobo la persona que vull a Coordina.** Les usuàries marcades com a **Ocult** no hi surten. Cal
 revisar-ne la fitxa a **Administració › Usuàries**.
@@ -276,3 +323,4 @@ la pestanya **Pressupost i fases**. L'original queda com a referència. Vegeu
 - [06. Projectes mare i fills](06-projectes-mare-fills.md)
 - [09. Planificació (Gantt)](09-planificacio-gantt.md)
 - [11. Contactes](11-contactes.md)
+- [35. Taules auxiliars](35-taules-auxiliars.md#les-sèries-de-projecte)
