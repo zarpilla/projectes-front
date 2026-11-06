@@ -22,5 +22,5 @@ describe('single-file components', () => {
       if (all.length) broken.push(`${path.relative(src, file)}: ${all[0].message || all[0]}`)
     }
     expect(broken).toEqual([])
-  })
+  }, 20000) // reads every component: on a busy machine it took over the 5 s default
 })

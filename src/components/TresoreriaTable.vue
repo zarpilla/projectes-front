@@ -583,13 +583,14 @@
               size="is-small"
               title="Moviment previst pendent"
             />
-            <!-- Validation checkbox for real movements -->
+            <!-- Validation checkbox for real movements; on a pending document
+                 it also marks it collected or paid (issues/415) -->
             <b-checkbox
-              v-if="(props.row.paid || props.row.real) && props.row.validation_key"
+              v-if="canValidate(props.row)"
               :model-value="props.row.is_validated"
               @update:model-value="toggleValidation(props.row)"
               class="mr-2"
-              :title="props.row.is_validated ? 'Moviment validat' : 'Marcar com validat'"
+              :title="validationTitle(props.row)"
             />
             <!-- <button
               v-if="props.row.expenseId"
@@ -645,7 +646,7 @@ import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
-import { setValidationKeys } from "@/domain/treasuryValidation.js";
+import { setValidationKeys, canValidate, validationAction, settleDate, settleRow } from "@/domain/treasuryValidation.js";
 import { dateEditKey, isoOfDatef, movementDateChanges, saveMovementDates } from "@/domain/treasuryMovementDates.js";
 
 const MOVEMENTS_ALL_KEY = "TresoreriaTable.movementsAll";
@@ -1512,8 +1513,56 @@ export default {
     isBeforeToday(datef) {
       return datef < moment().format("YYYYMMDD");
     },
+    canValidate,
+    validationTitle(row) {
+      if (row.is_validated) return "Moviment validat";
+      if (validationAction(row) === "settle") return row.total_amount > 0 ? "Marcar com a cobrat i validat" : "Marcar com a pagat i validat";
+      return "Marcar com validat";
+    },
+    // the check stays as the row says after a cancel or an error: Buefy keeps
+    // its own value until the model changes
+    resetCheck(row) {
+      const value = row.is_validated;
+      row.is_validated = !value;
+      this.$nextTick(() => { row.is_validated = value; });
+    },
+    askSettleDate(row, today) {
+      const verb = row.total_amount > 0 ? "cobrat" : "pagat";
+      return new Promise(resolve => {
+        this.$buefy.dialog.prompt({
+          title: `Data en què s'ha ${verb}`,
+          message: `«${row.concept}» està previst per al ${treasuryDisplayDate(row)}, que encara no ha arribat. Quin dia s'ha ${verb}? El document i les línies del projecte passaran a aquesta data.`,
+          inputAttrs: { type: "date", max: today, value: today, required: true },
+          confirmText: `Marca com a ${verb}`,
+          cancelText: "Cancel·la",
+          trapFocus: true,
+          onConfirm: value => resolve(value || null),
+          onCancel: () => resolve(null)
+        });
+      });
+    },
+    // issues/415: the document is marked collected or paid on the line's date
+    async settleValidation(row) {
+      const today = moment().format("YYYY-MM-DD");
+      const date = settleDate(row, today) || (await this.askSettleDate(row, today));
+      if (!date) {
+        this.resetCheck(row);
+        return;
+      }
+      await settleRow(row, date);
+      this.$buefy.snackbar.open({
+        message: `${row.concept}: ${row.total_amount > 0 ? "cobrat" : "pagat"} el ${moment(date).format("DD/MM/YYYY")}`,
+        type: "is-success",
+        queue: false
+      });
+      await this.getData();
+    },
     async toggleValidation(row) {
       try {
+        if (validationAction(row) === "settle") {
+          await this.settleValidation(row);
+          return;
+        }
         // a line grouping several payrolls validates (or not) all of them (issues/347)
         if (row.validation_keys && row.validation_keys.length > 1) {
           row.is_validated = await setValidationKeys(row.validation_keys, !row.is_validated);
@@ -1537,6 +1586,8 @@ export default {
 
         // Update the local data
         row.is_validated = response.data.validated;
+        // unticking a line the check had marked paid puts the document back (issues/415)
+        if (response.data.reverted) await this.getData();
 
         // this.$buefy.snackbar.open({
         //   message: response.data.validated ? 'Moviment validat' : 'Validació eliminada',
@@ -1545,10 +1596,14 @@ export default {
         // });
       } catch (error) {
         console.error('Error toggling validation:', error);
+        this.resetCheck(row);
         this.$buefy.snackbar.open({
-          message: 'Error al validar el moviment',
+          message:
+            (error && error.response && error.response.data && error.response.data.error && error.response.data.error.message) ||
+            'Error al validar el moviment',
           type: 'is-danger',
-          queue: false
+          queue: false,
+          duration: 8000
         });
       }
     }

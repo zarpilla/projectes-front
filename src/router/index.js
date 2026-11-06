@@ -315,6 +315,17 @@ const routes = [
     props: true,
   },
   {
+    // issues/413
+    meta: {
+      title: "Conciliació",
+      requiresAuth: true
+    },
+    path: "/conciliacio",
+    name: "conciliacio.view",
+    component: () =>
+      import("../views/Conciliacio.vue"),
+  },
+  {
     meta: {
       title: "IVA",
       requiresAuth: true
