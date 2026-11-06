@@ -24,7 +24,9 @@ function vm (form) {
     periodification: [],
     $buefy: { snackbar: { open: vi.fn() } },
     $router: { push: vi.fn() },
-    getData: vi.fn()
+    getData: vi.fn(),
+    // no project series here
+    syncSerieName: vi.fn()
   }
 }
 

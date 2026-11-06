@@ -4,6 +4,8 @@
   <div class="project-form" @input.capture="enableUserInteraction" @change.capture="enableUserInteraction">
     <modal-box-duplicate-project
       :is-active="isDuplicateModalActive"
+      :series="offeredSeries"
+      :serie-id="formSerieId"
       @confirm="duplicateConfirmed"
       @cancel="isDuplicateModalActive = false"
     />
@@ -67,7 +69,20 @@
               :class="{ 'a-form': newSummary }"
             >
               <h3 v-if="newSummary" class="form-section-title">Identificació</h3>
-              <b-field label="Codi *" horizontal :type="nameError ? 'is-danger' : null" :message="nameError">
+              <!-- «Sèries de projecte»: the series numbers the project, «[2026-001] Nom» -->
+              <b-field v-if="offeredSeries.length" label="Sèrie" horizontal>
+                <b-select :model-value="formSerieId" placeholder="Sèrie" @update:model-value="pickSerie">
+                  <option :value="0">Sense sèrie</option>
+                  <option v-for="s in offeredSeries" :key="s.id" :value="s.id">{{ s.name }}</option>
+                </b-select>
+              </b-field>
+              <b-field v-if="formSerie" label="Codi *" horizontal :type="nameError ? 'is-danger' : null" :message="nameError || serieCodeHelp">
+                <div class="serie-name">
+                  <span class="button is-static serie-code" data-test="serie-code">{{ formSerieCode }}</span>
+                  <b-input v-model="form.title" placeholder="Nom del projecte" required :validation-message="requiredFieldMessage" @update:model-value="nameError = ''" />
+                </div>
+              </b-field>
+              <b-field v-else label="Codi *" horizontal :type="nameError ? 'is-danger' : null" :message="nameError">
                 <b-input v-model="form.name" placeholder="Codi" required :validation-message="requiredFieldMessage" @update:model-value="nameError = ''" />
               </b-field>
               <b-field label="Estat *" horizontal>
@@ -2591,6 +2606,7 @@ import sortBy from "lodash/sortBy";
 import { projectDocuments, projectDocumentAmounts, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { isDuplicateCodeError, projectSaveErrorMessage, DUPLICATE_CODE_FIELD_MESSAGE } from "@/domain/projectSaveError";
 import { projectTrashDialog } from "@/domain/projectTrash";
+import { serieIdOf, seriesOffered, projectSerieCode, withSerie, formName, copyNameFields } from "@/domain/projectSeries";
 import { projectBasicDataError, projectEndBeforeStart, PROJECT_DATES_MESSAGE, REQUIRED_FIELD_MESSAGE } from "@/domain/projectBasicData";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
 import {
@@ -2708,6 +2724,9 @@ export default {
       renderedTabs: {},
       isDuplicateModalActive: false,
       isDeleteModalActive: false,
+      // «Sèries de projecte», and the series the project had when loaded
+      projectSeries: [],
+      storedSerie: null,
       showOptionalFields: false,
       updatingGantt: false,
       updatingGanttTimer: 0,
@@ -2959,6 +2978,23 @@ export default {
     formCardTitle() {
       return "Dades bàsiques";
     },
+    formSerieId() {
+      return serieIdOf(this.form);
+    },
+    formSerie() {
+      return this.projectSeries.find(s => s.id === this.formSerieId) || null;
+    },
+    offeredSeries() {
+      return seriesOffered(this.projectSeries, this.storedSerie && serieIdOf(this.storedSerie));
+    },
+    formSerieCode() {
+      return projectSerieCode(this.formSerie, this.form, this.storedSerie);
+    },
+    // a number not yet given: it is taken when the project is saved
+    serieCodeHelp() {
+      const keeps = this.storedSerie && this.storedSerie.serie_number && serieIdOf(this.storedSerie) === this.formSerieId && this.form.id;
+      return keeps ? "" : "El número es posa en desar el projecte";
+    },
     transitionName() {
       if (this.useTransition) {
         return "fade";
@@ -3208,6 +3244,8 @@ export default {
       return {
         id: null,
         name: null,
+        title: null,
+        project_serie: { id: 0 },
         project_state: { id: 0 },
         project_scope: { id: 0 },
         project_likelihood: { id: 0 },
@@ -3291,6 +3329,12 @@ export default {
                 this.form.region && this.form.region.id
                   ? this.form.region
                   : { id: 0 };
+
+              this.form.project_serie =
+                this.form.project_serie && this.form.project_serie.id
+                  ? { id: this.form.project_serie.id }
+                  : { id: 0 };
+              this.storedSerie = { project_serie: { ...this.form.project_serie }, serie_number: this.form.serie_number };
 
               // Here and not after the awaits below: the template binds its .id
               this.form.default_dedication_type =
@@ -3493,6 +3537,7 @@ export default {
     startNewProject() {
       // New project - disable dirty tracking during initialization
       this.dirtyEnabled = false;
+      this.storedSerie = null;
       this.isInitialLoad = true;
       this.userHasInteracted = false;
       this.project_scopes = this.project_scopes.filter(s => !s.disabled)
@@ -3509,6 +3554,15 @@ export default {
       this.getAuxiliarData();
     },
     async getAuxiliarData() {
+      // not cached: their last numbers move with every project
+      service({ requiresAuth: true })
+        .get("project-series?_limit=-1&_sort=name:ASC")
+        .then(r => {
+          this.projectSeries = r.data || [];
+        })
+        .catch(() => {
+          this.projectSeries = [];
+        });
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
@@ -3753,6 +3807,7 @@ export default {
       return true;
     },
     async nextStep() {
+      this.syncSerieName();
       // Validate current step before proceeding
       if (!this.isStepValid(this.currentStep)) {
         const messages = {
@@ -3883,10 +3938,12 @@ export default {
         this.form.grantable_amount_total = null;
       }
 
+      this.syncSerieName();
+
       try {
         const basicDataError = projectBasicDataError(this.form);
         if (basicDataError) {
-          if (!this.form.name) this.nameError = REQUIRED_FIELD_MESSAGE;
+          if (!this.form.name || (this.formSerie && !this.form.title)) this.nameError = REQUIRED_FIELD_MESSAGE;
           this.$buefy.snackbar.open({
             message: basicDataError,
             queue: false
@@ -5022,11 +5079,23 @@ export default {
       this.$buefy.snackbar.open({ message: "Esborrat", queue: false });
       this.$router.push({ name: "projectes.view" });
     },
-    duplicateConfirmed(moveDates) {
-      this.isDuplicateModalActive = false;
-      this.performDuplicate(moveDates);
+    // a numbered project's name is its code and its text (the backend writes the
+    // final one): set before validating and saving
+    syncSerieName() {
+      if (this.formSerie) {
+        this.form.name = formName(this.formSerie, this.form, this.storedSerie);
+      }
     },
-    performDuplicate(moveDates) {
+    // picking another series (0: none) in Dades
+    pickSerie(serieId) {
+      Object.assign(this.form, withSerie(this.form, Number(serieId) || 0));
+      this.nameError = "";
+    },
+    duplicateConfirmed(moveDates, serieId) {
+      this.isDuplicateModalActive = false;
+      this.performDuplicate(moveDates, serieId);
+    },
+    performDuplicate(moveDates, serieId = 0) {
       // Create a deep copy of the current form
       const duplicatedForm = JSON.parse(JSON.stringify(this.form));
 
@@ -5040,8 +5109,11 @@ export default {
       delete duplicatedForm.created_by;
       delete duplicatedForm.updated_by;
       
-      // Add " (còpia)" to the name
-      duplicatedForm.name = duplicatedForm.name + ' (còpia)';
+      // The name: into a series, the text with the series' next number; without
+      // one, the name followed by « (còpia)»
+      Object.assign(duplicatedForm, copyNameFields(this.form, Number(serieId) || 0));
+      delete duplicatedForm.documentId;
+      this.storedSerie = null;
       
       // Helper function to adjust and convert dates
       const adjustDate = (dateValue) => {
@@ -5434,6 +5506,21 @@ export default {
 };
 </script>
 <style>
+/* «Sèries de projecte»: the code next to the project's text, on one line */
+.project-form .serie-name {
+  display: flex;
+  gap: .5rem;
+  align-items: flex-start;
+  width: 100%;
+}
+.project-form .serie-name .serie-code {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.project-form .serie-name > .control {
+  flex: 1;
+  min-width: 0;
+}
 /* A mother's children: a small table, active first (name, state, dates) */
 .project-form .children-list {
   width: 100%;

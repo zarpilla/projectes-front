@@ -11,6 +11,8 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'project-state', label: 'Estats de projecte' },
       { entity: 'project-likelihood', label: 'Probabilitats de projecte' },
       { entity: 'project-type', label: 'Tipus de projecte' },
+      // «[2026-001] Nom del projecte»
+      { entity: 'project-serie', label: 'Sèries de projecte' },
       { entity: 'strategy', label: 'Estratègies' },
       { entity: 'dedication-type', label: 'Tipus de dedicació' },
       { entity: 'activity-type', label: "Tipus d'activitat" },

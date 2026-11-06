@@ -9,12 +9,20 @@
       <section class="modal-card-body">
         <p><b>Es crearà una còpia del projecte amb:</b></p>
         <ul class="duplicate-list">
-          <li>El nom seguit de «(còpia)»</li>
+          <li v-if="serie">El mateix nom amb el número següent de la sèrie</li>
+          <li v-else>El nom seguit de «(còpia)»</li>
           <li>Totes les fases originals i d'execució</li>
           <li>Tots els ingressos i despeses previstos</li>
           <li>Totes les hores planificades</li>
         </ul>
         <p class="duplicate-note">No es copien els documents adjunts, les factures ni les justificacions.</p>
+        <!-- «Sèries de projecte»: the copy may go into another series -->
+        <b-field v-if="series.length" label="Sèrie" class="duplicate-serie">
+          <b-select v-model="serie" expanded>
+            <option :value="0">Sense sèrie</option>
+            <option v-for="s in series" :key="s.id" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </b-field>
         <fieldset class="duplicate-dates">
           <legend>Dates de la còpia</legend>
           <b-radio v-model="moveDates" :native-value="true" name="duplicate-dates">Mou totes les dates un any endavant</b-radio>
@@ -33,18 +41,28 @@
 <script>
 export default {
   name: 'ModalBoxDuplicateProject',
-  // confirm(moveDates: boolean) | cancel()
+  // confirm(moveDates: boolean, serieId: number, 0 for none) | cancel()
   emits: ['cancel', 'confirm'],
   props: {
     isActive: {
       type: Boolean,
       default: false
+    },
+    // the series to offer, and the project's own (the copy's default)
+    series: {
+      type: Array,
+      default: () => []
+    },
+    serieId: {
+      type: Number,
+      default: 0
     }
   },
   data () {
     return {
       isModalActive: false,
       moveDates: true,
+      serie: 0,
       confirmed: false
     }
   },
@@ -53,6 +71,7 @@ export default {
       this.isModalActive = newValue
       if (newValue) {
         this.moveDates = true
+        this.serie = this.series.some(s => s.id === this.serieId) ? this.serieId : 0
         this.confirmed = false
       }
     },
@@ -71,7 +90,7 @@ export default {
     confirm () {
       this.confirmed = true
       this.isModalActive = false
-      this.$emit('confirm', this.moveDates)
+      this.$emit('confirm', this.moveDates, this.serie)
     }
   }
 }
@@ -85,6 +104,9 @@ export default {
 .duplicate-note {
   color: var(--a-muted);
   font-size: .875rem;
+}
+.duplicate-serie {
+  margin: 1rem 0 0;
 }
 .duplicate-dates {
   margin: 1rem 0;

@@ -10,10 +10,12 @@ import ModalBoxDuplicateProject from '@/components/ModalBoxDuplicateProject.vue'
 
 const Parent = {
   components: { ModalBoxDuplicateProject },
-  data: () => ({ active: false, events: [] }),
+  data: () => ({ active: false, events: [], series: [], serieId: 0 }),
   template: `<modal-box-duplicate-project
     :is-active="active"
-    @confirm="moveDates => { events.push(['confirm', moveDates]); active = false }"
+    :series="series"
+    :serie-id="serieId"
+    @confirm="(moveDates, serie) => { events.push(['confirm', moveDates, serie]); active = false }"
     @cancel="events.push(['cancel']); active = false"
   />`
 }
@@ -26,8 +28,9 @@ const closers = {
   'Escape': () => document.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
 }
 
-async function open () {
+async function open (props = {}) {
   const w = mount(Parent, { global: { plugins: [Buefy] }, attachTo: document.body })
+  Object.assign(w.vm, props)
   w.vm.active = true
   await flushPromises()
   expect(document.querySelector('.modal.is-active .duplicate-project-modal')).not.toBeNull()
@@ -49,7 +52,7 @@ describe('Duplicar projecte modal', () => {
     const w = await open()
     button('Duplica').click()
     await flushPromises()
-    expect(w.vm.events).toEqual([['confirm', true]])
+    expect(w.vm.events).toEqual([['confirm', true, 0]])
     w.unmount()
   })
 
@@ -60,7 +63,49 @@ describe('Duplicar projecte modal', () => {
     await flushPromises()
     button('Duplica').click()
     await flushPromises()
-    expect(w.vm.events).toEqual([['confirm', false]])
+    expect(w.vm.events).toEqual([['confirm', false, 0]])
     w.unmount()
+  })
+
+  // «Sèries de projecte» (2026-11-06): the copy goes into a series, by default the source's
+  describe('with project series', () => {
+    const series = [{ id: 3, name: '2026' }, { id: 4, name: '2027' }]
+    const select = () => document.querySelector('.modal.is-active .duplicate-serie select')
+
+    it('no series, no question', async () => {
+      const w = await open()
+      expect(select()).toBeNull()
+      w.unmount()
+    })
+
+    it("offers the source's series, and the copy goes there", async () => {
+      const w = await open({ series, serieId: 3 })
+      expect(select().value).toBe('3')
+      expect(document.querySelector('.modal.is-active .duplicate-list').textContent).toContain('número següent de la sèrie')
+      button('Duplica').click()
+      await flushPromises()
+      expect(w.vm.events).toEqual([['confirm', true, 3]])
+      w.unmount()
+    })
+
+    it('the copy can go into another series, or none', async () => {
+      const w = await open({ series, serieId: 3 })
+      select().value = '4'
+      select().dispatchEvent(new Event('change'))
+      await flushPromises()
+      button('Duplica').click()
+      await flushPromises()
+      expect(w.vm.events).toEqual([['confirm', true, 4]])
+      w.unmount()
+      const none = await open({ series, serieId: 3 })
+      select().value = '0'
+      select().dispatchEvent(new Event('change'))
+      await flushPromises()
+      expect(document.querySelector('.modal.is-active .duplicate-list').textContent).toContain('(còpia)')
+      button('Duplica').click()
+      await flushPromises()
+      expect(none.vm.events).toEqual([['confirm', true, 0]])
+      none.unmount()
+    })
   })
 })

@@ -22,7 +22,9 @@ const BACKEND_ENTITIES = [
   // issues/159
   'pickup', 'delivery-type', 'city', 'product', 'document-type', 'vat-type', 'activity-type',
   // issues/310: the holidays for everyone
-  'festive'
+  'festive',
+  // «Sèries de projecte» (2026-11-06)
+  'project-serie'
 ]
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"

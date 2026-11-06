@@ -78,6 +78,7 @@ export const ENTITY_SLUGS = {
   'project-state': 'estats-projecte',
   'project-likelihood': 'probabilitats-projecte',
   'project-type': 'tipus-projecte',
+  'project-serie': 'series-projecte',
   strategy: 'estrategies',
   'dedication-type': 'tipus-dedicacio',
   'activity-type': 'tipus-activitat',
