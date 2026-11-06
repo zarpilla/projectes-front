@@ -74,7 +74,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Projectes", "Hores"],
-      text: "El «Cost per hora» de cada línia de la planificació d'un projecte és el de la jornada de la persona que cobreix el període de la línia, i es recalcula quan canvien les jornades: abans quedava congelat al preu del dia en què la línia es va guardar (a l'ACTGI 24-27 de l'Arran de Terra, línies del 2025 al preu de 2023). Les línies ja guardades de tots els projectes s'han recalculat una vegada; les dels períodes sense jornada amb salari mantenen l'últim preu. El cost per hora de cada jornada es calcula amb les hores de l'any a «Anys», també quan s'afegeix o es canvia un any."
+      text: "El «Cost per hora» de cada línia de la planificació d'un projecte surt de les jornades de la persona: cada dia laborable de la línia amb la jornada que el cobreix, de manera que una línia que travessa un canvi de jornada mostra la mitjana ponderada. Es recalcula quan canvien les jornades, i la previsió del projecte també: abans quedava congelat al preu del dia en què la línia es va guardar (a l'ACTGI 24-27 de l'Arran de Terra, línies del 2025 al preu de 2023). El cost per hora de cada jornada es calcula amb les hores de l'any a «Anys», també quan s'afegeix o es canvia un any."
     }
   ]
 },
