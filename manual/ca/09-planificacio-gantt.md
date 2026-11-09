@@ -60,7 +60,9 @@ planificades.
 1. (Opcional) Triar la **Persona** a dalt.
 2. Arrossegar el ratolí sobre la fila d'una línia, des del dia o el mes d'inici fins al final.
 3. A la finestra **Planificació**, posar les **Hores** i triar si són el **Total** del període,
-   **Setmanals** o **Mensuals**; la **Persona** (el **Cost/hora** s'omple sol) i, si cal, una **Descripció**.
+   **Setmanals** o **Mensuals**; la **Persona** (el **Cost/hora** s'omple sol) i, si cal, una **Descripció**. Als projectes **Per hores**, en lloc
+   del **Cost/hora** surt el **Preu/hora** de la línia, que es pot canviar (buit = el del projecte; vegeu
+   [05](05-fases-pressupost.md#el-pressupost-per-hores)).
 4. **D'acord**.
 5. **Guardar** a la barra de baix.
 

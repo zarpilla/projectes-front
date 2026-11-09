@@ -95,8 +95,8 @@ A la capçalera de cada fase es veuen els seus totals (**Ingressos**, **Despeses
 mínim una fase per continuar.
 
 Si el projecte es factura **Per hores** (el valor per defecte de l'entitat, o triat a **Més dades
-(opcionals)** › **Facturació**), aquest pas mostra el **Pressupost per hores**: el preu/hora i qui hi farà
-quantes hores. Vegeu [05. Fases i pressupost del projecte](05-fases-pressupost.md#projectes-facturats-per-hores). El detall de les fases i les línies és al capítol
+(opcionals)** › **Facturació**), aquest pas també mostra les fases; el **Pressupost per hores** (el preu/hora
+i qui hi farà quantes hores) és al pas 3, **Planificació i preu/hora**. Vegeu [05. Fases i pressupost del projecte](05-fases-pressupost.md#projectes-facturats-per-hores). El detall de les fases i les línies és al capítol
 [05. Fases i pressupost del projecte](05-fases-pressupost.md).
 
 En fer **Continuar**, el pressupost original es copia al **pressupost d'execució** (el *previst*), que és
@@ -151,10 +151,10 @@ coordina i les dates, i a sota les pestanyes:
 |---|---|
 | **Resum** | El resum financer: resultat, ingressos, despeses i hores, original, previst i executat, en total o per any. També el **Preu/hora** que en surt i, als projectes per hores, el que queda **Per facturar**. |
 | **Dades** | Les dades generals del projecte (vegeu més avall). |
-| **Pressupost i fases** | Les fases i les línies del pressupost original i del d'execució; als projectes per hores, el **Pressupost per hores**. Vegeu [05](05-fases-pressupost.md). |
+| **Pressupost i fases** | Les fases i les línies del pressupost original i del d'execució. Vegeu [05](05-fases-pressupost.md). |
 | **Periodificació** | El repartiment dels ingressos i les despeses entre anys. Vegeu [05](05-fases-pressupost.md). |
 | **Cobraments i pagaments** | Les factures i els moviments lligats al projecte. |
-| **Planificació** | El Gantt original i previst. Vegeu [09](09-planificacio-gantt.md). |
+| **Planificació** | El Gantt original i previst. Als projectes per hores es diu **Planificació i preu/hora** i a sota del Gantt hi ha el **Pressupost per hores**. Vegeu [09](09-planificacio-gantt.md) i [05](05-fases-pressupost.md#el-pressupost-per-hores). |
 | **Tasques** | Les tasques del projecte. Vegeu [10. Tasques](10-tasques.md). |
 
 L'adreça de la pàgina recorda la pestanya oberta: es pot copiar i enviar a una altra persona.
