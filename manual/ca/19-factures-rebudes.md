@@ -88,6 +88,9 @@ adjuntat. Al detall del projecte, les línies pagades porten el número de la fa
 - **Nova dieta**: un desplaçament pagat per quilòmetres. Demana la **Persona**, el **Projecte**, el
   **Concepte** (el motiu, el dia, el lloc), els **Quilòmetres** i la **Data**, i amb **Crear Dieta** prepara la
   despesa amb dues línies: la part sense IRPF i la part amb IRPF, segons les tarifes de l'entitat.
+- Totes dues tenen **Venciment**, com les factures: si la despesa no està pagada, Tresoreria la posa en aquesta
+  data (sense venciment, en la d'emissió), i en assignar-la a una línia de despesa del projecte que no té
+  **Previsió pag.**, la línia la pren.
 
 ![Una dieta nova](img/19-factures-rebudes/05-nova-dieta.png)
 
