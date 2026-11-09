@@ -85,3 +85,41 @@ export function forecastTotals(rows, payroll) {
     result: t.incomes + t.invoices + t.vat - payrollCost
   };
 }
+
+// issues/424: the columns of the table can be sorted. Names go A→Z first,
+// amounts the biggest first (expenses by their size, not their sign); a
+// second click turns the order round. «Sense tipus» / «Sense àmbit» stay
+// last either way.
+export const SORT_COLUMNS = [
+  { key: "label", text: true },
+  { key: "projects" },
+  { key: "incomes" },
+  { key: "invoices", expense: true },
+  { key: "vat", expense: true },
+  { key: "payrollCover" }
+];
+
+/** The direction of a first click on a column. */
+export function defaultSortDir(key) {
+  const col = SORT_COLUMNS.find(c => c.key === key);
+  return col && col.text ? "asc" : "desc";
+}
+
+/**
+ * The rows of forecastRows in the order of a column.
+ * @param key a SORT_COLUMNS key; anything else keeps the order as it is
+ * @param dir "asc" or "desc"
+ */
+export function sortForecastRows(rows, key, dir = defaultSortDir(key)) {
+  const col = SORT_COLUMNS.find(c => c.key === key);
+  if (!col) return rows;
+  const sign = dir === "desc" ? -1 : 1;
+  const value = (r) => (col.expense ? -(Number(r[key]) || 0) : Number(r[key]) || 0);
+  const byLabel = (a, b) => String(a.label).localeCompare(String(b.label), "ca", { sensitivity: "base", numeric: true });
+  return [...rows].sort((a, b) => {
+    const none = (a.none ? 1 : 0) - (b.none ? 1 : 0);
+    if (none) return none;
+    const c = col.text ? byLabel(a, b) : value(a) - value(b);
+    return sign * c || byLabel(a, b);
+  });
+}

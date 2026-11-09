@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.09",
   items: [
     {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/previsio", label: "Previsió econòmica" }, " › «Resum per projectes», cliqueu el títol d'una columna per ordenar-hi la taula: els projectes, tipus o àmbits de la A a la Z, els imports del més gran al més petit; un segon clic inverteix l'ordre. L'ordre es manté en canviar l'agrupació o l'any."]
+    },
+    {
       type: "Novetats",
       modules: ["Diners"],
       text: ["Les despeses (Dieta, Altres…) de ", { to: "/factures-rebudes", label: "Despeses" }, " tenen «Venciment», com les factures: si no estan pagades, ", { to: "/tresoreria", label: "Tresoreria" }, " les posa en aquesta data (abans, en la d'emissió), i en assignar-ne una a una línia del projecte sense «Previsió pag.», la línia la pren."]
