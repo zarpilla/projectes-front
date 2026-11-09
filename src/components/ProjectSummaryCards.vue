@@ -67,6 +67,10 @@
           <!-- issues/371: (ingressos − factures de despesa) / hores -->
           <dt title="(Ingressos − despeses) / hores">Preu/hora</dt><dd class="effective-price">{{ money(s.real.pricePerHour) }}</dd>
           <dt title="(Ingressos − despeses) / hores previstes">Preu/hora previst</dt><dd class="effective-price-estimated">{{ money(s.estimated.pricePerHour) }}</dd>
+          <!-- issues/421: what the planned hours bill, Σ hores × preu/hora de cada línia / hores -->
+          <template v-if="billingMode === 'hours' && plannedBillingPrice !== null">
+            <dt title="Mitjana dels preus/hora de les línies de la planificació, segons les hores de cadascuna">Preu/hora facturat previst</dt><dd class="planned-billing-price">{{ money(plannedBillingPrice) }}</dd>
+          </template>
         </dl>
       </article>
     </div>
@@ -127,6 +131,11 @@ export default {
     pricePerHour: {
       type: Number,
       default: 0
+    },
+    // issues/421: Σ hours × line price / Σ hours of the planning (null: not shown)
+    plannedBillingPrice: {
+      type: Number,
+      default: null
     }
   },
   data () {

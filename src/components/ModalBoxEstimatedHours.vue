@@ -36,8 +36,26 @@
                 </option>
               </b-select>
             </b-field>
+            <!-- issues/421: a project billed by the hour shows what the line bills,
+                 editable; empty = the project's price/hour (Dades) -->
+            <b-field
+              v-if="hoursMode"
+              label="Preu/hora"
+              horizontal
+              :message="lineInvoiced ? 'La línia ja està facturada i conserva l\'import de la factura' : 'Buit: el preu/hora del projecte (' + formatMoney(projectPrice || 0) + ')'"
+            >
+              <b-input
+                v-model="form.price"
+                name="price"
+                inputmode="decimal"
+                aria-label="Preu/hora"
+                :disabled="lineInvoiced"
+                :placeholder="formatMoney(projectPrice || 0)"
+                @update:model-value="fixDecimals('price', form.price)"
+              />
+            </b-field>
             <!-- read-only: the cost comes from the person's working day (issues/133) -->
-            <b-field label="Cost/hora" horizontal v-if="me.options && me.options.userHasCostByHour">
+            <b-field label="Cost/hora" horizontal v-else-if="me && me.options && me.options.userHasCostByHour">
               <div class="readonly-fake cost-by-hour">
                 {{ form.amount != null && form.amount !== '' ? formatMoney(form.amount) : '' }}
               </div>
@@ -81,6 +99,7 @@ import ModalBox from '@/components/ModalBox.vue'
 import RadioPicker from '@/components/RadioPicker.vue'
 import moment from 'moment'
 import { formatMoney } from '@/helpers/format-number'
+import { isInvoiced } from '@/domain/hoursBudget.js'
 
 export default {
   name: 'ModalBoxEstimatedHours',
@@ -98,6 +117,15 @@ export default {
     dedications: {
       type: Array,
       default: []
+    },
+    // issues/421: «Per hores» projects edit the line's price/hour
+    hoursMode: {
+      type: Boolean,
+      default: false
+    },
+    projectPrice: {
+      type: [Number, String],
+      default: 0
     }
   },
   data () {
@@ -112,6 +140,7 @@ export default {
         quantity: null,
         users_permissions_user: null,
         amount: null,
+        price: null,
         quantity_type: null
       },
       users: [],
@@ -123,6 +152,10 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     ...mapState(useMainStore, ['me']),
+    // an invoiced line keeps its amount: its price/hour no longer changes it
+    lineInvoiced () {
+      return !!(this.dedicationObject && isInvoiced(this.dedicationObject._subphase))
+    },
     enabled () {
       return this.form.quantity && this.form.users_permissions_user
     },
@@ -172,6 +205,7 @@ export default {
         this.form.comment = this.dedicationObject._hours.comment ? this.dedicationObject._hours.comment : null
         this.form.quantity = this.dedicationObject._hours.quantity
         this.form.amount = this.dedicationObject._hours.amount
+        this.form.price = this.dedicationObject._hours.price ?? this.defaultPrice()
         this.form.quantity_type = this.dedicationObject._hours.quantity_type || 'total'
         this.form.users_permissions_user = null // this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user : null
         // this.form.id = this.dedicationObject._hours.id
@@ -181,6 +215,7 @@ export default {
         this.form.comment = null
         this.form.quantity = null
         this.form.quantity_type = 'total'
+        this.form.price = this.defaultPrice()
         this.form.users_permissions_user = null
         this.userNameSearch = ''
         this.form.id = 0
@@ -228,10 +263,25 @@ export default {
       this.form._hours.quantity_type = this.form.quantity_type
       this.form._hours.amount = this.form.amount
       this.form._hours.total_amount = this.form.amount * this.form.quantity
+      if (this.hoursMode) this.form._hours.price = this.ownPrice(this.form.price)
       this.form._hours.comment = this.form.comment
       this.form._hours.users_permissions_user = this.form.users_permissions_user
 
       this.$emit('submit', this.form)
+    },
+    // the field starts with the project's price so it shows what the line bills
+    defaultPrice () {
+      return this.projectPrice === null || this.projectPrice === undefined || this.projectPrice === '' ? null : Number(this.projectPrice)
+    },
+    // empty, or the project's own price untouched, keeps following the project
+    ownPrice (value) {
+      if (value === null || value === undefined || String(value).trim() === '') return null
+      const n = Number(String(value).replace(',', '.'))
+      if (!Number.isFinite(n)) return null
+      const had = this.dedicationObject && this.dedicationObject._hours ? this.dedicationObject._hours.price : null
+      const followed = had === null || had === undefined || had === ''
+      if (followed && n === this.defaultPrice()) return null
+      return n
     },
     trashModal (trashObject) {
       this.trashObject = trashObject

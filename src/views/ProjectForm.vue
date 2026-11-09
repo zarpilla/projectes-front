@@ -878,7 +878,7 @@
               <span v-else>Recarrega el projecte per veure els totals correctes.</span>
               <b-button v-if="!form.dirty && hasBeenDirty" size="is-small" icon-left="refresh" @click.prevent="refresh">Recarrega</b-button>
             </div>
-            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" :billing-mode="billingMode" :price-per-hour="Number(form.invoice_hours_price) || 0" />
+            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" :billing-mode="billingMode" :price-per-hour="Number(form.invoice_hours_price) || 0" :planned-billing-price="plannedBillingPrice" />
           </template>
           <card-component
             v-if="isProfileExists && !newSummary"
@@ -1743,32 +1743,10 @@
         </div>
       </div>
 
-      <card-component
-        v-if="
-          !isLoading && phasesVisible && form && hoursMode && !showPhasesInHours && !form.is_mother &&
-          (!isCreationMode || currentStep >= 2)
-        "
-        title="Pressupost per hores"
-        v-show="showTab('pressupost')"
-        :content-visible="true"
-      >
-        <project-hours-budget
-          :key="'hours-' + formKey"
-          :phases="hoursBudgetPhases"
-          v-model:price="form.invoice_hours_price"
-          :editable="isCreationMode ? !form.is_mother : phasesEditable && !form.is_mother"
-          :date-start="dayString(form.date_start)"
-          :date-end="dayString(form.date_end)"
-          @phases-updated="hoursBudgetUpdated"
-          @hour-deleted="hoursBudgetHourDeleted"
-          @show-phases="showPhasesInHours = true"
-        />
-      </card-component>
 
       <card-component
         v-if="
           !isLoading && phasesVisible && form && form.project_original_phases &&
-          (!hoursMode || showPhasesInHours || form.is_mother) &&
           (!isCreationMode || currentStep >= 2)
         "
         title="Fases i pressupost original"
@@ -1853,7 +1831,6 @@
             form &&
             form.project_phases &&
             form.project_phases.length &&
-            (!hoursMode || showPhasesInHours || form.is_mother) &&
             !isCreationMode
         "
         title="Execució del pressupost"
@@ -2250,6 +2227,29 @@
         </div>
       </card-component>
 
+      <!-- issues/421: «Per hores», under the Gantt in «Planificació i preu/hora» -->
+      <card-component
+        v-if="
+          !isLoading && phasesVisible && form && hoursMode && !form.is_mother &&
+          (!isCreationMode || currentStep >= 3)
+        "
+        title="Pressupost per hores"
+        v-show="showTab('planificacio')"
+        :content-visible="true"
+      >
+        <project-hours-budget
+          :key="'hours-' + formKey"
+          :phases="hoursBudgetPhases"
+          v-model:price="form.invoice_hours_price"
+          :editable="isCreationMode ? !form.is_mother : phasesEditable && !form.is_mother"
+          :date-start="dayString(form.date_start)"
+          :date-end="dayString(form.date_end)"
+          @phases-updated="hoursBudgetUpdated"
+          @hour-deleted="hoursBudgetHourDeleted"
+          @show-phases="showPhasesTab"
+        />
+      </card-component>
+
       <!-- Gantt charts for child projects in mother projects -->
       <div v-if="showTab('planificacio') && !isLoading && !isUpdating && form.is_mother && form.children && form.children.children && form.children.children.length && !isCreationMode">
         <!-- Control buttons for non-open child projects -->
@@ -2634,7 +2634,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import WizardSteps from "@/components/WizardSteps.vue";
 import ProjectSummaryCards from "@/components/ProjectSummaryCards.vue";
 import ProjectHoursBudget from "@/components/ProjectHoursBudget.vue";
-import { BILLING_MODES, billingModeOf, defaultBillingMode, priceHoursLines } from "@/domain/hoursBudget.js";
+import { BILLING_MODES, billingModeOf, defaultBillingMode, priceHoursLines, plannedPricePerHour } from "@/domain/hoursBudget.js";
 import ModalBox from "@/components/ModalBox.vue";
 import ModalBoxDuplicateProject from "@/components/ModalBoxDuplicateProject.vue";
 import CardComponent from "@/components/CardComponent.vue";
@@ -2740,7 +2740,6 @@ export default {
       newTask: "",
       phasesVisible: true,
       // issues/371: a project billed by the hour shows the phases on demand
-      showPhasesInHours: false,
       billingModes: BILLING_MODES,
       tasksView: "state",
       ganttViewMode: "original", // 'original' or 'estimated'
@@ -2809,6 +2808,14 @@ export default {
     },
     hoursMode() {
       return this.billingMode === "hours";
+    },
+    // issues/421: «Per hores» plans the hours and their price/hour together
+    planningLabel() {
+      return this.hoursMode ? "Planificació i preu/hora" : "Planificació";
+    },
+    // «Preu/hora facturat previst» of the summary: Σ hours × line price / Σ hours
+    plannedBillingPrice() {
+      return this.hoursMode ? plannedPricePerHour(this.form && this.form.project_phases, this.form && this.form.invoice_hours_price) : null;
     },
     // the plan the hours budget edits: the original while creating the project
     // (the wizard copies it to the execution), the execution afterwards
@@ -2896,7 +2903,7 @@ export default {
       return [
         { title: "Dades bàsiques", description: "Nom, estat, àmbit, qui coordina i dates." },
         { title: "Fases i pressupost", description: "Pressupost original: es copia al previst en continuar." },
-        { title: "Planificació", description: "Qui hi dedica hores i quan: val per a l'original i el previst." },
+        { title: this.planningLabel, description: "Qui hi dedica hores i quan: val per a l'original i el previst." },
         { title: "Confirmació", description: "Revisa-ho i tanca el pressupost." }
       ];
     },
@@ -2919,7 +2926,7 @@ export default {
         return [
           { id: "dades", label: "Dades" },
           { id: "pressupost", label: "Pressupost i fases" },
-          { id: "planificacio", label: "Planificació" }
+          { id: "planificacio", label: this.planningLabel }
         ];
       }
       return [
@@ -2928,7 +2935,7 @@ export default {
         { id: "pressupost", label: "Pressupost i fases" },
         { id: "periodificacio", label: "Periodificació" },
         { id: "moviments", label: "Cobraments i pagaments" },
-        { id: "planificacio", label: "Planificació" },
+        { id: "planificacio", label: this.planningLabel },
         { id: "tasques", label: "Tasques" }
       ];
     },
@@ -3177,6 +3184,11 @@ export default {
   methods: {
     dayString(d) {
       return d ? moment(d).format("YYYY-MM-DD") : null;
+    },
+    // «Mostra les fases» of the hours budget: the phases live in their own tab
+    showPhasesTab() {
+      if (this.isCreationMode && !this.isDuplicating) this.currentStep = 2;
+      else this.selectTab("pressupost");
     },
     hoursBudgetUpdated(info) {
       if (this.isCreationMode) this.originalPhasesUpdated(info);
@@ -4379,6 +4391,7 @@ export default {
         hours.quantity_type = item._hours.quantity_type;
         hours.users_permissions_user = item._hours.users_permissions_user;
         hours.amount = item._hours.amount;
+        hours.price = item._hours.price ?? null;
         hours.total_amount = item.total_amount;
         hours.dirty = true;
       } else if (uuid) {
@@ -4389,12 +4402,18 @@ export default {
           quantity_type: item._hours.quantity_type,
           users_permissions_user: item._hours.users_permissions_user,
           amount: item._hours.amount,
+          price: item._hours.price ?? null,
           total_amount: item._hours.total_amount,
           _uuid: item._uuid,
           dirty: true
         };
         subphase.estimated_hours.push(hour);
         subphase.dirty = true;
+      }
+
+      // «Per hores»: the hour lines bill Σ hours × each row's price (issues/421)
+      if (this.hoursMode && phasesArray === this.hoursBudgetPhases) {
+        priceHoursLines(this.hoursBudgetPhases, this.form.invoice_hours_price);
       }
       
       this.updatingGantt = true;
@@ -4542,6 +4561,7 @@ export default {
         hours.quantity_type = item._hours.quantity_type;
         hours.users_permissions_user = item._hours.users_permissions_user;
         hours.amount = item._hours.amount;
+        hours.price = item._hours.price ?? null;
         hours.total_amount = item.total_amount;
         hours.dirty = true;
       } else if (uuid) {
@@ -4552,6 +4572,7 @@ export default {
           quantity_type: item._hours.quantity_type,
           users_permissions_user: item._hours.users_permissions_user,
           amount: item._hours.amount,
+          price: item._hours.price ?? null,
           total_amount: item._hours.total_amount,
           _uuid: item._uuid,
           dirty: true

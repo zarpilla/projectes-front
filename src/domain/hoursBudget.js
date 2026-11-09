@@ -6,6 +6,10 @@
 // hours (materials, a fixed fee) keep what the user typed. The backend applies
 // the same rule on save (projectes-v5 src/services/hours-billing.js); the front
 // does it too so the form shows the right figures before saving.
+//
+// issues/421: a planning row (estimated hours) can carry its own price/hour
+// (`price`); empty means the project's. The line then stores the weighted
+// price: amount = Σ hours × row price / Σ hours, at 4 decimals.
 
 export const BILLING_MODES = [
   { value: "project", label: "Per projecte" },
@@ -51,6 +55,16 @@ export function hoursOfRow(row) {
   return q;
 }
 
+// an empty row price follows the project's; a typed one (0 too) wins
+export const hasOwnPrice = (row) => {
+  const v = row ? row.price : null;
+  return v !== null && v !== undefined && v !== "" && Number.isFinite(Number(v));
+};
+export const rowPrice = (row, pricePerHour) => (hasOwnPrice(row) ? Number(row.price) : Number(pricePerHour) || 0);
+
+// what a row bills: its hours × its price/hour
+export const rowAmount = (row, pricePerHour) => round2(hoursOfRow(row) * rowPrice(row, pricePerHour));
+
 export const hoursOfLine = (line) => round4(((line && line.estimated_hours) || []).reduce((s, row) => s + hoursOfRow(row), 0));
 
 // an invoiced or collected line keeps its amount: it is what the executed
@@ -86,11 +100,12 @@ export function otherLinesCount(phases) {
  * marking the changed ones dirty. In place; returns whether anything changed.
  */
 export function priceHoursLines(phases, pricePerHour) {
-  const amount = round4(Number(pricePerHour) || 0);
   let changed = false;
   for (const { line } of hoursLines(phases)) {
     if (isInvoiced(line)) continue;
     const quantity = hoursOfLine(line);
+    const billed = line.estimated_hours.reduce((sum, row) => sum + hoursOfRow(row) * rowPrice(row, pricePerHour), 0);
+    const amount = round4(quantity ? billed / quantity : Number(pricePerHour) || 0);
     const total = round2(quantity * amount);
     if (Number(line.quantity) !== quantity || Number(line.amount) !== amount || Number(line.total_amount) !== total) {
       line.quantity = quantity;
@@ -128,6 +143,24 @@ export const hoursLinesTotal = (phases) =>
   round2(hoursLines(phases).reduce((s, { line }) => s + (Number(line.quantity) || 0) * (Number(line.amount) || 0), 0));
 
 export const invoicedHoursLinesCount = (phases) => hoursLines(phases).filter(({ line }) => isInvoiced(line)).length;
+
+/**
+ * «Preu/hora facturat previst» (issues/421): Σ hours × row price / Σ hours over
+ * every planning row of the hour lines; the project price when there are no
+ * hours yet.
+ */
+export function plannedPricePerHour(phases, pricePerHour) {
+  let hours = 0;
+  let billed = 0;
+  for (const { line } of hoursLines(phases)) {
+    for (const row of line.estimated_hours) {
+      const h = hoursOfRow(row);
+      hours += h;
+      billed += h * rowPrice(row, pricePerHour);
+    }
+  }
+  return hours ? round2(billed / hours) : round2(Number(pricePerHour) || 0);
+}
 
 /** Hours worked × price/hour minus what the project has already invoiced, never below 0. */
 export function pendingToInvoice(realHours, pricePerHour, invoiced) {

@@ -3,7 +3,7 @@
        phases editor: the price/hour and who works how many hours. The lines
        live in the phases underneath (domain/hoursBudget). -->
   <div class="project-hours-budget">
-    <b-field label="Preu/hora" horizontal message="El que es factura per cada hora. L'ingrés previst és hores × preu/hora.">
+    <b-field label="Preu/hora" horizontal message="El que es factura per cada hora. Cada línia pot tenir el seu preu/hora; si el deixes buit, fa servir aquest. L'ingrés previst és hores × preu/hora.">
       <b-input
         :model-value="price"
         type="number"
@@ -24,6 +24,8 @@
             <th scope="col" class="has-text-right">Hores</th>
             <th scope="col">Des de</th>
             <th scope="col">Fins a</th>
+            <th scope="col" class="has-text-right">Preu/hora</th>
+            <th scope="col" class="has-text-right">Import</th>
             <th v-if="editable" scope="col"><span class="is-sr-only">Accions</span></th>
           </tr>
         </thead>
@@ -68,19 +70,37 @@
                 @update:model-value="set(r, f, toDay($event))"
               />
             </td>
+            <!-- issues/421: the line's own price/hour; empty = the project's -->
+            <td class="has-text-right">
+              <b-input
+                :model-value="hasOwnPrice(r.hour) ? r.hour.price : ''"
+                type="number"
+                step="0.01"
+                min="0"
+                size="is-small"
+                class="price-row-input"
+                :placeholder="moneyPlain(price)"
+                :disabled="!editable || isInvoiced(r.line)"
+                :aria-label="'Preu/hora de ' + userName(r.hour)"
+                @update:model-value="setPrice(r, $event)"
+              />
+            </td>
+            <!-- an invoiced line keeps the invoice's amount, not hours × price -->
+            <td v-if="isInvoiced(r.line)" class="has-text-right row-amount has-text-grey" title="La línia ja està facturada i conserva l'import de la factura">Facturada</td>
+            <td v-else class="has-text-right row-amount">{{ money(rowAmount(r.hour, price)) }}</td>
             <td v-if="editable" class="has-text-right">
               <b-button size="is-small" icon-left="delete" type="is-danger is-light" :aria-label="'Treu les hores de ' + userName(r.hour)" @click="remove(r)" />
             </td>
           </tr>
           <tr v-if="!rows.length">
-            <td :colspan="editable ? 5 : 4" class="has-text-grey">Encara no hi ha hores previstes.</td>
+            <td :colspan="editable ? 7 : 6" class="has-text-grey">Encara no hi ha hores previstes.</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <th scope="row">Total</th>
             <th class="has-text-right">{{ hoursText(totalHours) }}</th>
-            <th colspan="2" class="has-text-right">Ingrés previst: {{ money(totalAmount) }}</th>
+            <th colspan="4" class="has-text-right">Ingrés previst: {{ money(totalAmount) }}</th>
             <th v-if="editable"></th>
           </tr>
         </tfoot>
@@ -105,7 +125,7 @@ import service from '@/service/index'
 import { formatMoney, formatNumber } from '@/helpers/format-number'
 import { strictDateParser } from '@/helpers/datepickerFormat'
 import moment from 'moment'
-import { hoursLines, hoursOfLine, hoursOfRow, ensureHoursLine, priceHoursLines, otherLinesCount, hoursLinesTotal, invoicedHoursLinesCount } from '@/domain/hoursBudget.js'
+import { hoursLines, hoursOfLine, hoursOfRow, hasOwnPrice, rowAmount, isInvoiced, ensureHoursLine, priceHoursLines, otherLinesCount, hoursLinesTotal, invoicedHoursLinesCount } from '@/domain/hoursBudget.js'
 
 export default {
   name: 'ProjectHoursBudget',
@@ -166,7 +186,11 @@ export default {
   },
   methods: {
     hoursOfRow,
+    hasOwnPrice,
+    rowAmount,
+    isInvoiced,
     strictDateParser,
+    moneyPlain: v => formatNumber(Number(v) || 0, 2, 2),
     money: formatMoney,
     // the hours keep their dates as «YYYY-MM-DD»; the datepicker works with Dates
     toDate: v => (v ? moment(v, 'YYYY-MM-DD').toDate() : null),
@@ -187,6 +211,13 @@ export default {
     },
     set (r, field, value) {
       r.hour[field] = field === 'quantity' ? (value === '' ? 0 : Number(value)) : value
+      r.hour.dirty = true
+      r.line.dirty = true
+      this.changed()
+    },
+    // empty follows the project's price/hour again
+    setPrice (r, value) {
+      r.hour.price = value === '' || value === null || value === undefined ? null : Number(value)
       r.hour.dirty = true
       r.line.dirty = true
       this.changed()
@@ -237,6 +268,13 @@ export default {
 }
 .table :deep(.datepicker) {
   min-width: 9rem;
+}
+.price-row-input {
+  max-width: 7rem;
+  margin-left: auto;
+}
+.row-amount {
+  white-space: nowrap;
 }
 .hours-input {
   max-width: 7rem;

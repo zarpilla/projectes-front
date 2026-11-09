@@ -7,6 +7,8 @@
       @cancel="modalCancel"
       @delete="modalDelete"
       :dedications="dedications"
+      :hours-mode="hoursMode"
+      :project-price="project && project.invoice_hours_price"
     />
     <div class="gantt-toolbar">
       <div
@@ -56,6 +58,7 @@
 
 <script>
 import ModalBoxEstimatedHours from "@/components/ModalBoxEstimatedHours.vue";
+import { billingModeOf } from "@/domain/hoursBudget.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 // import sumBy from 'lodash/sumBy'
@@ -112,6 +115,10 @@ export default {
   computed: {
     ...mapState(useMainStore, ["userName"]),
     ...mapState(useMainStore, ["me"]),
+    // issues/421: «Per hores» lines show and edit their price/hour
+    hoursMode() {
+      return billingModeOf(this.project) === "hours";
+    },
     /** `me.options` is optional and loads asynchronously; never dereference it raw. */
     meOptions() {
       return (this.me && this.me.options) || {};
