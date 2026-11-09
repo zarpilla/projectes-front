@@ -115,8 +115,9 @@ fins que se salda aquí.
 **Un document surt «fora de termini».** No s'ha saldat i el seu termini ha passat: va a la propera declaració.
 Si ja s'havia declarat, marqueu-lo i saldeu-lo amb la data en què es va pagar.
 
-**L'IRPF d'abans.** En arribar aquesta funció (novembre de 2026), l'IRPF que ja constava com a pagat (factures
-amb el termini passat i nòmines pagades) es va donar per saldat a la seva data.
+**L'IRPF d'abans.** En arribar aquesta funció (novembre de 2026) no es va saldar res automàticament: l'IRPF dels
+trimestres ja declarats surt pendent, fora de termini. Cal saldar-lo un trimestre rere l'altre, amb la data en
+què es va pagar cada declaració.
 
 ## Vegeu també
 

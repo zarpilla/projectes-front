@@ -59,7 +59,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["A ", { to: "/irpf", label: "IRPF" }, " hi ha el botó «Salda», com a l'IVA: marqueu les nòmines, factures i despeses que heu declarat (de diversos trimestres si cal), trieu la data del pagament i veureu la suma abans de saldar. El que no marqueu, o el que entreu després, queda pendent i va a la declaració següent; a Tresoreria cada IRPF surt a la data en què s'ha saldat. L'IRPF que ja constava com a pagat s'ha donat per saldat a la seva data."]
+      text: ["A ", { to: "/irpf", label: "IRPF" }, " hi ha el botó «Salda», com a l'IVA: marqueu les nòmines, factures i despeses que heu declarat (de diversos trimestres si cal), trieu la data del pagament i veureu la suma abans de saldar. El que no marqueu, o el que entreu després, queda pendent i va a la declaració següent; a Tresoreria cada IRPF surt a la data en què s'ha saldat. Res no s'ha donat per saldat automàticament: l'IRPF dels trimestres ja declarats surt pendent fins que el saldeu."]
     },
     {
       type: "Millores",
