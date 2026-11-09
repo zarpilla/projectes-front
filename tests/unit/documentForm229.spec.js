@@ -12,7 +12,8 @@ describe('DocumentForm slips (issues/229)', () => {
     expect(showPaybefore('quotes')).toBe(false)
     expect(showPaybefore('emitted-invoices')).toBe(true)
     expect(showPaybefore('received-invoices')).toBe(true)
-    expect(showPaybefore('received-expenses')).toBe(false)
+    // issues/423: Despeses have a «Venciment» too
+    expect(showPaybefore('received-expenses')).toBe(true)
     expect(DocumentForm.computed.showPaybefore.call({ type: 'emitted-invoices', readOnly: true })).toBe(false)
   })
 

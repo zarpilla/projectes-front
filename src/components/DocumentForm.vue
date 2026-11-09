@@ -1505,9 +1505,12 @@ export default {
           !this.canEditDraft)
       );
     },
-    // quotes have no paybefore column: the date was dropped on save (issues/229)
+    // quotes have no paybefore column: the date was dropped on save (issues/229).
+    // Despeses (Dieta, Altres…) have it, as invoices do: Tresoreria places an
+    // unpaid one on that day and an assigned budget line takes it as «Previsió
+    // pag.» (issues/423)
     showPaybefore() {
-      return !["received-incomes", "received-expenses", "payrolls", "quotes"].includes(this.type) && !this.readOnly;
+      return !["received-incomes", "payrolls", "quotes"].includes(this.type) && !this.readOnly;
     },
     // An issued invoice (or a draft that is not being edited) shows its locked
     // data as text: same data, same save, just not as disabled inputs
