@@ -226,6 +226,9 @@ export default {
         const allUsers = r.data
         if (this.dedicationObject && this.dedicationObject._hours && this.dedicationObject._hours.users_permissions_user && this.dedicationObject._hours.users_permissions_user.username) {
           const user = allUsers.find(u => u.username.toLowerCase() === this.dedicationObject._hours.users_permissions_user.username.toLowerCase())
+          // a hidden person (who left) who already has these hours stays selectable,
+          // or the select showed empty (as in ProjectHoursBudget)
+          if (user && !this.users.includes(user)) this.users.push(user)
           this.form.users_permissions_user = user
           const today = moment().format('YYYY-MM-DD')
           const dedication = this.dedications.find(d => d.users_permissions_user && d.users_permissions_user.id === user.id && d.from <= today && d.to >= today)

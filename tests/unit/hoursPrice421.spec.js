@@ -9,7 +9,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import Buefy from 'buefy'
 import { buefyConfig } from '@/helpers/buefyConfig'
 
-vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn().mockResolvedValue({ data: [{ id: 7, username: 'anna' }] }), put: vi.fn() }) }))
+vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn().mockResolvedValue({ data: [{ id: 7, username: 'anna', hidden: true }, { id: 8, username: 'pol' }] }), put: vi.fn() }) }))
 
 import { rowPrice, hasOwnPrice, rowAmount, priceHoursLines, plannedPricePerHour, pendingToInvoice } from '@/domain/hoursBudget.js'
 import ProjectHoursBudget from '@/components/ProjectHoursBudget.vue'
@@ -106,6 +106,14 @@ describe('Gantt pop-up in a project billed by the hour (issues/421)', () => {
     await w.find('form').trigger('submit')
     expect(task._hours.price).toBe(null)
     expect(task._hours.amount).toBe(21.55) // the cost stays the person's
+  })
+
+  it('shows the hidden person who already has the hours', async () => {
+    const w = mountModal({ dedicationObject: hoursTask({}), hoursMode: true, projectPrice: 45 })
+    await w.setProps({ isActive: true })
+    await flushPromises()
+    expect(w.findAll('option').map(o => o.text())).toEqual(['pol', 'anna'])
+    expect(w.vm.form.users_permissions_user).toMatchObject({ id: 7 })
   })
 
   it('a changed price is stored on the line', async () => {
