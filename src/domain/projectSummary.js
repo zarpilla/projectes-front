@@ -5,6 +5,8 @@
 // - expenses total = invoices ("factures") + non-deductible VAT ("prorrata") + hours
 // - cost/hour = hours cost / hours
 // - price/hour = (incomes - invoices) / hours
+// - indirect = expenses total × the project's indirect expenses % (issues/420),
+//   in cents; only shown: it changes neither the result nor any report
 // Values missing in `totals` count as 0; per-hour figures are 0 without hours.
 
 const KINDS = {
@@ -34,16 +36,26 @@ const KINDS = {
   }
 }
 
-function figures (totals, fields) {
+// a % typed in the form: "12,5" or 12.5; anything else (empty, negative) is 0
+export function indirectPercent (value) {
+  const pct = Number(String(value ?? '').replace(',', '.'))
+  return Number.isFinite(pct) && pct > 0 ? pct : 0
+}
+
+function figures (totals, fields, indirectPct) {
   const value = field => (totals && totals[field]) || 0
   const hours = value(fields.hours)
+  const expenses = value(fields.invoices) + value(fields.hoursCost) + value(fields.prorata)
+  const indirect = Math.round(expenses * indirectPct) / 100
   return {
     result: value(fields.result),
     incomes: value(fields.incomes),
     invoices: value(fields.invoices),
     prorata: value(fields.prorata),
     hoursCost: value(fields.hoursCost),
-    expenses: value(fields.invoices) + value(fields.hoursCost) + value(fields.prorata),
+    expenses,
+    indirect,
+    expensesWithIndirect: expenses + indirect,
     hours,
     costPerHour: hours ? value(fields.hoursCost) / hours : 0,
     pricePerHour: hours ? (value(fields.incomes) - value(fields.invoices)) / hours : 0
@@ -51,11 +63,14 @@ function figures (totals, fields) {
 }
 
 // { original: {...}, estimated: {...}, real: {...} }, each with result, incomes,
-// invoices, prorata, hoursCost, expenses, hours, costPerHour, pricePerHour
-export function projectSummary (totals) {
+// invoices, prorata, hoursCost, expenses, indirect, expensesWithIndirect, hours,
+// costPerHour, pricePerHour. `indirectPct`: the project's indirect expenses %
+// (0 or nothing when the organization doesn't use them)
+export function projectSummary (totals, indirectPct = 0) {
+  const pct = indirectPercent(indirectPct)
   return {
-    original: figures(totals, KINDS.original),
-    estimated: figures(totals, KINDS.estimated),
-    real: figures(totals, KINDS.real)
+    original: figures(totals, KINDS.original, pct),
+    estimated: figures(totals, KINDS.estimated, pct),
+    real: figures(totals, KINDS.real, pct)
   }
 }

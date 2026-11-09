@@ -45,12 +45,13 @@
       </article>
       <article class="kpi">
         <h3>Despeses</h3>
-        <span class="kpi-label">Executades</span>
-        <span class="kpi-value">{{ money(s.real.expenses) }}</span>
+        <!-- issues/420: with the indirect expenses of the project, if it has a % -->
+        <span class="kpi-label">Executades<template v-if="indirectPct"> (amb indirectes)</template></span>
+        <span class="kpi-value expenses-real">{{ money(s.real.expensesWithIndirect) }}</span>
         <dl>
-          <dt>Previstes</dt><dd>{{ money(s.estimated.expenses) }}</dd>
-          <dt>Originals</dt><dd>{{ money(s.original.expenses) }}</dd>
-          <dt>Del previst</dt><dd>{{ percent(s.real.expenses, s.estimated.expenses) }}</dd>
+          <dt>Previstes</dt><dd class="expenses-estimated">{{ money(s.estimated.expensesWithIndirect) }}</dd>
+          <dt>Originals</dt><dd class="expenses-original">{{ money(s.original.expensesWithIndirect) }}</dd>
+          <dt>Del previst</dt><dd>{{ percent(s.real.expensesWithIndirect, s.estimated.expensesWithIndirect) }}</dd>
         </dl>
       </article>
       <article class="kpi">
@@ -87,7 +88,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in rows" :key="row.label" :class="{ 'is-sub': row.sub }">
+            <tr v-for="row in rows" :key="row.key" :class="{ 'is-sub': row.sub, 'indirect-row': row.indirect }">
               <th scope="row">{{ row.label }}</th>
               <td v-for="kind in kinds" :key="kind" class="has-text-right" :class="row.signed ? 'has-text-' + sign(s[kind][row.key]) : ''">
                 {{ row.hours ? hours(s[kind][row.key]) : money(s[kind][row.key]) }}
@@ -136,12 +137,24 @@ export default {
     plannedBillingPrice: {
       type: Number,
       default: null
+    },
+    // issues/420: the project's indirect expenses % (0: no row, not added)
+    indirectPct: {
+      type: Number,
+      default: 0
     }
   },
   data () {
     return {
-      kinds: ['original', 'estimated', 'real'],
-      rows: [
+      kinds: ['original', 'estimated', 'real']
+    }
+  },
+  computed: {
+    s () {
+      return projectSummary(this.totals, this.indirectPct)
+    },
+    rows () {
+      const rows = [
         { label: 'Resultat', key: 'result', signed: true },
         { label: 'Ingressos', key: 'incomes' },
         { label: 'Despeses totals', key: 'expenses' },
@@ -152,11 +165,11 @@ export default {
         { label: 'Cost/hora', key: 'costPerHour' },
         { label: 'Preu/hora', key: 'pricePerHour' }
       ]
-    }
-  },
-  computed: {
-    s () {
-      return projectSummary(this.totals)
+      // issues/420: the % of the expenses total, below Preu/hora
+      if (this.indirectPct) {
+        rows.push({ label: `Despeses indirectes (${formatNumber(this.indirectPct, 2)} %)`, key: 'indirect', indirect: true })
+      }
+      return rows
     },
     pending () {
       // the API prices each hour worked at its planning line's price (issues/421)
