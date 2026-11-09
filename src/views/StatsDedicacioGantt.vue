@@ -30,6 +30,7 @@
             <option value="project">Projecte</option>
             <option value="type">Tipus de projecte</option>
             <option value="likelihood">Probabilitat</option>
+            <option value="scope">Àmbit</option>
           </b-select>
         </label>
         <div class="toggle-group" role="group" aria-label="Estat projecte">
@@ -46,6 +47,7 @@
             {{ state.name }}
           </button>
         </div>
+        <scope-toggles v-model="selectedScopes" storage-key="StatsDedicacioGantt.selectedScopes" />
       </form>
       <dedication-gantt
         v-if="!isLoading1 && !isLoading3"
@@ -54,6 +56,7 @@
         :year="filters.year"
         :hours-type="filters.hoursType"
         :grouping="filters.grouping"
+        :scopes="selectedScopes"
         :title="(filters.hoursType === 'original' ? 'Hores originals' : 'Hores previstes') + ' i ocupació per persona · ' + filters.year"
         @export-query="exportQuery = $event"
       />
@@ -70,6 +73,7 @@ import moment from 'moment'
 import CardComponent from '@/components/CardComponent.vue'
 import DedicationGantt from '@/components/DedicationGantt.vue'
 import service from '@/service/index'
+import ScopeToggles, { readStoredScopes } from '@/components/ScopeToggles.vue'
 
 export default {
   name: 'StatsDedicacio',
@@ -78,7 +82,8 @@ export default {
     CardComponent,
     TitleBar,
     // DedicationWidget,
-    DedicationGantt
+    DedicationGantt,
+    ScopeToggles
   },
   data () {
     return {
@@ -98,6 +103,8 @@ export default {
       //years: [],
       months: null,
       selectedProjectStates: [],
+      // àmbits of the hours, none = all (issues/410)
+      selectedScopes: readStoredScopes('StatsDedicacioGantt.selectedScopes'),
       // the gantt's query: «Exporta» fetches its per-day rows (issues/309)
       exportQuery: null,
       minYear: parseInt(moment().format('YYYY')) - 5,

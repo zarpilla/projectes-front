@@ -46,6 +46,11 @@ export default {
       type: String,
       default: "project",
     },
+    // project àmbit ids, none = all; 0 = «Sense àmbit» (issues/410)
+    scopes: {
+      type: Array,
+      default: () => [],
+    },
     title: {
       type: String,
       default: "",
@@ -69,6 +74,12 @@ export default {
       },
       deep: 1
     },
+    scopes: {
+      handler () {
+        this.getActivities();
+      },
+      deep: true
+    },
     view: function () {
       this.getActivities();
     },
@@ -89,7 +100,7 @@ export default {
 
       const projectStates = this.projectStates.join(",");
       const year = this.year || parseInt(moment().format("YYYY"));
-      const query = `projects/real-dedications?_where[project_state_in]=${projectStates}&year=${year}&view=${this.view}`;
+      const query = `projects/real-dedications?_where[project_state_in]=${projectStates}&year=${year}&view=${this.view}${this.scopes && this.scopes.length ? `&scopes=${this.scopes.join(",")}` : ""}`;
 
       try {
         const response = await service({ requiresAuth: true }).get(query);

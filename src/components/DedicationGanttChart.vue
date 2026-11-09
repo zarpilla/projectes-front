@@ -109,10 +109,11 @@ export default {
     //   "project"     -> flat project rows (default)
     //   "type"        -> rows grouped by project_type, collapsible
     //   "likelihood"  -> rows grouped by project_likelihood, collapsible
+    //   "scope"       -> rows grouped by project_scope (àmbit), issues/410
     grouping: {
       type: String,
       default: "project",
-      validator: (v) => ["project", "type", "likelihood"].includes(v),
+      validator: (v) => ["project", "type", "likelihood", "scope"].includes(v),
     },
     // card heading, e.g. "Hores fetes i ocupació per persona · 2026"
     title: {

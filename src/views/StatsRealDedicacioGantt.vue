@@ -26,6 +26,7 @@
             <option value="project">Projecte</option>
             <option value="type">Tipus de projecte</option>
             <option value="likelihood">Probabilitat</option>
+            <option value="scope">Àmbit</option>
           </b-select>
         </label>
         <div class="toggle-group" role="group" aria-label="Estat projecte">
@@ -42,6 +43,7 @@
             {{ state.name }}
           </button>
         </div>
+        <scope-toggles v-model="selectedScopes" storage-key="StatsRealDedicacioGantt.selectedScopes" />
       </form>
       <real-dedication-gantt
         v-if="!isLoading1 && !isLoading3"
@@ -49,6 +51,7 @@
         :view="filters.view"
         :year="filters.year"
         :grouping="filters.grouping"
+        :scopes="selectedScopes"
         :title="'Hores fetes i ocupació per persona · ' + filters.year"
         @export-data="exportData = $event"
       />
@@ -64,6 +67,7 @@ import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
 import RealDedicationGantt from '@/components/RealDedicationGantt.vue'
 import service from '@/service/index'
+import ScopeToggles, { readStoredScopes } from '@/components/ScopeToggles.vue'
 import moment from 'moment'
 import { realDedicationFields } from '@/domain/hoursExport.js'
 
@@ -76,7 +80,8 @@ export default {
   components: {
     CardComponent,
     TitleBar,
-    RealDedicationGantt
+    RealDedicationGantt,
+    ScopeToggles
   },
   data () {
     return {
@@ -95,6 +100,8 @@ export default {
       months: null,
       years: [],
       selectedProjectStates: [],
+      // àmbits of the hours, none = all (issues/410)
+      selectedScopes: readStoredScopes('StatsRealDedicacioGantt.selectedScopes'),
       exportData: [],
       exportFields: realDedicationFields,
       minYear: MIN_YEAR,
