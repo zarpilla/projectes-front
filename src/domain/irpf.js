@@ -1,6 +1,6 @@
 // IRPF page (issues/348): the withholdings paid to Hisenda (model 111), from
 // GET treasuries/irpf?year=. The backend gives the rows and the quarters; this
-// labels and filters them for the screen.
+// labels and filters them for the screen. Settling: issues/419, src/domain/taxSettle.js.
 
 export const KIND_LABELS = {
   payrolls: "Nòmina",
@@ -19,12 +19,13 @@ export function kindLabel(row) {
   return row.document_type ? `${label} (${row.document_type})` : label;
 }
 
-// quarter 1–4 or null for all; kind "payrolls", "documents" (invoices and
-// expenses) or null for all
-export function filterIrpfRows(rows, { quarter = null, kind = null } = {}) {
+// quarter 1–4 or quarters [1–4] (none: all, issues/418); kind "payrolls",
+// "documents" (invoices and expenses) or null for all
+export function filterIrpfRows(rows, { quarter = null, quarters = [], kind = null } = {}) {
+  const wanted = quarter ? [quarter] : quarters || [];
   return (rows || []).filter(
     (r) =>
-      (!quarter || r.quarter === quarter) &&
+      (!wanted.length || wanted.includes(r.quarter)) &&
       (!kind || (kind === "payrolls" ? r.kind === "payrolls" : r.kind !== "payrolls"))
   );
 }

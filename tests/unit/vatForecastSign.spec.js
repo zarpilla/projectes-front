@@ -3,9 +3,10 @@
 // now; forecast lines dated before the current quarter are only listed apart.
 import { describe, it, expect, vi } from 'vitest'
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
-import VatTable from '@/components/VatTable.vue'
+// «Previst» is its own component since issues/418
+import VatForecast from '@/components/VatForecast.vue'
 
-const c = VatTable.computed
+const c = VatForecast.computed
 
 describe('VAT forecast (issues/072)', () => {
   it('shows VAT to pay as a negative balance, like the executed one', () => {

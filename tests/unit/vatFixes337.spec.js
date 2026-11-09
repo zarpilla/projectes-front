@@ -17,13 +17,12 @@ describe('VAT payment deadlines (issues/337)', () => {
     ])
   })
 
-  it('are the dates of the executed and the expected quarters', () => {
+  // the executed quarters' dates come from the API since issues/418 (vat-summary.js)
+  it('are the dates of the expected quarters', () => {
     const byQuarter = {
       '2026-Q3': { year: 2026, quarter: 3, paid: 0, received: 21, deductible_vat: -21, deductible_paid: 0 },
       '2026-Q4': { year: 2026, quarter: 4, paid: 0, received: 21, deductible_vat: -21, deductible_paid: 0 }
     }
-    const executed = VatTable.computed.executedVatQuarters.call({ vat_by_quarter: byQuarter })
-    expect(executed.map(r => r.paymentDate)).toEqual(['20/10/2026', '30/01/2027'])
     expect(expectedVatQuarterRows(byQuarter, 100).map(r => r.paymentDate)).toEqual(['20/10/2026', '30/01/2027'])
   })
 })

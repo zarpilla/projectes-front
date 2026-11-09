@@ -4,7 +4,7 @@
 // its rectificative ("Anul·la i rectifica…"), a diet ("Nova Dieta") saved for real,
 // a payroll advance ("Bestreta") marked paid, and settling the VAT in «IVA» («Salda»):
 // the settle box follows Configuració's «% IVA deduïble», a year's % deducts that part
-// of the supported VAT, and the settled documents leave «Documents pendents» with an
+// of the supported VAT, and the settled documents stop being pending, with an
 // «IVA Saldat» treasury movement (deleted, and the % restored, at the end).
 //
 // Issuing is irreversible (see money.spec.mjs): fine on the throwaway e2e database.
@@ -68,16 +68,23 @@ async function invoicingForecastProject () {
   return page.locator('table.if-table tbody tr').filter({ has: page.getByRole('link', { name: PROJECT, exact: true }) })
 }
 
-// «IVA»: one of the views ("Documents pendents", "Documents previstos"...) and its rows
+// «IVA» (laid out like IRPF since issues/418): «Documents pendents» = this year's
+// documents not settled; «Documents previstos» = the «Previst» view's planned lines
 async function vatView (name) {
   await visit('/iva')
-  await page.getByRole('tab', { name: new RegExp(`^${name}`) }).click()
-  const box = page.locator('section.list-box').filter({ visible: true }).first()
-  await expect(box).toBeVisible()
-  return box.locator('tbody tr')
+  if (name === 'Documents previstos') {
+    await page.getByRole('tab', { name: /^Previst/ }).click()
+    const box = page.locator('section.list-box').filter({ has: page.locator('h2', { hasText: 'Documents previstos' }) })
+    await expect(box).toBeVisible()
+    return box.locator('tbody tr')
+  }
+  await page.getByRole('combobox', { name: 'Estat' }).selectOption({ label: 'Pendents de saldar' })
+  const table = page.locator('.vat-documents')
+  await expect(table).toBeVisible()
+  return table.locator('tbody tr')
 }
 
-// the row of a document in «Documents pendents» (codes repeat across types)
+// the row of a document in the IVA documents (codes repeat across types)
 const documentRow = (rows, id, type) => rows.filter({ has: page.locator(`a[href$="/document/${id}/${type}"]`) })
 
 // the budget line `concept` of the project (execution budget)
@@ -257,7 +264,7 @@ test('«Anul·la i rectifica…» issues a rectificative with the amounts negate
   expect(idOf((await phaseLine('incomes', INCOME)).invoice)).toBe(state.invoice.id)
   // its VAT subtracts in «IVA»
   const pending = documentRow(await vatView('Documents pendents'), id, 'emitted-invoices')
-  await expect(pending).toContainText('-210,00 €')
+  await expect(pending).toContainText(/[-−]210,00 €/)
 })
 
 test('a diet ("Nova Dieta") is saved with its kilometres and goes to Tresoreria', async () => {
@@ -345,16 +352,19 @@ test('a payroll advance marked paid ("Pagada") is paid in Tresoreria', async () 
   await expectSnackbar('Guardat')
   const saved = await api('GET', `payrolls/${payroll.id}`)
   expect([saved.paid, saved.paid_date, Number(saved.net_base)]).toEqual([true, day, 850])
-  expect(await types()).toMatchObject({ 'Nòmina pagada': [-850, true], 'IRPF Nòmina': [-150, true] })
+  // its IRPF is paid when settled on «IRPF» (issues/419), not with the payroll
+  expect(await types()).toMatchObject({ 'Nòmina pagada': [-850, true], 'IRPF Nòmina': [-150, false] })
+  expect(await api('POST', 'treasuries/irpf/settle', { payrolls: [payroll.id], irpf_paid_date: day })).toMatchObject({ count: 1, total: 150 })
+  expect(await types()).toMatchObject({ 'IRPF Nòmina': [-150, true] })
 })
 
 // --- settling the VAT («Salda», #/iva) -----------------------------------------------
-// «Salda N documents» marks the checked «Documents pendents» as settled (vat_paid_date,
+// «Salda N documents» marks the checked pending documents as settled (vat_paid_date,
 // and the % deducted) and books the balance as one «IVA Saldat» treasury movement:
 // −(repercutit − suportat × the year's deductible %). The year's % (Taules auxiliars ›
 // Anys) is the one deducted; Configuració's «% IVA deduïble» only shows the settle box.
 
-// the VAT part of the forecast #/vat reads
+// the VAT part of the forecast (Tresoreria's: every year's pending VAT)
 async function vatFigures () {
   const states = (await api('GET', 'project-states?_limit=-1')).map(s => s.id).join(',')
   return (await api('GET', `treasuries/forecast?_limit=-1&project_states=${states}&year=${YEAR}&periodification=null`)).vat
@@ -363,20 +373,22 @@ const vatKpi = label => page.locator('.doc-kpi').filter({ has: page.locator('spa
 const kpiValue = async label => parseNumber((await vatKpi(label).innerText()).replace('−', '-'))
 // vat_paid_date is a datetime: the day it falls on in Madrid
 const madridDay = value => value && new Date(value).toLocaleDateString('sv-SE', { timeZone: 'Europe/Madrid' })
+// the IVA page's figures for a year (issues/418)
+const vatYear = async (year = YEAR) => api('GET', `treasuries/vat?year=${year}`)
 const settledMovements = async () => api('GET', `treasuries?_where[comment]=${encodeURIComponent('IVA Saldat')}&_sort=id:ASC&_limit=-1`)
 
-// checks the rows in «Documents pendents» and settles them with «Salda N documents»
+// ticks the pending rows and settles them with «Salda N documents»; the screen
+// reloads its data (not the page) once the API answers
 async function settleVat (docs) {
   const rows = await vatView('Documents pendents')
   for (const [id, type] of docs) await documentRow(rows, id, type).locator('td.checkbox-cell .checkbox').click()
   const before = (await settledMovements()).map(m => m.id)
-  // the screen reloads itself once the API answers; a missed reload shouldn't hang the run
   const answered = page.waitForResponse(r => r.url().includes('emitted-invoices/pay-vat-ids') && r.request().method() === 'POST')
-  const reloaded = page.waitForEvent('load', { timeout: 20_000 }).catch(() => null)
+  const reloaded = page.waitForResponse(r => r.url().includes('treasuries/vat?') && r.request().method() === 'GET')
   await button(`Salda ${docs.length} ${docs.length === 1 ? 'document' : 'documents'}`).click()
   expect((await answered).ok(), 'pay-vat-ids answered').toBe(true)
-  if (!(await reloaded)) await visit('/iva')
-  await settle(1500)
+  await reloaded
+  await settle(800)
   const created = (await settledMovements()).filter(m => !before.includes(m.id))
   for (const m of created) onCleanup(() => api('DELETE', `treasuries/${m.id}`))
   return created
@@ -395,21 +407,18 @@ test('«IVA» offers settling only with a deductible % in Configuració', async 
   }
   await setPct(0)
   await visit('/iva')
-  await expect(page.getByRole('tab', { name: /^Documents pendents/ })).toBeVisible()
-  await expect(card('IVA pendent de saldar')).toHaveCount(0)
-  await expect(vatKpi('Saldo executat')).toHaveCount(0)
+  await expect(page.locator('.vat-documents')).toBeVisible()
+  await expect(page.locator('.settle-bar')).toHaveCount(0)
+  await expect(page.locator('.vat-documents td.checkbox-cell')).toHaveCount(0)
 
   await setPct(Number(pct) > 0 ? Number(pct) : 100)
   await visit('/iva')
-  const box = card('IVA pendent de saldar')
-  await expect(box).toBeVisible()
-  // the «Executat» row and the figures are the forecast's
-  const vat = await vatFigures()
-  const executed = box.locator('tbody tr').filter({ has: page.locator('th', { hasText: 'Executat' }) }).locator('td')
-  expect((await executed.allInnerTexts()).map(t => parseNumber(t.replace('−', '-')))).toEqual([
-    expect.closeTo(vat.paid, 2), expect.closeTo(vat.received, 2), expect.closeTo(vat.deductible_vat_pct, 2), expect.closeTo(vat.deductible_vat, 2)
-  ])
-  expect(await kpiValue('Saldo executat')).toBeCloseTo(vat.deductible_vat, 2)
+  await expect(page.locator('.settle-bar')).toBeVisible()
+  // the year's pending balance is the page's, and every year's pending adds up to
+  // Tresoreria's (issues/418: the same documents and %)
+  const [vat, year, next] = [await vatFigures(), await vatYear(), await vatYear(YEAR + 1)]
+  expect(await kpiValue('Pendent de saldar')).toBeCloseTo(year.totals.pending_balance, 2)
+  expect(year.totals.pending_balance + year.earlier_pending.balance + next.totals.pending_balance).toBeCloseTo(vat.deductible_vat, 2)
   // nothing checked, nothing to settle
   await expect(button('Salda')).toBeDisabled()
 })
@@ -431,7 +440,7 @@ test('a year\'s deductible % deducts that part of the supported VAT, and «Salda
   expect(vat.deductible_vat).toBeCloseTo(sum(supported, d => d.theoretical_deductible_vat_pct / 100) - sum(repercussed), 2)
   const row = documentRow(await vatView('Documents pendents'), received.id, 'received-invoices')
   await expect(row).toContainText(/\b50(,00)? %/)
-  expect(await kpiValue('Saldo executat')).toBeCloseTo(vat.deductible_vat, 2)
+  const pendingBefore = await kpiValue('Pendent de saldar')
   const paidBefore = await kpiValue('IVA suportat')
 
   // settled: 42 € of the 84 € come back (a positive movement), the invoice keeps its 50 %
@@ -440,7 +449,10 @@ test('a year\'s deductible % deducts that part of the supported VAT, and «Salda
   const saved = await api('GET', `received-invoices/${received.id}`)
   expect([madridDay(saved.vat_paid_date), Number(saved.deductible_vat_pct)]).toEqual([isoToday(), 50])
   await expect(documentRow(await vatView('Documents pendents'), received.id, 'received-invoices')).toHaveCount(0)
-  expect(await kpiValue('IVA suportat')).toBeCloseTo(paidBefore - 84, 2)
+  // the year's supported VAT stays; 42 € less pending in its favour
+  expect(await kpiValue('IVA suportat')).toBeCloseTo(paidBefore, 2)
+  expect(await kpiValue('Pendent de saldar')).toBeCloseTo(pendingBefore - 42, 2)
+  expect((await vatYear()).rows.find(r => r.key === `received-invoices:${received.id}`)).toMatchObject({ settled: true, deductible_pct: 50 })
   expect((await vatFigures()).deductible_vat).toBeCloseTo(vat.deductible_vat - 42, 2)
 
   // settled once: asking again books nothing
@@ -461,7 +473,7 @@ test('«Salda» an issued invoice books its VAT to pay, its rectificative gives 
   const rows = await vatView('Documents pendents')
   await expect(documentRow(rows, state.invoice.id, 'emitted-invoices')).toHaveCount(0)
   await expect(documentRow(rows, rectificative.id, 'emitted-invoices')).toHaveCount(1)
-  expect(await kpiValue('Saldo executat')).toBeCloseTo(balance + 210, 2)
+  expect((await vatFigures()).deductible_vat).toBeCloseTo(balance + 210, 2)
 
   const back = await settleVat([[rectificative.id, 'emitted-invoices']])
   expect(back.map(m => Number(m.total))).toEqual([210])

@@ -267,8 +267,8 @@ test('VAT stays on the calendar year: the August expense is in D, quarter 3', as
   test.skip(!state.projectId, 'needs the project')
   expect((await options()).fiscal_year_start_month).toBe(9)
   await visit('/iva')
-  await page.getByRole('tab', { name: /^Documents previstos/ }).click()
-  const row = page.locator('section.list-box').filter({ visible: true }).first().locator('tbody tr').filter({ hasText: AUG_EXPENSE })
+  await page.getByRole('tab', { name: /^Previst/ }).click()
+  const row = page.locator('section.list-box').filter({ has: page.locator('h2', { hasText: 'Documents previstos' }) }).locator('tbody tr').filter({ hasText: AUG_EXPENSE })
   await expect(row).toHaveCount(1, { timeout: 20_000 })
   const cells = (await row.locator('td').allInnerTexts()).map(t => t.trim())
   // Projecte, Concepte, Tipus, Data estimada, Any, Trimestre

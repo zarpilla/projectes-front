@@ -48,6 +48,7 @@ export function fieldLabels (entity) {
     project: 'Projecte',
     projects: 'Projectes',
     vat_paid_date: 'IVA liquidat',
+    irpf_paid_date: 'IRPF saldat',
     deductible_vat_pct: '% IVA deduïble',
     // IVA › Models 303 i 390
     vat_operation: "Tipus d'operació (línies al 0 %)",
@@ -255,6 +256,9 @@ export function timeline (entity, rows, rectifiedBy = []) {
     const vat = changeOf(row, 'vat_paid_date')
     if (turnedOn(vat)) push(row, 'IVA liquidat')
     else if (turnedOff(vat)) push(row, 'IVA desliquidat')
+    const irpf = changeOf(row, 'irpf_paid_date')
+    if (turnedOn(irpf)) push(row, `IRPF saldat el ${formatValue('irpf_paid_date', irpf.to)}`)
+    else if (turnedOff(irpf)) push(row, "Ja no consta l'IRPF com a saldat")
     const accepted = changeOf(row, 'accepted')
     if (turnedOn(accepted)) push(row, 'Acceptat')
     else if (turnedOff(accepted)) push(row, 'Ja no consta com a acceptat')

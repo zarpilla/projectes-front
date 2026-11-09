@@ -1,5 +1,6 @@
-// issues/348: an «IRPF» page like «IVA» but without settling: what is paid to
-// Hisenda per quarter and the detail of every payroll, invoice and expense.
+// issues/348: an «IRPF» page like «IVA»: what is paid to Hisenda per quarter
+// and the detail of every payroll, invoice and expense. Settling («Salda»):
+// issues/419, tests/unit/taxSettle418.spec.js.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import Buefy from 'buefy'
@@ -58,7 +59,7 @@ describe('IRPF page (issues/348)', () => {
     return w
   }
 
-  it('shows the year, the quarters and every document, without settling', async () => {
+  it('shows the year, the quarters and every document', async () => {
     const w = await mountPage()
     expect(get.mock.calls[0][0]).toMatch(/^treasuries\/irpf\?year=\d{4}$/)
     const text = w.text()
@@ -67,7 +68,6 @@ describe('IRPF page (issues/348)', () => {
     expect(w.findAll('.irpf-table tbody tr')).toHaveLength(2)
     expect(w.findAll('.irpf-documents tbody tr')).toHaveLength(3)
     expect(text).toContain('Despesa rebuda (Lloguer)')
-    expect(text).not.toMatch(/Salda/)
   })
 
   it('shows one quarter when it is clicked', async () => {
@@ -83,9 +83,10 @@ describe('IRPF page (issues/348)', () => {
     expect(w.findAll('.irpf-documents tbody tr')).toHaveLength(1)
   })
 
-  it('shows what is overdue', async () => {
-    get.mockResolvedValue({ data: { ...answer, totals: { ...answer.totals, overdue: 95, next: null } } })
+  // issues/419: pending past its date → the next declaration
+  it('shows what is late', async () => {
+    get.mockResolvedValue({ data: { ...answer, totals: { ...answer.totals, late: 95 } } })
     const w = await mountPage()
-    expect(w.text()).toContain('95,00 € endarrerit')
+    expect(w.text()).toContain('95,00 € fora de termini')
   })
 })

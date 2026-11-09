@@ -25,7 +25,7 @@ const screens = {
   StatsIntercoop: () => import('@/views/StatsIntercoop.vue'),
   StatsEstrategies: () => import('@/views/StatsEstrategies.vue'),
   StatsEconomicDetail: () => import('@/views/StatsEconomicDetail.vue'),
-  VatTable: () => import('@/components/VatTable.vue'),
+  // VatTable: no Kendo since issues/418, nothing to wait for
   PrevisioTable: () => import('@/components/PrevisioTable.vue'),
   TresoreriaTable: () => import('@/components/TresoreriaTable.vue')
 }
