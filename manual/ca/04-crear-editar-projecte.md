@@ -8,7 +8,7 @@ order: 4
 roles: [projects]
 routes: ["/projecte/:id"]
 lang: ca
-updated: 2026-11-06
+updated: 2026-11-09
 ---
 # 04. Crear i editar un projecte
 

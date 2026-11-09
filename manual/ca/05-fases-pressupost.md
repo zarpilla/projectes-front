@@ -8,7 +8,7 @@ order: 5
 roles: [projects]
 routes: ["/projecte/:id"]
 lang: ca
-updated: 2026-10-30
+updated: 2026-11-09
 ---
 # 05. Fases i pressupost del projecte
 
@@ -142,7 +142,7 @@ En un projecte **Per hores**, la pestanya de la planificació es diu **Planifica
 del Gantt, hi ha el bloc **Pressupost per hores**. La pestanya **Pressupost i fases** mostra les fases com
 en qualsevol altre projecte.
 
-![El pressupost per hores: 120 hores a 45 € l'hora](img/05-fases-pressupost/08-pressupost-per-hores.png)
+![El pressupost per hores sota el Gantt: el projecte a 45 € l'hora i una línia a 55 €](img/05-fases-pressupost/08-pressupost-per-hores.png)
 
 - **Preu/hora**: el que es factura per cada hora (el mateix camp de la pestanya **Dades**).
 - Una fila per a cada bloc d'hores previstes: la **Persona** que les farà, les **Hores**, les dates
@@ -169,14 +169,16 @@ i no se'ls pot canviar el preu/hora.
 
 ### El resum d'un projecte per hores
 
-![El resum del projecte: 120 hores previstes a 45 €, 44,5 hores fetes](img/05-fases-pressupost/09-resum-per-hores.png)
+![El resum del projecte: 120 hores previstes, 44,5 hores fetes](img/05-fases-pressupost/09-resum-per-hores.png)
 
 A la pestanya **Resum**:
 
-- **Ingressos › Previstos** inclou les hores × el preu/hora (a l'exemple, 120 h × 45 € = 5.400 €, més una
-  línia de desplaçaments de 261 €).
+- **Ingressos › Previstos** inclou les hores × el preu/hora de cada línia (a l'exemple, 60 h × 45 € +
+  60 h × 55 € = 6.000 €, més una línia de desplaçaments de 261 €).
 - **Ingressos › Per facturar** (només als projectes per hores): les hores fetes × el preu/hora, menys el que
-  ja s'ha facturat i cobrat. A l'exemple, 44,5 h × 45 € − 261 € = 1.741,50 €.
+  ja s'ha facturat i cobrat. Cada hora feta es compta al preu/hora de la línia de la planificació de la
+  mateixa persona que cobreix aquell dia; si no n'hi ha cap, al del projecte. A l'exemple, totes les hores
+  fetes són del 2025, de la línia a 45 €: 44,5 h × 45 € − 261 € = 1.741,50 €.
 - **Hores › Preu/hora** i **Preu/hora previst** (a tots els projectes): el que surt per cada hora un cop
   restades les despeses. És el que queda per hora; per això és més baix que el preu/hora del projecte quan
   hi ha despeses.
@@ -226,7 +228,9 @@ cap any fins que se'ls posa data.
   factura. Les línies sense hores es queden com s'han escrit.
 - Les hores per setmana o per mes es compten de dilluns a divendres entre les dues dates (sense descomptar
   festius).
-- **Per facturar** = hores fetes × preu/hora − ingressos executats (mai menys de 0). Els ingressos executats
+- **Per facturar** = hores fetes × preu/hora − ingressos executats (mai menys de 0). El preu/hora de cada
+  hora feta és el de la línia de la planificació de la mateixa persona amb dates que inclouen aquell dia, o
+  el del projecte si no n'hi ha cap. Els ingressos executats
   són tots els del projecte, també els que no són hores.
 
 ## Preguntes freqüents
