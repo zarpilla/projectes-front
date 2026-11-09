@@ -63,5 +63,5 @@ Amb molts projectes pot trigar una estona: cal deixar la pàgina oberta fins que
 
 - [15. Persones i jornades laborals](15-persones-jornades.md)
 - [16. Saldo d'hores i hores anuals](16-saldo-hores.md)
-- [21. IVA](21-iva.md)
+- [21. IVA i IRPF](21-iva.md)
 - [35. Taules auxiliars](35-taules-auxiliars.md)

@@ -16,7 +16,8 @@ updated: 2026-11-06
 
 La **tresoreria** diu quants diners hi ha als comptes avui i quants n'hi haurà els pròxims mesos. Junta:
 
-- els moviments ja **executats**: factures cobrades i pagades, bestretes pagades, IVA saldat, anotacions;
+- els moviments ja **executats**: factures cobrades i pagades, bestretes pagades, IVA i IRPF saldats (vegeu
+  [21. IVA i IRPF](21-iva.md)), anotacions;
 - els moviments **previstos**: factures pendents de cobrar o pagar, línies dels pressupostos dels projectes
   encara no facturades (amb la seva **previsió de pagament**), bestretes, Seguretat Social, IRPF i IVA per
   pagar.
@@ -154,5 +155,5 @@ l'extracte.
 
 - [05. Fases i pressupost del projecte](05-fases-pressupost.md)
 - [17. Factures emeses](17-factures-emeses.md) · [19. Factures rebudes](19-factures-rebudes.md)
-- [20. Bestretes](20-bestretes.md) · [21. IVA](21-iva.md)
+- [20. Bestretes](20-bestretes.md) · [21. IVA i IRPF](21-iva.md)
 - [39. Conciliació bancària](39-conciliacio-bancaria.md)

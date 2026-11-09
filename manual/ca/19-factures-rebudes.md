@@ -102,4 +102,4 @@ PROJECTE**).
 
 - [05. Fases i pressupost del projecte](05-fases-pressupost.md)
 - [17. Factures emeses](17-factures-emeses.md)
-- [21. IVA](21-iva.md) · [22. Tresoreria](22-tresoreria.md)
+- [21. IVA i IRPF](21-iva.md) · [22. Tresoreria](22-tresoreria.md)

@@ -60,7 +60,7 @@ formulari i el missatge d'agraïment.
 - **Cost/hora a la planificació**: el cost per hora de la persona a la finestra **Planificació** del Gantt.
 - **Gantt sense les línies d'ingrés**: la pestanya **Planificació** s'obre amb **Línies d'ingrés** desmarcat.
 - **% IVA deduïble**: la prorrata general. Cada any en pot tenir una de pròpia a **Taules auxiliars › Anys**, i
-  és la que es fa servir per saldar l'IVA i a la tresoreria d'aquell any (vegeu [21. IVA](21-iva.md)).
+  és la que es fa servir per saldar l'IVA i a la tresoreria d'aquell any (vegeu [21. IVA i IRPF](21-iva.md)).
 - **Facturació dels projectes nous**: **Per projecte** (el pressupost per fases, com sempre) o **Per hores**
   (l'ingrés previst són les hores previstes × el preu/hora del projecte, i el resum mostra el que queda per
   facturar). És el valor amb què surten els projectes nous; cada projecte el pot canviar a la seva pestanya

@@ -4,9 +4,10 @@
 // the API sets on it (its year's, Configuració's only as fallback).
 import { describe, it, expect, vi } from 'vitest'
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
-import VatTable from '@/components/VatTable.vue'
+// «Previst» is its own component since issues/418
+import VatForecast from '@/components/VatForecast.vue'
 
-const c = VatTable.computed
+const c = VatForecast.computed
 
 const ctx = () => ({
   me: { options: { deductible_vat_pct: 79 } },

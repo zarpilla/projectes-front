@@ -55,7 +55,7 @@ export default {
     subtitle () {
       return this.tab === 'models'
         ? "Les caselles de l'autoliquidació d'IVA (303) de cada trimestre i el resum de l'any (390), a partir de les factures emeses i rebudes. En proves."
-        : "L'IVA pendent de saldar amb Hisenda: el ja executat, el previst als projectes i el detall per trimestre i per document."
+        : "L'IVA de les factures i documents de l'any, per trimestre i document per document: el saldat amb Hisenda, el pendent de saldar i el previst als projectes."
     }
   },
   methods: {

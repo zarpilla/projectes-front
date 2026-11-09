@@ -3173,6 +3173,10 @@ export default {
       this.form.sent_date = null;
       this.form.paid = false;
       this.form.paid_date = null;
+      // a copy has settled no VAT nor IRPF yet (issues/418, issues/419)
+      this.form.vat_paid_date = null;
+      this.form.deductible_vat_pct = null;
+      this.form.irpf_paid_date = null;
       this.form.contact = this.contact;
       this.user_last = this.user.id;
       this.form.lines = this.form.lines.map(l => {
@@ -3205,6 +3209,10 @@ export default {
       this.form.sent_date = null;
       this.form.paid = false;
       this.form.paid_date = null;
+      // a copy has settled no VAT nor IRPF yet (issues/418, issues/419)
+      this.form.vat_paid_date = null;
+      this.form.deductible_vat_pct = null;
+      this.form.irpf_paid_date = null;
       this.form.contact = this.contact;
       this.user_last = this.user.id;
 
