@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.09",
   items: [
     {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", les caselles d'«Accions» de «Moviments bancaris» ja no es desen a cada clic: marqueu-ne totes les que calgui i premeu «Valida cobraments/pagaments», al costat d'«Edita dates». Es desen una darrere l'altra i a baix a la dreta veureu com avança. Si sortiu de Tresoreria sense validar-les, la pantalla us avisa que es perdran."]
+    },
+    {
       type: "Novetats",
       modules: ["Diners"],
       text: ["A ", { to: "/irpf", label: "IRPF" }, " hi ha el botó «Salda», com a l'IVA: marqueu les nòmines, factures i despeses que heu declarat (de diversos trimestres si cal), trieu la data del pagament i veureu la suma abans de saldar. El que no marqueu, o el que entreu després, queda pendent i va a la declaració següent; a Tresoreria cada IRPF surt a la data en què s'ha saldat. Res no s'ha donat per saldat automàticament: l'IRPF dels trimestres ja declarats surt pendent fins que el saldeu."]

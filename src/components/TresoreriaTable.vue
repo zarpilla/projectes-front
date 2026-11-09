@@ -370,6 +370,29 @@
       <header class="report-box-head">
         <h2>Moviments bancaris</h2>
         <div class="head-actions">
+          <!-- issues/422: the checks of «Accions» are kept here and sent together -->
+          <b-button
+            v-if="pendingCheckList.length"
+            size="is-small"
+            icon-left="close"
+            class="checks-discard"
+            :disabled="validatingChecks"
+            @click="confirmDiscardChecks"
+          >
+            Descarta les marques
+          </b-button>
+          <b-button
+            size="is-small"
+            icon-left="check-all"
+            class="checks-validate"
+            :type="pendingCheckList.length ? 'is-primary' : null"
+            :loading="validatingChecks"
+            :disabled="!pendingCheckList.length"
+            :title="pendingCheckList.length ? 'Desa les caselles que has marcat o desmarcat a «Accions»' : 'Marca o desmarca les caselles d\'«Accions» i desa-les totes juntes amb aquest botó'"
+            @click="validateChecks"
+          >
+            Valida cobraments/pagaments{{ pendingCheckList.length ? ` (${pendingCheckList.length})` : "" }}
+          </b-button>
           <!-- issues/370: change the dates of the pending movements, saved together -->
           <template v-if="dateEditMode">
             <b-button size="is-small" type="is-primary" icon-left="content-save" class="dates-save" :loading="savingDates" :disabled="!pendingDateChanges.length" @click="confirmSaveDates">
@@ -600,12 +623,15 @@
               title="Moviment previst pendent"
             />
             <!-- Validation checkbox for real movements; on a pending document
-                 it also marks it collected or paid (issues/415) -->
+                 it also marks it collected or paid (issues/415). A click is
+                 kept on the page until «Valida cobraments/pagaments» (issues/422) -->
             <b-checkbox
               v-if="canValidate(props.row)"
-              :model-value="props.row.is_validated"
+              :key="`${checkKey(props.row)}:${checkRender}`"
+              :model-value="checkShown(pendingChecks, props.row)"
               @update:model-value="toggleValidation(props.row)"
               class="mr-2"
+              :class="{ 'is-pending-check': isPending(pendingChecks, props.row) }"
               :title="validationTitle(props.row)"
             />
             <!-- <button
@@ -662,7 +688,9 @@ import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday, PROJECT_FILTER_MODES, projectFilterOptions, projectIdsOfFilter } from "@/domain/projectTreasury.js";
-import { setValidationKeys, canValidate, validationAction, settleDate, settleRow } from "@/domain/treasuryValidation.js";
+import { canValidate, validationAction } from "@/domain/treasuryValidation.js";
+import { escapeHtml } from "@/helpers/safeHtml";
+import { checkKey, checkShown, isPending, needsSettleDate, tickCheck, prunePending, changeLabel, runPendingChecks } from "@/domain/treasuryPendingChecks.js";
 import { dateEditKey, isoOfDatef, movementDateChanges, saveMovementDates } from "@/domain/treasuryMovementDates.js";
 
 const MOVEMENTS_ALL_KEY = "TresoreriaTable.movementsAll";
@@ -740,7 +768,12 @@ export default {
       // issues/370: «Edita dates» of Moviments bancaris; new date per movement key
       dateEditMode: false,
       dateEdits: {},
-      savingDates: false
+      savingDates: false,
+      // issues/422: check key → change not sent yet; checkRender redraws the
+      // checks after a cancelled date (Buefy keeps its own value otherwise)
+      pendingChecks: {},
+      validatingChecks: false,
+      checkRender: 0
     };
   },
   async mounted() {
@@ -765,10 +798,12 @@ export default {
       });
     });
     this.getInitialData();
+    window.addEventListener("beforeunload", this.warnUnsentChecks);
   },
   // the wait for jQuery must not outlive the table (it kept polling after leaving the page)
   beforeUnmount() {
     this.stopJQueryWait();
+    window.removeEventListener("beforeunload", this.warnUnsentChecks);
   },
   watch: {
     // the year buttons only change ?year=: reload that year's data (issues/261)
@@ -894,6 +929,9 @@ export default {
     },
     laterCount() {
       return this.pivotData.filter(d => d.year > String(this.selectedYear) && d.month !== "00" && d.month !== "99").length;
+    },
+    pendingCheckList() {
+      return Object.values(this.pendingChecks);
     },
     // issues/370: the changed dates, as the server takes them
     pendingDateChanges() {
@@ -1207,6 +1245,7 @@ export default {
       this.treasuryData = treasuryData.treasury.map(d => {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });
+      this.pendingChecks = prunePending(this.pendingChecks, this.treasuryData);
       this.projects = treasuryData.projects;
 
       await this.kendoReady;
@@ -1545,24 +1584,21 @@ export default {
       return datef < moment().format("YYYYMMDD");
     },
     canValidate,
+    checkKey,
+    checkShown,
+    isPending,
     validationTitle(row) {
+      if (isPending(this.pendingChecks, row)) return "Canvi pendent: prem «Valida cobraments/pagaments» per desar-lo";
       if (row.is_validated) return "Moviment validat";
       if (validationAction(row) === "settle") return row.total_amount > 0 ? "Marcar com a cobrat i validat" : "Marcar com a pagat i validat";
       return "Marcar com validat";
-    },
-    // the check stays as the row says after a cancel or an error: Buefy keeps
-    // its own value until the model changes
-    resetCheck(row) {
-      const value = row.is_validated;
-      row.is_validated = !value;
-      this.$nextTick(() => { row.is_validated = value; });
     },
     askSettleDate(row, today) {
       const verb = row.total_amount > 0 ? "cobrat" : "pagat";
       return new Promise(resolve => {
         this.$buefy.dialog.prompt({
           title: `Data en què s'ha ${verb}`,
-          message: `«${row.concept}» està previst per al ${treasuryDisplayDate(row)}, que encara no ha arribat. Quin dia s'ha ${verb}? El document i les línies del projecte passaran a aquesta data.`,
+          message: `«${row.concept}» està previst per al ${treasuryDisplayDate(row)}, que encara no ha arribat. Quin dia s'ha ${verb}? En validar, el document i les línies del projecte passaran a aquesta data.`,
           inputAttrs: { type: "date", max: today, value: today, required: true },
           confirmText: `Marca com a ${verb}`,
           cancelText: "Cancel·la",
@@ -1572,71 +1608,86 @@ export default {
         });
       });
     },
-    // issues/415: the document is marked collected or paid on the line's date
-    async settleValidation(row) {
-      const today = moment().format("YYYY-MM-DD");
-      const date = settleDate(row, today) || (await this.askSettleDate(row, today));
-      if (!date) {
-        this.resetCheck(row);
-        return;
-      }
-      await settleRow(row, date);
-      this.$buefy.snackbar.open({
-        message: `${row.concept}: ${row.total_amount > 0 ? "cobrat" : "pagat"} el ${moment(date).format("DD/MM/YYYY")}`,
-        type: "is-success",
-        queue: false
-      });
-      await this.getData();
-    },
+    // issues/422: a click only marks the line; «Valida cobraments/pagaments»
+    // sends the changes (issues/415: a pending document is marked collected or
+    // paid on the line's date, or on the one asked for a future line)
     async toggleValidation(row) {
-      try {
-        if (validationAction(row) === "settle") {
-          await this.settleValidation(row);
+      const today = moment().format("YYYY-MM-DD");
+      let date = null;
+      if (needsSettleDate(this.pendingChecks, row, today)) {
+        date = await this.askSettleDate(row, today);
+        if (!date) {
+          this.checkRender++;
           return;
         }
-        // a line grouping several payrolls validates (or not) all of them (issues/347)
-        if (row.validation_keys && row.validation_keys.length > 1) {
-          row.is_validated = await setValidationKeys(row.validation_keys, !row.is_validated);
-          return;
-        }
-        // Parse validation key to extract entity_type, entity_id, and sub_type
-        const parts = row.validation_key.split(':');
-        const entity_type = parts[0];
-        const entity_id = parseInt(parts[1]);
-        const sub_type = parts[2] || null;
-
-        // Call the toggle endpoint
-        const response = await service({ requiresAuth: true }).post(
-          'treasury-validations/toggle',
-          {
-            entity_type,
-            entity_id,
-            sub_type
-          }
-        );
-
-        // Update the local data
-        row.is_validated = response.data.validated;
-        // unticking a line the check had marked paid puts the document back (issues/415)
-        if (response.data.reverted) await this.getData();
-
-        // this.$buefy.snackbar.open({
-        //   message: response.data.validated ? 'Moviment validat' : 'Validació eliminada',
-        //   type: response.data.validated ? 'is-success' : 'is-info',
-        //   queue: false
-        // });
-      } catch (error) {
-        console.error('Error toggling validation:', error);
-        this.resetCheck(row);
-        this.$buefy.snackbar.open({
-          message:
-            (error && error.response && error.response.data && error.response.data.error && error.response.data.error.message) ||
-            'Error al validar el moviment',
-          type: 'is-danger',
-          queue: false,
-          duration: 8000
-        });
       }
+      this.pendingChecks = tickCheck(this.pendingChecks, row, today, date);
+    },
+    async validateChecks() {
+      const changes = this.pendingCheckList;
+      if (!changes.length || this.validatingChecks) return;
+      const total = changes.length;
+      this.validatingChecks = true;
+      try {
+        this.$buefy.snackbar.open({ message: `Validant ${total} moviment${total === 1 ? "" : "s"}…`, queue: false });
+        const { done, failed } = await runPendingChecks(changes, (n, change, error) => {
+          this.$buefy.snackbar.open({
+            message: error ? `${n} de ${total} · ${change.concept}: ${error}` : `${n} de ${total} · ${change.concept}: ${changeLabel(change)}`,
+            type: error ? "is-danger" : undefined,
+            duration: error ? 8000 : 3500,
+            queue: false
+          });
+        });
+        const next = { ...this.pendingChecks };
+        for (const key of done) delete next[key];
+        this.pendingChecks = next;
+        if (failed.length) {
+          this.$buefy.dialog.alert({
+            title: "Algunes marques no s'han pogut desar",
+            message: `S'han desat ${done.length} de ${total}. Les que falten continuen marcades per tornar-ho a provar:<ul class="mt-2">${failed
+              .map(f => `<li>${escapeHtml(f.concept)}: ${escapeHtml(f.message)}</li>`)
+              .join("")}</ul>`,
+            type: "is-warning"
+          });
+        } else {
+          this.$buefy.snackbar.open({
+            message: `Fet: ${done.length} moviment${done.length === 1 ? "" : "s"} desat${done.length === 1 ? "" : "s"}`,
+            type: "is-success",
+            queue: false
+          });
+        }
+        await this.getData();
+      } finally {
+        this.validatingChecks = false;
+      }
+    },
+    discardChecks() {
+      this.pendingChecks = {};
+      this.checkRender++;
+    },
+    confirmDiscardChecks() {
+      this.confirmLeaveChecks(ok => ok && this.discardChecks(), "Descarta les marques");
+    },
+    // issues/422: leaving with checks not sent loses them; `done(true)` leaves
+    confirmLeaveChecks(done, confirmText = "Surt i descarta-les") {
+      const n = this.pendingCheckList.length;
+      if (!n) return done(true);
+      this.$buefy.dialog.confirm({
+        title: "Marques sense validar",
+        message: `Has marcat o desmarcat ${n} casell${n === 1 ? "a" : "es"} a «Accions» sense prémer «Valida cobraments/pagaments». Si continues, ${n === 1 ? "es perdrà" : "es perdran"} i no se'n desarà cap.`,
+        confirmText,
+        cancelText: "Torna a Tresoreria",
+        type: "is-warning",
+        hasIcon: true,
+        onConfirm: () => done(true),
+        onCancel: () => done(false)
+      });
+    },
+    // closing or reloading the browser tab: the browser asks with its own words
+    warnUnsentChecks(event) {
+      if (!this.pendingCheckList.length) return;
+      event.preventDefault();
+      event.returnValue = "";
     }
   }
 };
@@ -1670,6 +1721,11 @@ export default {
 }
 .movement-date {
   width: 9.5rem;
+}
+/* issues/422: a check changed but not sent yet */
+.b-checkbox.checkbox.is-pending-check :deep(input[type="checkbox"] + .check) {
+  outline: 3px solid var(--a-warn-line);
+  outline-offset: 2px;
 }
 .movement-date.is-changed {
   border-color: var(--a-warn-line);
