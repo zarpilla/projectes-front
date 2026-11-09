@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.09",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }, " i ", { to: "/panell-previsio-dedicacio", label: "Previsió dedicació" }, ", «Detall per» també pot agrupar les hores per àmbit del projecte, i el nou filtre «Àmbit» compta només les hores dels àmbits triats (també «Sense àmbit»), en l'ocupació i en l'exportació."]
+    }
+  ]
+},
+{
   date: "2026.11.06",
   items: [
     {

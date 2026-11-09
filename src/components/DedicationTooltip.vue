@@ -108,6 +108,7 @@ import { formatNumber } from "@/helpers/format-number";
 const GROUP_LABELS = {
   type: "Tipus de projecte",
   likelihood: "Probabilitat",
+  scope: "Àmbit",
   project: "Projecte",
 };
 
@@ -122,7 +123,7 @@ export default {
     grouping: {
       type: String,
       default: "project",
-      validator: (v) => ["project", "type", "likelihood"].includes(v),
+      validator: (v) => ["project", "type", "likelihood", "scope"].includes(v),
     },
   },
   data() {

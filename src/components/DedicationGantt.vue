@@ -46,6 +46,11 @@ export default {
       type: String,
       default: "project",
     },
+    // project àmbit ids, none = all; 0 = «Sense àmbit» (issues/410)
+    scopes: {
+      type: Array,
+      default: () => [],
+    },
     title: {
       type: String,
       default: "",
@@ -72,6 +77,12 @@ export default {
       },
       deep: 1
     },
+    scopes: {
+      handler () {
+        this.getActivities();
+      },
+      deep: true
+    },
     view: function () {
       this.getActivities();
     },
@@ -94,7 +105,7 @@ export default {
       }
 
       const projectStates = this.projectStates.join(",");
-      const query = `projects/dedications?_where[project_state_in]=${projectStates}&hoursType=${this.hoursType}&year=${this.year || parseInt(moment().format("YYYY"))}&view=${this.view}`;
+      const query = `projects/dedications?_where[project_state_in]=${projectStates}&hoursType=${this.hoursType}&year=${this.year || parseInt(moment().format("YYYY"))}&view=${this.view}${this.scopes && this.scopes.length ? `&scopes=${this.scopes.join(",")}` : ""}`;
 
       try {
         // Without the per-day rows of the Excel export: 12 MB on resilience
