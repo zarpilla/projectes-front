@@ -39,7 +39,7 @@
           <dt>Originals</dt><dd>{{ money(s.original.incomes) }}</dd>
           <dt>Del previst</dt><dd>{{ percent(s.real.incomes, s.estimated.incomes) }}</dd>
           <template v-if="billingMode === 'hours'">
-            <dt title="Hores fetes × preu/hora, menys el que ja s'ha facturat">Per facturar</dt><dd class="pending-invoice">{{ money(pending) }}</dd>
+            <dt title="Hores fetes × el preu/hora de la seva línia de planificació (o el del projecte), menys el que ja s'ha facturat">Per facturar</dt><dd class="pending-invoice">{{ money(pending) }}</dd>
           </template>
         </dl>
       </article>
@@ -67,6 +67,10 @@
           <!-- issues/371: (ingressos − factures de despesa) / hores -->
           <dt title="(Ingressos − despeses) / hores">Preu/hora</dt><dd class="effective-price">{{ money(s.real.pricePerHour) }}</dd>
           <dt title="(Ingressos − despeses) / hores previstes">Preu/hora previst</dt><dd class="effective-price-estimated">{{ money(s.estimated.pricePerHour) }}</dd>
+          <!-- issues/421: what the planned hours bill, Σ hores × preu/hora de cada línia / hores -->
+          <template v-if="billingMode === 'hours' && plannedBillingPrice !== null">
+            <dt title="Mitjana dels preus/hora de les línies de la planificació, segons les hores de cadascuna">Preu/hora facturat previst</dt><dd class="planned-billing-price">{{ money(plannedBillingPrice) }}</dd>
+          </template>
         </dl>
       </article>
     </div>
@@ -127,6 +131,11 @@ export default {
     pricePerHour: {
       type: Number,
       default: 0
+    },
+    // issues/421: Σ hours × line price / Σ hours of the planning (null: not shown)
+    plannedBillingPrice: {
+      type: Number,
+      default: null
     }
   },
   data () {
@@ -150,7 +159,9 @@ export default {
       return projectSummary(this.totals)
     },
     pending () {
-      return pendingToInvoice(this.s.real.hours, this.pricePerHour, this.s.real.incomes)
+      // the API prices each hour worked at its planning line's price (issues/421)
+      const billed = this.totals ? this.totals.total_real_hours_billed : null
+      return pendingToInvoice(this.s.real.hours, this.pricePerHour, this.s.real.incomes, billed)
     }
   },
   methods: {

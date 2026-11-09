@@ -8,7 +8,7 @@ order: 9
 roles: [projects]
 routes: ["/projecte/:id", "/panell-previsio-dedicacio"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-09
 ---
 # 09. Planificació (Gantt)
 
@@ -60,7 +60,9 @@ planificades.
 1. (Opcional) Triar la **Persona** a dalt.
 2. Arrossegar el ratolí sobre la fila d'una línia, des del dia o el mes d'inici fins al final.
 3. A la finestra **Planificació**, posar les **Hores** i triar si són el **Total** del període,
-   **Setmanals** o **Mensuals**; la **Persona** (el **Cost/hora** s'omple sol) i, si cal, una **Descripció**.
+   **Setmanals** o **Mensuals**; la **Persona** (el **Cost/hora** s'omple sol) i, si cal, una **Descripció**. Als projectes **Per hores**, en lloc
+   del **Cost/hora** surt el **Preu/hora** de la línia, que es pot canviar (buit = el del projecte; vegeu
+   [05](05-fases-pressupost.md#el-pressupost-per-hores)).
 4. **D'acord**.
 5. **Guardar** a la barra de baix.
 
@@ -73,6 +75,11 @@ El pas a pas amb imatges de la primera planificació és al capítol
 - Arrossegant una barra es mou en el temps; estirant-ne un extrem, s'allarga o s'escurça.
 
 ![Editar una dedicació](img/09-planificacio-gantt/04-editar-dedicacio.png)
+
+En un projecte **Per hores**, la finestra mostra el **Preu/hora** de la línia en lloc del **Cost/hora**. Si
+es deixa buit, la línia fa servir el preu/hora del projecte.
+
+![El preu/hora d'una línia en un projecte per hores](img/09-planificacio-gantt/08-preu-hora-dedicacio.png)
 
 Si una barra queda fora de les dates del projecte, surt l'avís *Atenció, planificació fora del període del
 projecte*. Els canvis no es desen fins que es clica **Guardar**.

@@ -67,6 +67,11 @@ export const CHANGELOG = [
       text: ["La pàgina d'", { to: "/iva", label: "IVA" }, " s'assembla a la d'IRPF: trieu l'any i un o més trimestres per veure'n els documents, saldats o pendents, i el resum per trimestre. En saldar, la suma és la dels documents marcats, encara que el filtre en mostri d'altres. L'IVA previst als projectes és a «Previst»."]
     },
     {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: "Als projectes facturats «Per hores», la pestanya es diu «Planificació i preu/hora» i hi trobes el «Pressupost per hores» sota el diagrama de Gantt; «Pressupost i fases» mostra les fases com als altres projectes. Cada línia de la planificació pot tenir el seu preu/hora (si el deixes buit, fa servir el de «Dades»), i en clicar una línia del Gantt surt «Preu/hora» per canviar-lo. El resum mostra el «Preu/hora facturat previst»; el «Cost/hora» continua sortint de cada persona."
+    },
+    {
       type: "Millores",
       modules: ["Informes"],
       text: ["A ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }, " i ", { to: "/panell-previsio-dedicacio", label: "Previsió dedicació" }, ", «Detall per» també pot agrupar les hores per àmbit del projecte, i el nou filtre «Àmbit» compta només les hores dels àmbits triats (també «Sense àmbit»), en l'ocupació i en l'exportació."]
