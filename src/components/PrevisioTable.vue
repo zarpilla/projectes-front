@@ -192,12 +192,17 @@
         <table class="table is-fullwidth forecast-table by-project-table">
           <thead>
             <tr>
-              <th>{{ groupingLabel }}</th>
-              <th v-if="grouping !== 'project'" class="has-text-right">Projectes</th>
-              <th class="has-text-right">Ingressos previstos</th>
-              <th class="has-text-right">Factures i despeses</th>
-              <th class="has-text-right">IVA no deduïble</th>
-              <th class="has-text-right" title="Ingressos menys factures, despeses i IVA no deduïble; 0 si el projecte té més despeses que ingressos">Despesa de nòmines que pot cobrir</th>
+              <th
+                v-for="c in byProjectColumns"
+                :key="c.key"
+                :class="{ 'has-text-right': c.key !== 'label', sorted: byProjectSort.key === c.key }"
+                :title="c.title"
+                :aria-sort="byProjectAriaSort(c.key)"
+              >
+                <button type="button" class="col-sort" @click="sortByProject(c.key)">
+                  {{ c.label }}<span v-if="byProjectSort.key === c.key" aria-hidden="true">{{ byProjectSort.dir === "asc" ? " ↑" : " ↓" }}</span>
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -264,7 +269,7 @@ import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatNumber, sign } from "@/helpers/format-number";
-import { GROUPINGS, forecastRows, forecastTotals } from "@/domain/forecastByProject.js";
+import { GROUPINGS, forecastRows, forecastTotals, sortForecastRows, defaultSortDir, SORT_COLUMNS } from "@/domain/forecastByProject.js";
 
 const BY_PROJECT_GROUPING_KEY = "PrevisioTable.grouping";
 function readGrouping() {
@@ -274,6 +279,18 @@ function readGrouping() {
   } catch (e) {
     return "project";
   }
+}
+
+// issues/424: the column the «Resum per projectes» table is sorted by
+const BY_PROJECT_SORT_KEY = "PrevisioTable.sort";
+function readSort() {
+  try {
+    const v = JSON.parse(localStorage.getItem(BY_PROJECT_SORT_KEY) || "null");
+    if (v && SORT_COLUMNS.some(c => c.key === v.key) && ["asc", "desc"].includes(v.dir)) return v;
+  } catch (e) {
+    // private window or a broken value
+  }
+  return { key: null, dir: null };
 }
 
 export default {
@@ -334,6 +351,8 @@ export default {
       activeTab: "global",
       forecastByProject: [],
       grouping: readGrouping(),
+      // { key, dir }; no key = the biggest incomes first (issues/424)
+      byProjectSort: readSort(),
       // a year of yearRows, or "all"
       byProjectYear: null,
     };
@@ -644,8 +663,26 @@ export default {
       if (this.byProjectYear === "all") return years;
       return years.includes(this.byProjectYear) ? [this.byProjectYear] : years.slice(0, 1);
     },
+    byProjectColumns() {
+      return [
+        { key: "label", label: this.groupingLabel },
+        ...(this.grouping !== "project" ? [{ key: "projects", label: "Projectes" }] : []),
+        { key: "incomes", label: "Ingressos previstos" },
+        { key: "invoices", label: "Factures i despeses" },
+        { key: "vat", label: "IVA no deduïble" },
+        {
+          key: "payrollCover",
+          label: "Despesa de nòmines que pot cobrir",
+          title: "Ingressos menys factures, despeses i IVA no deduïble; 0 si el projecte té més despeses que ingressos"
+        }
+      ];
+    },
     byProjectRows() {
-      return forecastRows(this.forecastByProject, this.byProjectYears, this.grouping);
+      const rows = forecastRows(this.forecastByProject, this.byProjectYears, this.grouping);
+      const { key, dir } = this.byProjectSort;
+      // «Projectes» is not shown per project: keep the default order then
+      if (!key || !this.byProjectColumns.some(c => c.key === key)) return rows;
+      return sortForecastRows(rows, key, dir);
     },
     byProjectTotals() {
       const payroll = this.yearRows
@@ -674,6 +711,13 @@ export default {
         this.activeTab = this.tabs.some(t => t.id === vista) ? vista : "global";
       }
     },
+    byProjectSort(v) {
+      try {
+        localStorage.setItem(BY_PROJECT_SORT_KEY, JSON.stringify(v));
+      } catch (e) {
+        // private window: the order is not remembered
+      }
+    },
     grouping(g) {
       try {
         localStorage.setItem(BY_PROJECT_GROUPING_KEY, g);
@@ -690,6 +734,15 @@ export default {
     }
   },
   methods: {
+    // issues/424: a click sorts by the column, a second one turns it round
+    sortByProject(key) {
+      const { key: current, dir } = this.byProjectSort;
+      this.byProjectSort = current === key ? { key, dir: dir === "asc" ? "desc" : "asc" } : { key, dir: defaultSortDir(key) };
+    },
+    byProjectAriaSort(key) {
+      if (this.byProjectSort.key !== key) return null;
+      return this.byProjectSort.dir === "asc" ? "ascending" : "descending";
+    },
     money(value, decimals = 2) {
       return formatNumber(Number(value) || 0, decimals, decimals) + " €";
     },
@@ -1011,6 +1064,23 @@ export default {
 }
 .by-project-bar {
   margin-bottom: .75rem;
+}
+.by-project-table .col-sort {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.by-project-table .col-sort:hover {
+  text-decoration: underline;
+}
+.by-project-table th.sorted {
+  color: var(--a-accent) !important;
 }
 .by-project-table tfoot tr.is-uncovered > * {
   font-weight: 700;

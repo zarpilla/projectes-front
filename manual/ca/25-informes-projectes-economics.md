@@ -101,6 +101,12 @@ Filtres: l'**Estat** i la **Probabilitat** dels projectes que compten, i la **Pe
 Un avís diu fins a quin any hi ha nòmines previstes: a partir d'aquí les despeses no inclouen el personal i el
 resultat no és comparable.
 
+La pestanya **Resum per projectes** mostra les mateixes xifres projecte per projecte, o agrupades per **Tipus de
+projecte** o **Àmbit**, per a l'any triat o per a tots: els ingressos previstos, les factures i despeses, l'IVA no
+deduïble i la **Despesa de nòmines que pot cobrir** cada projecte. Clicant el títol d'una columna la taula s'hi
+ordena (els noms de la A a la Z, els imports del més gran al més petit); un segon clic inverteix l'ordre. «Sense
+tipus» i «Sense àmbit» queden sempre al final, i l'ordre triat es manté en canviar l'agrupació o l'any.
+
 ## Previsió facturació
 
 Els ingressos previstos als projectes que encara no tenen factura. Filtres: l'horitzó (**Mes en curs**, **3

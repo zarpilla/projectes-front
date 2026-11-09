@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.09",
   items: [
     {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/previsio", label: "Previsió econòmica" }, " › «Resum per projectes», cliqueu el títol d'una columna per ordenar-hi la taula: els projectes, tipus o àmbits de la A a la Z, els imports del més gran al més petit; un segon clic inverteix l'ordre. L'ordre es manté en canviar l'agrupació o l'any."]
+    },
+    {
       type: "Novetats",
       modules: ["Diners"],
       text: ["A ", { to: "/irpf", label: "IRPF" }, " hi ha el botó «Salda», com a l'IVA: marqueu les nòmines, factures i despeses que heu declarat (de diversos trimestres si cal), trieu la data del pagament i veureu la suma abans de saldar. El que no marqueu, o el que entreu després, queda pendent i va a la declaració següent; a Tresoreria cada IRPF surt a la data en què s'ha saldat. Res no s'ha donat per saldat automàticament: l'IRPF dels trimestres ja declarats surt pendent fins que el saldeu."]
