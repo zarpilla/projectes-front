@@ -39,7 +39,7 @@
           <dt>Originals</dt><dd>{{ money(s.original.incomes) }}</dd>
           <dt>Del previst</dt><dd>{{ percent(s.real.incomes, s.estimated.incomes) }}</dd>
           <template v-if="billingMode === 'hours'">
-            <dt title="Hores fetes × preu/hora, menys el que ja s'ha facturat">Per facturar</dt><dd class="pending-invoice">{{ money(pending) }}</dd>
+            <dt title="Hores fetes × el preu/hora de la seva línia de planificació (o el del projecte), menys el que ja s'ha facturat">Per facturar</dt><dd class="pending-invoice">{{ money(pending) }}</dd>
           </template>
         </dl>
       </article>
@@ -159,7 +159,9 @@ export default {
       return projectSummary(this.totals)
     },
     pending () {
-      return pendingToInvoice(this.s.real.hours, this.pricePerHour, this.s.real.incomes)
+      // the API prices each hour worked at its planning line's price (issues/421)
+      const billed = this.totals ? this.totals.total_real_hours_billed : null
+      return pendingToInvoice(this.s.real.hours, this.pricePerHour, this.s.real.incomes, billed)
     }
   },
   methods: {

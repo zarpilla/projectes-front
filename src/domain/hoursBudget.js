@@ -162,7 +162,15 @@ export function plannedPricePerHour(phases, pricePerHour) {
   return hours ? round2(billed / hours) : round2(Number(pricePerHour) || 0);
 }
 
-/** Hours worked × price/hour minus what the project has already invoiced, never below 0. */
-export function pendingToInvoice(realHours, pricePerHour, invoiced) {
-  return Math.max(0, round2((Number(realHours) || 0) * (Number(pricePerHour) || 0) - (Number(invoiced) || 0)));
+/**
+ * Hours worked × price/hour minus what the project has already invoiced, never
+ * below 0. `billed` (issues/421, the API's total_real_hours_billed) is the
+ * hours worked already priced at each planning line's price; without it, the
+ * project's price/hour.
+ */
+export function pendingToInvoice(realHours, pricePerHour, invoiced, billed = null) {
+  const worth = billed !== null && billed !== undefined && Number.isFinite(Number(billed))
+    ? Number(billed)
+    : (Number(realHours) || 0) * (Number(pricePerHour) || 0);
+  return Math.max(0, round2(worth - (Number(invoiced) || 0)));
 }

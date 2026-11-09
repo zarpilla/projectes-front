@@ -11,7 +11,7 @@ import { buefyConfig } from '@/helpers/buefyConfig'
 
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn().mockResolvedValue({ data: [{ id: 7, username: 'anna' }] }), put: vi.fn() }) }))
 
-import { rowPrice, hasOwnPrice, rowAmount, priceHoursLines, plannedPricePerHour } from '@/domain/hoursBudget.js'
+import { rowPrice, hasOwnPrice, rowAmount, priceHoursLines, plannedPricePerHour, pendingToInvoice } from '@/domain/hoursBudget.js'
 import ProjectHoursBudget from '@/components/ProjectHoursBudget.vue'
 import ProjectSummaryCards from '@/components/ProjectSummaryCards.vue'
 import ModalBoxEstimatedHours from '@/components/ModalBoxEstimatedHours.vue'
@@ -148,6 +148,14 @@ describe('summary and tab (issues/421)', () => {
     expect(w.find('.planned-billing-price').text()).toBe('52,50 €')
     expect(w.text()).toContain('Preu/hora facturat previst')
     expect(mountCards({ billingMode: 'project', plannedBillingPrice: null }).find('.planned-billing-price').exists()).toBe(false)
+  })
+
+  it('«Per facturar» uses the hours worked priced per planning line when the API gives them', () => {
+    expect(pendingToInvoice(10, 45, 100, 620)).toBe(520)
+    expect(pendingToInvoice(10, 45, 100)).toBe(350)
+    expect(pendingToInvoice(10, 45, 900, 620)).toBe(0)
+    const w = mountCards({ billingMode: 'hours', pricePerHour: 45, totals: { ...totals, total_real_incomes: 100, total_real_hours_billed: 620 } })
+    expect(w.find('.pending-invoice').text()).toBe('520,00 €')
   })
 
   it('the planning tab is «Planificació i preu/hora» only «Per hores»', () => {
