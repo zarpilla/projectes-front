@@ -208,12 +208,14 @@ DIR3. Molt sovint l'administració mateixa us els donarà amb la comanda o el co
 
 ## 7. Enviar una factura de prova
 
+> **Feu la prova en una còpia de l'entitat.** A ESSTRAPIS, una factura de prova és una factura de veritat: gasta un
+> número de la sèrie i, si Verifactu està activat, s'envia a l'AEAT. Per això, si l'entitat ja factura amb ESSTRAPIS,
+> demaneu a qui manté ESSTRAPIS una **còpia de proves** de l'entitat (amb el certificat i els contactes) i feu-hi els
+> passos 5, 6 i 7. A l'entitat de veritat no canvieu res fins al pas 8. Una entitat que encara no ha emès cap factura
+> pot fer la prova directament.
+
 Emeteu una factura a una administració preparada al pas 6. En emetre-la, l'avís de confirmació recorda que anirà per
 FACe i mostra els codis DIR3. ESSTRAPIS l'envia sola a l'entorn de proves de FACe.
-
-<!-- PENDENT DE REVISAR: a una entitat en marxa, la factura de prova és una factura de veritat (número de la
-sèrie, Verifactu si està activat). Cal decidir què recomanem: sèrie de proves, rectificativa després, o fer
-la prova en una còpia. -->
 
 A **Administració › Verifactu i FACe › Cua FACe** surt la factura amb el **Número registre** que li ha donat FACe i
 l'estat **Registrada**.
@@ -232,7 +234,8 @@ Cl@ve:
 ## 8. Passar a real
 
 1. Al **portal d'integradors real** (`integradores.face.gob.es`), repetiu el pas 4: el certificat i la plataforma.
-2. A ESSTRAPIS, **FACe**: **Real** i **Guardar**.
+2. A l'entitat de veritat d'ESSTRAPIS (no a la còpia de proves): prepareu les administracions com al pas 6 i, a
+   **Configuració general**, **FACe**: **Real** i **Guardar**.
 3. Les factures que s'emetin a partir d'ara a administracions amb FACe van a l'entorn real. Comproveu la primera a la
    **Cua FACe** i a `proveedores.face.gob.es`.
 
