@@ -63,8 +63,9 @@ factures. Guardeu-lo: el fareu servir als passos 2 i 4.
 
 > Sense ESSTRAPIS també es pot obtenir. A Windows: obrir el certificat › **Detalls** › **Copia en un fitxer** ›
 > «X.509 codificat en base 64 (.CER)». Amb OpenSSL:
-> `openssl pkcs12 -in certificat.p12 -clcerts -nokeys -out certificat.cer` (amb els `.p12` antics de la FNMT cal
-> afegir `-legacy`).
+> `openssl pkcs12 -in certificat.p12 -clcerts -nokeys | openssl x509 -out certificat.cer` (amb els `.p12` antics de
+> la FNMT cal afegir `-legacy` després de `pkcs12`). El segon `openssl x509` deixa només el certificat: sense ell, el
+> fitxer porta al davant unes línies `Bag Attributes`, `subject=` i `issuer=` que FACe no espera.
 
 De moment deixeu el mode **FACe** a **No**.
 
