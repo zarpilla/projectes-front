@@ -51,7 +51,7 @@
     <div v-else-if="status" class="cert-actions">
       <b-button class="cert-edit" @click="editing = true">{{ status.configured ? text.replace : text.upload }}</b-button>
       <!-- FACe: the public part, for the FACe integrators portal (who signs the API calls) -->
-      <b-button v-if="pem" icon-left="download" class="cert-pem" title="La part pública del certificat, per donar d'alta l'entitat com a integradora a FACe" @click="downloadPem">Descarrega la part pública (PEM)</b-button>
+      <b-button v-if="pem" icon-left="download" class="cert-pem" title="La part pública del certificat, per donar d'alta l'entitat com a integradora a FACe" @click="downloadPem">Descarrega la part pública (.cer)</b-button>
       <b-button v-if="status.configured" type="is-danger" outlined class="cert-remove" :loading="saving" @click="confirmRemove">{{ text.remove }}</b-button>
     </div>
   </div>
@@ -144,7 +144,7 @@ export default {
     },
     pemFileName() {
       const nif = (this.status.certificate.nif || "").replace(/[^A-Za-z0-9]/g, "");
-      return `certificat-face${nif ? `-${nif}` : ""}.pem`;
+      return `certificat-face${nif ? `-${nif}` : ""}.cer`;
     },
     holder() {
       const { commonName, organization } = this.status.certificate.subject || {};
@@ -174,7 +174,7 @@ export default {
       }
     },
     downloadPem() {
-      const url = URL.createObjectURL(new Blob([this.pem], { type: "application/x-pem-file" }));
+      const url = URL.createObjectURL(new Blob([this.pem], { type: "application/pkix-cert" }));
       const link = document.createElement("a");
       link.href = url;
       link.download = this.pemFileName;

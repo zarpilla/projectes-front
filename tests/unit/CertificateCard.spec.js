@@ -82,7 +82,7 @@ describe('CertificateCard', () => {
     expect(w.find('.cert-edit').text()).toBe('Substitueix el certificat')
   })
 
-  it('FACe: downloads the public part as PEM, named after the NIF; not for the AEAT', async () => {
+  it('FACe: downloads the public part (PEM text, .cer), named after the NIF; not for the AEAT', async () => {
     const pem = '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n'
     get.mockResolvedValue({ data: status({ kind: 'face', certificate: { ...certificate(), pem } }) })
     const blobs = []
@@ -96,7 +96,7 @@ describe('CertificateCard', () => {
       await w.find('.cert-pem').trigger('click')
 
       expect(click).toHaveBeenCalledTimes(1)
-      expect(click.mock.contexts[0].download).toBe('certificat-face-B12345678.pem')
+      expect(click.mock.contexts[0].download).toBe('certificat-face-B12345678.cer')
       expect(await blobs[0].text()).toBe(pem)
       expect(revokeObjectURL).toHaveBeenCalledWith('blob:pem')
 
