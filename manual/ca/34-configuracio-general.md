@@ -8,7 +8,7 @@ order: 34
 roles: [admin]
 routes: ["/administracio/configuracio"]
 lang: ca
-updated: 2026-10-30
+updated: 2026-11-11
 ---
 # 34. Configuració general de l'entitat
 
@@ -41,7 +41,9 @@ blanc. S'arrossega a la zona o es tria; **Treu el logo** el treu. Si el fitxer s
 (**Gestiona les sèries**).
 
 **Factura electrònica (FACe)** — el mode (**No**, **Test**, **Real**), el **Format de factura** (**UBL** o
-**FacturaE**) i les adreces del servei de test i real. Vegeu [18. Verifactu i FACe](18-verifactu-face.md).
+**FacturaE**), les adreces del servei de test i real i el **Certificat de FACe** (pujar-lo, substituir-lo i
+descarregar-ne la part pública, `.cer`, per al portal d'integradors de FACe). Vegeu
+[18. Verifactu i FACe](18-verifactu-face.md) i [41. Posar en marxa FACe pas a pas](41-face-pas-a-pas.md).
 
 **Textos de peu** — el text del peu de les factures, dels pressupostos i de les comandes (per exemple, el compte
 bancari o la validesa d'un pressupost). El de les comandes s'imprimeix al peu de cada albarà.
@@ -93,7 +95,7 @@ són a **Taules auxiliars › Tarifes de ruta** (vegeu [35](35-taules-auxiliars.
 
 ## Què no és aquí
 
-Els certificats de Verifactu i FACe els configura qui manté el servidor (vegeu
+El certificat de Verifactu (l'AEAT) es puja a **Administració › Verifactu i FACe**, pestanya **Configuració** (vegeu
 [18. Verifactu i FACe](18-verifactu-face.md)).
 
 ## Vegeu també
