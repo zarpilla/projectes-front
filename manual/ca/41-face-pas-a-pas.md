@@ -213,6 +213,12 @@ DIR3. Molt sovint l'administració mateixa us els donarà amb la comanda o el co
 > demaneu a qui manté ESSTRAPIS una **còpia de proves** de l'entitat (amb el certificat i els contactes) i feu-hi els
 > passos 5, 6 i 7. A l'entitat de veritat no canvieu res fins al pas 8. Una entitat que encara no ha emès cap factura
 > pot fer la prova directament.
+>
+> Si no és possible fer-ne una còpia, feu la prova a l'entitat de veritat amb el mode **Test** i, un cop comprovat que
+> ha arribat a FACe, **anul·leu-la amb una rectificativa** (vegeu
+> [17. Factures emeses](17-factures-emeses.md#5-anullar-i-rectificar-una-factura)). Feu-ho amb un import petit i un
+> concepte que deixi clar que és una prova, i aviseu la gestoria: totes dues factures queden a la comptabilitat (i a
+> Verifactu, si està activat).
 
 Emeteu una factura a una administració preparada al pas 6. En emetre-la, l'avís de confirmació recorda que anirà per
 FACe i mostra els codis DIR3. ESSTRAPIS l'envia sola a l'entorn de proves de FACe.
