@@ -50,6 +50,8 @@
     </div>
     <div v-else-if="status" class="cert-actions">
       <b-button class="cert-edit" @click="editing = true">{{ status.configured ? text.replace : text.upload }}</b-button>
+      <!-- FACe: the public part, for the FACe integrators portal (who signs the API calls) -->
+      <b-button v-if="pem" icon-left="download" class="cert-pem" title="La part pública del certificat, per donar d'alta l'entitat com a integradora a FACe" @click="downloadPem">Descarrega la part pública (PEM)</b-button>
       <b-button v-if="status.configured" type="is-danger" outlined class="cert-remove" :loading="saving" @click="confirmRemove">{{ text.remove }}</b-button>
     </div>
   </div>
@@ -136,6 +138,14 @@ export default {
       if (this.expiry.soon) return { label: "Caduca aviat", tag: "is-warning" };
       return { label: "Configurat", tag: "is-success is-light" };
     },
+    // only FACe asks for it (integrators portal); the AEAT does not
+    pem() {
+      return this.kind === "face" && this.status && this.status.certificate ? this.status.certificate.pem || null : null;
+    },
+    pemFileName() {
+      const nif = (this.status.certificate.nif || "").replace(/[^A-Za-z0-9]/g, "");
+      return `certificat-face${nif ? `-${nif}` : ""}.pem`;
+    },
     holder() {
       const { commonName, organization } = this.status.certificate.subject || {};
       return [commonName, organization && organization !== commonName ? organization : null].filter(Boolean).join(" · ") || "—";
@@ -162,6 +172,16 @@ export default {
       } catch (error) {
         this.loadError = this.errorMessage(error);
       }
+    },
+    downloadPem() {
+      const url = URL.createObjectURL(new Blob([this.pem], { type: "application/x-pem-file" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = this.pemFileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     },
     onFile(event) {
       this.file = (event.target.files && event.target.files[0]) || null;
