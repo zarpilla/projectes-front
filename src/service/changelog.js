@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.12",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Administració"],
+      text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, " › «Factura electrònica (FACe)», el certificat de FACe té el botó «Descarrega la part pública (.cer)»: és el fitxer que demana FACe per donar d'alta l'entitat com a integradora. Al manual, el capítol nou «Posar en marxa FACe pas a pas» explica tot el procés, de l'alta a FACe a la primera factura real."]
+    }
+  ]
+},
+{
   date: "2026.11.09",
   items: [
     {
