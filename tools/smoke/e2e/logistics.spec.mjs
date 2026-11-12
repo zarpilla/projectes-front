@@ -322,7 +322,12 @@ test('"Incidències": an answer, in progress, closed and reopened', async () => 
   test.skip(!state.orderId, 'needs the order')
   state.reportedBefore = await reportedIncidences()
   const text = `${NAME} falta una caixa`
-  const created = await api('POST', 'incidences', { data: { order: state.orderId, description: text, state: 'open' } })
+  // a new incidence needs a category where there are some (issues/431)
+  const categories = await api('GET', 'incidence-categories?_limit=-1&_sort=order:ASC')
+  const category = Array.isArray(categories) && categories.length ? categories[0] : null
+  const created = await api('POST', 'incidences', {
+    data: { order: state.orderId, description: text, state: 'open', ...(category ? { category: category.id } : {}) }
+  })
   state.incidenceId = created.id
 
   await visit('/incidencies')
@@ -332,6 +337,7 @@ test('"Incidències": an answer, in progress, closed and reopened', async () => 
   const detail = page.locator('.inc-detail')
   await expect(detail).toContainText(`Incidència #${state.incidenceId}`)
   await expect(detail).toContainText(POINT)
+  if (category) await expect(detail.locator('select[data-test="detail-category"]')).toHaveValue(String(category.id))
 
   await detail.getByPlaceholder('Escriu una resposta…').fill(`${NAME} la portem demà`)
   await button('Envia', detail).click()

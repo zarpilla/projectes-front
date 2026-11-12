@@ -77,12 +77,13 @@ describe('Excel export of Incidències', () => {
 
     const [, { params }] = calls('incidences')[0]
     expect(params).toEqual({ _limit: -1, _sort: 'created_at:ASC', state_in: ['open', 'closed'] })
+    // the category and the replies too (issues/431)
     expect(Object.keys(excel.props('fields'))).toEqual(
-      ['ID', 'Comanda', 'Punt', 'Sòcia', 'Descripció', 'Estat', 'Creada', 'Creada per', 'Tancada', 'Tancada per']
+      ['ID', 'Categoria', 'Comanda', 'Punt', 'Sòcia', 'Descripció', 'Estat', 'Creada', 'Creada per', 'Respostes', 'Tancada', 'Tancada per']
     )
     expect(cells(excel, rows)).toEqual([
-      [9, 12, 'El Rebost', 'Anna Puig', 'Caixa trencada', 'Tancada', '01/09/2026', 'Anna Puig', '03/09/2026', 'admin'],
-      [8, '', '', '', 'Falta un paquet', 'Oberta', '20/08/2026', '', '', '']
+      [9, '', 12, 'El Rebost', 'Anna Puig', 'Caixa trencada', 'Tancada', '01/09/2026', 'Anna Puig', '', '03/09/2026', 'admin'],
+      [8, '', '', '', '', 'Falta un paquet', 'Oberta', '20/08/2026', '', '', '', '']
     ])
   })
 

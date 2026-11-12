@@ -58,12 +58,18 @@ S'obre el formulari **Crear Incidència**:
 
 | Camp | Què vol dir | Obligatori |
 |---|---|---|
-| **Descripció de la incidència** | Què passa, en poques paraules (fins a 500 caràcters). Des d'**Operacions** ja ve escrit *Comanda no dipositada*. | Sí |
+| **Categoria** | La causa: *Paquet perdut*, *Retard en l'entrega*, *Falta albarà*, *Altres causes*… La llista és a **Taules auxiliars › Categories d'incidència** i només hi surt si n'hi ha alguna. | Sí |
+| **Descripció** | Què passa o el context, en poques paraules (fins a 500 caràcters). Des d'**Operacions** ja ve escrit *Comanda no dipositada*. | Només si no hi ha categories |
 | **Estat** | **Oberta** (de partida), **En procés** o **Tancada**. | Sí |
 
 **Crear incidència** la desa al moment (no cal desar la comanda) i surt *Incidència creada correctament*. Si
-falta la descripció, surt *Si us plau, descriu la incidència*. **Cancel·lar** tanca el formulari sense crear
+falta la categoria, surt *Tria la categoria de la incidència*. **Cancel·lar** tanca el formulari sense crear
 res.
+
+L'albarà té un codi QR que obre la pàgina de seguiment de la comanda: qui l'escaneja (la sòcia, la repartidora
+o l'oficina) entra a ESSTrapis i hi té el mateix botó **Crea incidència**.
+
+Les incidències que obre l'aplicació sola (una comanda informada fora de temps) no tenen categoria.
 
 En crear-se, s'envia un correu a l'oficina i a la sòcia de la comanda. La caixa **Incidències** de la fitxa
 de la comanda mostra després cada incidència amb el seu estat, la data i un enllaç **Obre** que porta a la
@@ -83,13 +89,16 @@ pantalla **Incidències**; al títol de la caixa, una etiqueta diu quantes n'hi 
   per un tros de la descripció.
 - Les pestanyes **Per resoldre** (la que s'obre de partida), **Obertes**, **En procés**, **Tancades** i
   **Totes**, amb quantes n'hi ha a cadascuna.
+- **Categoria**: només les incidències d'una causa.
 - **Sòcia** (oficina i repartidora): només les incidències de les comandes d'una sòcia.
-- La llista: **Núm.**, **Incidència** (la descripció, amb el punt d'entrega i la sòcia a sota),
+- La llista: **Núm.**, **Incidència** (la categoria, la descripció, i el punt d'entrega i la sòcia a sota),
   **Comanda** (obre la pàgina de seguiment), **Creada** i **Estat**. La paperera elimina la incidència.
 - **Exporta** descarrega en un full de càlcul les incidències de la pestanya i els filtres triats (totes, no
-  només la pàgina que es veu).
+  només la pàgina que es veu): la categoria, la comanda, el punt d'entrega, la sòcia, la descripció, l'estat,
+  quan i qui l'ha creada, les respostes (una per línia, *Usuària - data - missatge*) i quan i qui l'ha tancada.
 
-Clicant una fila, a la dreta surt la incidència: la comanda i el seu estat, el **Punt**, la **Sòcia**, la
+Clicant una fila, a la dreta surt la incidència: la **Categoria** (mentre no està tancada, s'hi pot triar una
+altra), la comanda i el seu estat, el **Punt**, la **Sòcia**, la
 **Ruta**, qui l'ha creada i quan, les dates **Prevista / lliurada** de la comanda i, si està tancada, quan i
 qui l'ha tancada. A sota hi ha la conversa: la descripció inicial i les respostes, cadascuna amb l'autora i
 l'hora.

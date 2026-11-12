@@ -65,6 +65,11 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Logística"],
       text: ["A ", { to: "/comandes", label: "Comandes" }, ", les columnes de «Comandes (.ods)» i «Exporta selecció» tenen noms en català (Nom comercial, Raó social, Ruta, Sòcia, Data prevista d'entrega…) en lloc dels noms tècnics. L'exemple CSV per importar comandes no canvia."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Cada incidència nova té una categoria (Paquet perdut, Retard en l'entrega, Falta albarà, Altres causes…), que es tria en crear-la; la descripció passa a ser opcional. A ", { to: "/incidencies", label: "Incidències" }, " es pot filtrar per categoria i corregir-la, i l'exportació porta la categoria i les respostes («Usuària - data - missatge»). Les persones administradores editen la llista a Taules auxiliars › Logística › Categories d'incidència."]
     }
   ]
 },

@@ -104,7 +104,8 @@ export const ENTITY_SLUGS = {
   'delivery-type': 'tipus-lliurament',
   city: 'poblacions',
   'route-rate': 'tarifes-ruta',
-  'route-pickup-notice': 'avisos-diposit'
+  'route-pickup-notice': 'avisos-diposit',
+  'incidence-category': 'categories-incidencia'
 }
 
 const SLUG_ENTITIES = Object.fromEntries(Object.entries(ENTITY_SLUGS).map(([entity, slug]) => [slug, entity]))
