@@ -95,6 +95,11 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Informes"],
       text: ["A ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }, " i ", { to: "/panell-previsio-dedicacio", label: "Previsió dedicació" }, ", «Detall per» també pot agrupar les hores per àmbit del projecte, i el nou filtre «Àmbit» compta només les hores dels àmbits triats (també «Sense àmbit»), en l'ocupació i en l'exportació."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: ["Despeses indirectes als projectes: si s'activa a ", { to: "/administracio/configuracio", label: "Configuració general" }, " › Projectes (ara ve desactivat), cada projecte té a «Dades › Gestió del projecte» el camp «Despeses indirectes (%)». El «Resum» calcula aquest percentatge sobre les despeses totals (original, previst i executat), el mostra en una fila pròpia i el suma a la targeta «Despeses». És orientatiu: no canvia el resultat ni els informes."]
     }
   ]
 },
