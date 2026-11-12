@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.12",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", l'exportació «Per al planificador de rutes (.csv)» posa el número de comanda davant del nom a la columna «NOM CLIENT» («25770 - Formatgeria La Cleda») i ja no té la columna «ID COMANDA». A l'albarà, el número de comanda és tan gran com la data."]
+    }
+  ]
+},
+{
   date: "2026.11.09",
   items: [
     {

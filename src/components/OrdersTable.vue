@@ -627,7 +627,12 @@ export default {
         preu_final: "finalPrice"
       },
       csvFieldsRouter: {
-        "NOM CLIENT": "contact_trade_name",
+        // «ID - Nom Comercial» in one column, so the planner shows the order
+        // number next to the client (issues/432; replaces «ID COMANDA», 350)
+        "NOM CLIENT": {
+          field: "contact_trade_name",
+          callback: (value, row) => [row.id, value].filter(v => v !== null && v !== undefined && v !== "").join(" - ")
+        },
         TELEFON: {
           field: "contact_phone",
           callback: value => {
@@ -660,9 +665,7 @@ export default {
         "ID CLIENT": "fullName",
         "DETALLS REPARTIDORES": {
           field: "notes_delivery"
-        },
-        // last, so the planner's existing columns keep their place (issues/350)
-        "ID COMANDA": "id"
+        }
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -2660,7 +2663,7 @@ export default {
           } else if (typeof fieldDef === 'object' && fieldDef.field) {
             // Field with callback
             const rawValue = this.getNestedValue(row, fieldDef.field);
-            value = fieldDef.callback ? fieldDef.callback(rawValue) : rawValue;
+            value = fieldDef.callback ? fieldDef.callback(rawValue, row) : rawValue;
           }
           
           // Handle null/undefined
