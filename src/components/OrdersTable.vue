@@ -2,6 +2,8 @@
   <!-- Redesign A (mockup A-Log-Comandes): the orders of a day (or of any dates),
        grouped by route, with their logistics status. Filtering stays at the API. -->
   <div class="orders-page">
+    <!-- a pickup after its delivery: the save was refused (issues/429) -->
+    <modal-pickup-conflict :active="pickupConflict.active" :message="pickupConflict.message" :orders="pickupConflict.orders" @close="pickupConflict.active = false" />
     <b-loading
       :is-full-page="true"
       v-model="importing"
@@ -251,11 +253,10 @@
                 <td :colspan="sumColsAfter"></td>
               </tr>
               <template v-if="!collapsed[group.key]">
+                <template v-for="(order, i) in group.rows" :key="order.id || 'new-' + i">
                 <tr
-                  v-for="(order, i) in group.rows"
-                  :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-alert': isLate(order) }"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-alert': isLate(order), 'is-collection': order.is_collection_order, 'is-expanded': isExpanded(order) }"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
@@ -300,6 +301,19 @@
                     <template v-else-if="col.key === 'idx'">
                       <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
                       <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
+                      <!-- the orders a -R gathers, under it (issues/429) -->
+                      <button
+                        v-if="order.id && order.is_collection_order"
+                        type="button"
+                        class="collection-toggle"
+                        :aria-expanded="isExpanded(order) ? 'true' : 'false'"
+                        :title="isExpanded(order) ? 'Amaga les comandes agrupades' : 'Mostra les comandes agrupades'"
+                        :aria-label="isExpanded(order) ? 'Amaga les comandes agrupades' : 'Mostra les comandes agrupades'"
+                        data-test="collection-toggle"
+                        @click="toggleExpanded(order)"
+                      >
+                        <b-icon :icon="isExpanded(order) ? 'chevron-up' : 'chevron-down'" size="is-small" />
+                      </button>
                     </template>
                     <!-- every mark of the order as one icon (issues/315, proposal C) -->
                     <template v-else-if="col.key === 'signals'">
@@ -346,6 +360,18 @@
                     </template>
                   </td>
                 </tr>
+                <tr v-if="isExpanded(order)" class="collection-children-row">
+                  <td :colspan="visibleCols.length + 2">
+                    <collection-group-rows
+                      :key="`group-${order.id}-${expandedCollections[order.id]}`"
+                      :collection-order="order"
+                      :routes="routes"
+                      :can-edit="canEditOrder(order)"
+                      @changed="onGroupChanged(order)"
+                    />
+                  </td>
+                </tr>
+                </template>
               </template>
             </tbody>
             <tbody v-if="!isLoading && !groups.length">
@@ -428,6 +454,9 @@ import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage, leavingInvoicedTitle } from "@/domain/orderStatus";
 import { orderExportFields, exportRows } from "@/domain/ordersExport";
+import CollectionGroupRows from "@/components/CollectionGroupRows.vue";
+import ModalPickupConflict from "@/components/ModalPickupConflict.vue";
+import { conflictOrders, refusalMessage } from "@/domain/collectionGroup";
 import { signalWhere } from "@/domain/orderSignals";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
@@ -452,7 +481,9 @@ export default {
   components: {
     FileUpload,
     MoneyFormat,
-    TitleBar
+    TitleBar,
+    CollectionGroupRows,
+    ModalPickupConflict
   },
   props: {
     titleStack: {
@@ -822,6 +853,9 @@ export default {
       apiUrl: import.meta.env.VUE_APP_API_URL,
       showExport: false,
       editingRowId: null,
+      // the -R whose orders are shown under it: id → reload count (issues/429)
+      expandedCollections: {},
+      pickupConflict: { active: false, message: "", orders: [] },
       editForm: {},
       contacts: [],
       contactSearch: '',
@@ -1193,6 +1227,19 @@ export default {
     canOpenOrder(order) {
       return mayOpenOrder(order, this.permissions);
     },
+    isExpanded(order) {
+      return Boolean(order && order.id && this.expandedCollections[order.id]);
+    },
+    toggleExpanded(order) {
+      const next = { ...this.expandedCollections };
+      if (next[order.id]) delete next[order.id];
+      else next[order.id] = 1;
+      this.expandedCollections = next;
+    },
+    // an order moved out of the -R: the list's figures change, the group reloads
+    async onGroupChanged() {
+      await this.setStatusFilter({ ctrlKey: false, metaKey: false });
+    },
     startEdit(order) {
       this.editingRowId = order.id;
       this.editingOrder = { ...order };
@@ -1347,6 +1394,10 @@ export default {
         );
 
         this.cancelEdit();
+        // its orders moved with it: the open group shows them again (issues/429)
+        if (this.expandedCollections[order.id]) {
+          this.expandedCollections = { ...this.expandedCollections, [order.id]: this.expandedCollections[order.id] + 1 };
+        }
         
         this.$buefy.snackbar.open({
           message: "Comanda actualitzada correctament",
@@ -1356,6 +1407,12 @@ export default {
         // Refresh the data to get the updated order with all relationships
         await this.setStatusFilter({ ctrlKey: false, metaKey: false });
       } catch (error) {
+        // a moved -R whose orders would be delivered before it (issues/429)
+        const orders = conflictOrders(error);
+        if (orders.length) {
+          this.pickupConflict = { active: true, message: refusalMessage(error, ""), orders };
+          return;
+        }
         this.$buefy.snackbar.open({
           message: error.response?.data?.message || "Error actualitzant la comanda",
           type: "is-danger"
@@ -3075,6 +3132,31 @@ select.col-filter {
   background: none;
   color: var(--a-neg);
   cursor: pointer;
+}
+/* a grouped pickup (-R) and its orders, set apart (issues/429) */
+.order-row.is-collection td:first-child {
+  box-shadow: inset 3px 0 0 var(--a-accent);
+}
+.order-row.is-expanded td {
+  border-bottom: 0;
+}
+.collection-toggle {
+  display: inline-flex;
+  align-items: center;
+  margin-left: .25rem;
+  padding: 0 .125rem;
+  border: 1px solid var(--a-line);
+  border-radius: .25rem;
+  background: var(--a-surface);
+  color: var(--a-accent);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.collection-toggle:hover {
+  background: var(--a-accent-soft);
+}
+.collection-children-row > td {
+  padding-top: 0;
 }
 .order-row.is-editing td {
   background: var(--a-warn-bg);

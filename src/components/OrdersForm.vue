@@ -28,6 +28,7 @@
       @confirm="confirmContact"
     ></modal-box-contact-user>
 
+    <modal-pickup-conflict :active="pickupConflict.active" :message="pickupConflict.message" :orders="pickupConflict.orders" @close="pickupConflict.active = false" />
     <modal-box-incidence
       :is-active="isIncidenceModalActive"
       :order-id="form.id || 0"
@@ -579,6 +580,8 @@ import {
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
+import ModalPickupConflict from "@/components/ModalPickupConflict.vue";
+import { conflictOrders, refusalMessage } from "@/domain/collectionGroup";
 import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
@@ -609,6 +612,7 @@ export default {
     MoneyFormat,
     ModalBoxContactUser,
     ModalBoxIncidence,
+    ModalPickupConflict,
     OrderHistory
   },
   props: {
@@ -619,6 +623,8 @@ export default {
   },
   data() {
     return {
+      // a pickup after its delivery: the refused save names the orders (issues/429)
+      pickupConflict: { active: false, message: "", orders: [] },
       isProfileExists: false,
       isLoading: false,
       submitted: false,
@@ -1943,6 +1949,13 @@ export default {
         }
       } catch (err) {
         console.error(err);
+        this.isLoading = false;
+        // a pickup after its delivery, a moved -R included: which orders (issues/429)
+        const orders = conflictOrders(err);
+        if (orders.length) {
+          this.pickupConflict = { active: true, message: refusalMessage(err, ""), orders };
+          return;
+        }
 
         this.$buefy.snackbar.open({
           message: orderSaveErrorMessage(err),
@@ -1950,8 +1963,6 @@ export default {
           duration: 8000,
           queue: false
         });
-
-        this.isLoading = false;
       }
     },
     clientSelected(option) {

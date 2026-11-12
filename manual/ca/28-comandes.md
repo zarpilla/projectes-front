@@ -269,6 +269,21 @@ comandes associades (no es poden canviar). A baix, **Comandes a recollir** les l
 
 Una comanda de recollida que es queda sense cap comanda associada s'anul·la sola. No té albarà.
 
+A la llista de **Comandes**, el botó de la fletxa al costat del número d'una -R desplega les comandes que
+agrupa, sobre un fons de color i amb el títol **Comanda de recollida agrupada**. Cada fila mostra la
+**Recollida prevista** i l'**Entrega prevista** (data i ruta); el llapis les edita a la mateixa fila, i el
+número obre la fitxa de la comanda en una pestanya nova.
+
+- **Moure-les totes alhora**: edita la data (**Prevista**) o la **Ruta** de la -R, a la llista o a la fitxa.
+  La recollida de totes les comandes obertes del grup canvia amb ella, encara que abans se n'hagi mogut alguna
+  per separat (mana l'últim canvi).
+- **Moure'n una sola**: canvia-li la data o la ruta de recollida. Surt de la -R, que es queda amb el seu número,
+  i va a la -R de la sòcia per al nou dia i ruta (si no n'hi ha cap, se'n crea una amb un número nou).
+
+Primer es recull i després s'entrega: cap recollida no pot quedar després de l'entrega prevista de la seva
+comanda. Si un canvi ho faria, no es desa i surt un avís amb les comandes afectades; cada número obre la comanda
+en una pestanya nova, per canviar-ne abans la data d'entrega o moure-la per separat.
+
 ### 9. Imprimir albarans
 
 **Imprimeix albarà** (a la fitxa), **Albarà** (al seguiment) o, a la llista, marcar comandes i **Imprimeix

@@ -75,6 +75,11 @@ export const CHANGELOG = [
       type: "Novetats",
       modules: ["Logística"],
       text: ["Nova pestanya ", { to: "/consulta-punt-entrega", label: "Consulta i autorització nou punt d'entrega" }, " al costat del Simulador: les sòcies demanen un punt d'entrega on encara no arribem (nom comercial, població, adreça, horari, pes estimat i notes). L'oficina en rep un correu i respon per correu; la llista guarda qui l'ha feta, quan i si ja està resposta."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", les comandes de recollida (-R) es despleguen per veure les comandes que agrupen, amb la recollida i l'entrega previstes de cadascuna, que es poden editar a la mateixa fila. Moure la data o la ruta d'una -R mou la recollida de totes les seves comandes alhora; moure'n una sola la passa a una altra -R. Cap recollida no pot quedar després de l'entrega: si un canvi ho faria, no es desa i un avís diu quines comandes ho impedeixen, amb un enllaç a cadascuna."]
     }
   ]
 },
