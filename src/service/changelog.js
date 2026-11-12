@@ -58,6 +58,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Millores",
+      modules: ["Projectes"],
+      text: "A les fases d'un projecte, les que plegueu queden plegades la propera vegada que l'obriu (i les que deixeu obertes, obertes). Es recorda en aquest navegador i per a cada persona. Les fases noves, també les d'execució, s'obren desplegades."
+    },
+    {
+      type: "Millores",
       modules: ["Diners"],
       text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › «Moviments bancaris», «Pròxims» i «Anteriors» filtren per data i inclouen també els moviments executats; la pestanya «Executats» ja no hi és. La xifra «Endarrerits» de dalt continua obrint els previstos amb la data passada. Les files d'«Avui» i dels saldos ara es llegeixen bé amb el tema fosc."]
     },

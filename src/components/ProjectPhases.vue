@@ -885,6 +885,7 @@ import sumBy from "lodash/sumBy";
 import { budgetLineDisplay, budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
 import { sortLinesByPosition, moveLine, lineHasDocument, isHandleDrag } from "@/domain/budgetLineOrder.js";
 import { docTagClass, docTagTitle } from "@/domain/budgetLineDocTag.js";
+import { loadFoldedPhases, saveFoldedPhases } from "@/domain/phaseFold.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -1054,6 +1055,10 @@ export default {
       return this.editable;
     },
     // the phases too, on the project page (not while assigning a document)
+    // the project's own phases screen, not the phases shown to assign a document
+    remembersFolding() {
+      return !!(this.form && this.form.id) && (this.mode === "" || this.mode === "simple");
+    },
     canReorderPhases() {
       return this.editable && (this.mode === "" || this.mode === "simple") && (this.phases || []).length > 1;
     },
@@ -1172,6 +1177,10 @@ export default {
     }
   },
   watch: {
+    // issues/433: remember the folding (any change: a click, «Plega-ho tot», a move)
+    collapsedPhases(collapsed) {
+      if (this.remembersFolding) saveFoldedPhases(this.form && this.form.id, collapsed);
+    },
     deferRender(defer) {
       if (!defer) this.rendered = true;
     },
@@ -1310,6 +1319,8 @@ export default {
     });
 
     this.phases = phases0;
+    // issues/433: the phases this person left folded in this project
+    if (this.remembersFolding) this.collapsedPhases = loadFoldedPhases(this.form.id);
 
     // Calculate warnings on load only in document assignment mode
     // In normal project view, we trust the warning field from database

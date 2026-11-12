@@ -43,7 +43,9 @@ Hi ha dos blocs:
 
 A dalt de cada bloc es veu quantes fases i línies hi ha. **Plega-ho tot** deixa només la capçalera de cada
 fase, amb els seus totals (**Ingressos**, **Despeses** i **Total**); **Desplega-ho tot** les obre totes. La
-fletxa de l'esquerra de cada fase la plega o la desplega.
+fletxa de l'esquerra de cada fase la plega o la desplega. El navegador recorda quines fases heu deixat
+plegades en cada projecte, i la propera vegada les obre igual; una fase nova (també la còpia a l'execució)
+s'obre desplegada.
 
 ### Les línies
 
