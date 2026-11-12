@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.12",
   items: [
     {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/previsio", label: "Previsió econòmica" }, ", al gràfic, cada color diu la seva xifra (per exemple, les nòmines) i, en les despeses, quin percentatge són de les despeses de l'any. A «Resum per projectes», agrupant per tipus de projecte cada tipus es desplega en els seus projectes, i agrupant per àmbit cada àmbit es desplega en els seus tipus de projecte; d'entrada, tot plegat."]
+    },
+    {
       type: "Novetats",
       modules: ["Projectes"],
       text: "A la planificació d'un projecte, en passar el ratolí per sobre d'una fase surt una paperera que esborra totes les dedicacions de la fase de cop, després de confirmar-ho. L'esborrat es desa en guardar el projecte."
