@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.12",
   items: [
     {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: "A la planificació d'un projecte, en passar el ratolí per sobre d'una fase surt una paperera que esborra totes les dedicacions de la fase de cop, després de confirmar-ho. L'esborrat es desa en guardar el projecte."
+    },
+    {
       type: "Millores",
       modules: ["Projectes"],
       text: "A les fases d'un projecte, les que plegueu queden plegades la propera vegada que l'obriu (i les que deixeu obertes, obertes). Es recorda en aquest navegador i per a cada persona. Les fases noves, també les d'execució, s'obren desplegades."

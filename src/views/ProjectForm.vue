@@ -4470,11 +4470,13 @@ export default {
       const pid = item._phase.id;
       const sid = item._subphase.id;
 
-      // Add to appropriate deletedHours array
-      if (isOriginalMode) {
-        this.deletedHoursOriginal.push(id);
-      } else {
-        this.deletedHours.push(id);
+      // Add to appropriate deletedHours array (an unsaved one has no id: nothing to delete on the server)
+      if (id) {
+        if (isOriginalMode) {
+          this.deletedHoursOriginal.push(id);
+        } else {
+          this.deletedHours.push(id);
+        }
       }
 
       // Get the appropriate phases array based on view mode
@@ -4484,7 +4486,8 @@ export default {
         
       const phase = phasesArray.find(p => p.id === pid);
       const income = phase.incomes.find(s => s.id === sid);
-      income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
+      // an unsaved one by its _uuid (by id, every unsaved one of the line went with it)
+      income.estimated_hours = income.estimated_hours.filter(h => (id ? h.id !== id : h._uuid !== item._uuid));
       
       // Mark the income (subphase) as dirty so the deletion is persisted
       income.dirty = true;
