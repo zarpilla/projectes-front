@@ -1,5 +1,10 @@
 <template>
-  <div class="project-form-phases" v-if="form && !isLoading && rendered">
+  <div
+    class="project-form-phases"
+    v-if="form && !isLoading && rendered"
+    @dragstart.capture="blockTextDrag"
+    @drop.capture="blockTextDrop"
+  >
     <modal-box-invoicing
       :is-active="isModalActive"
       :invoicing-object="invoicingObject"
@@ -878,7 +883,7 @@ import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { budgetLineDisplay, budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
-import { sortLinesByPosition, moveLine, lineHasDocument } from "@/domain/budgetLineOrder.js";
+import { sortLinesByPosition, moveLine, lineHasDocument, isHandleDrag } from "@/domain/budgetLineOrder.js";
 import { docTagClass, docTagTitle } from "@/domain/budgetLineDocTag.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -1348,6 +1353,16 @@ export default {
         const row = this.$el && this.$el.querySelector && this.$el.querySelector("tr.is-current-document");
         if (row && row.scrollIntoView) row.scrollIntoView({ behavior: "smooth", block: "center" });
       });
+    },
+    // issues/427: only the line and phase handles drag. A number selected in a
+    // cell and dragged was moved by the browser into the cell next to it
+    // (native text drag & drop between inputs), changing both lines.
+    blockTextDrag(event) {
+      if (!isHandleDrag(event.target)) event.preventDefault();
+    },
+    blockTextDrop(event) {
+      if (this.lineDrag || this.phaseDrag) return;
+      event.preventDefault();
     },
     // issues/345: drag a line by its handle within its own table
     lineDragStart(event, phase, kind, row) {
