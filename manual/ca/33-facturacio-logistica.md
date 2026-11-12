@@ -204,6 +204,38 @@ Hi ha aquests camps: Estat, Recollida, Entrega, Tarifa, Úl. Milla, Data, Multie
 Any, Mes, Sòcia, Punt, Població i Ruta; i aquests valors: Comandes, Preu, Caixes i Kg. El **Preu** és el mateix
 import amb descomptes de la xifra **Import**.
 
+### 8. La facturació automàtica
+
+Els esborranys de cada mes es poden generar sols. Per activar-ho, marca **Habilitar facturació automàtica** al
+projecte de logística del trimestre (a la fitxa del projecte; només l'oficina i les persones administradores). Les
+dates d'inici i final del projecte han d'incloure l'últim dia del mes.
+
+El **penúltim dia laborable del mes, a les 14:10** (segons els **Dies laborables** de **Configuració general** i
+els festius de tothom), l'aplicació:
+
+- agafa totes les comandes amb **entrega prevista** dins el mes que no estiguin anul·lades ni ja facturades,
+  lliurades o no, i també les de mesos anteriors que encara no s'hagin facturat;
+- fa un esborrany per sòcia, amb data de l'**últim dia del mes**, al projecte que té l'opció. Les comandes de
+  mesos anteriors hi surten al final, amb el concepte *Serveis pendents de setembre 2026 · …*;
+- si una sòcia no pot tenir esborrany (una comanda sense preu, cap contacte per facturar-li), no el fa i li deixa
+  un avís a **Avisos** amb el motiu i les comandes;
+- apunta als **Comentaris interns** de l'esborrany el que cal revisar (comandes de mesos anteriors encara no
+  lliurades, preus a 0);
+- envia l'informe per correu, amb l'assumpte *FACTURACIÓ AUTOMÀTICA*, a l'adreça de les incidències (el
+  **Correu que rep els missatges** de **Configuració general**): els esborranys, les sòcies sense esborrany, les
+  incidències de cadascuna i el **quadrament** amb **Comandes** (el nombre i l'import de les comandes amb ruta
+  prevista del mes, contra les facturades ara i abans).
+
+Els esborranys es revisen i s'emeten a **Ingressos**, com els que es fan a mà. Mentre són esborranys, no compten
+en l'import pendent de pagar de la sòcia.
+
+A **Facturar**, la caixa **Facturació automàtica** diu quan serà la propera i en quin projecte, i té:
+
+- **Previsualitza**: l'informe del mes triat sense crear res;
+- **Genera ara**: fa el mes triat en aquell moment (per exemple, si la data ha passat sense cap projecte amb
+  l'opció);
+- **Darreres execucions**, amb l'informe de cadascuna.
+
 ## Camps i opcions
 
 ### Facturar

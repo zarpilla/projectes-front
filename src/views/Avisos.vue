@@ -9,6 +9,15 @@
       <b-loading :is-full-page="false" :model-value="isLoading" />
 
       <div v-if="!isLoading" class="board">
+        <!-- what the app has to tell her: a monthly invoice it could not make (issues/430) -->
+        <section v-for="n in notices" :key="n.id" class="a-box is-alert" data-test="member-notice">
+          <header class="box-head">
+            <h2>{{ n.title }}</h2>
+            <b-button size="is-small" icon-left="check" data-test="notice-read" @click="markRead(n)">D'acord</b-button>
+          </header>
+          <p class="notice-text">{{ n.text }}</p>
+        </section>
+
         <!-- unpaid invoices -->
         <section v-if="invoices.length" class="a-box is-alert" data-test="pending-invoices">
           <header class="box-head"><h2>Hola {{ userName }}</h2></header>
@@ -78,6 +87,7 @@ export default {
       DAYS,
       isLoading: true,
       invoices: [],
+      notices: [],
       closures: [],
       holidays: [],
       today: moment().format("YYYY-MM-DD"),
@@ -110,13 +120,15 @@ export default {
       const range = `_where[date_gte]=${this.today}&_where[date_lte]=${until}&_limit=-1&_sort=date:ASC`;
       const user = JSON.parse(localStorage.getItem("user") || "null");
       const isMember = !!(user && (user.permissions || []).some(p => p.permission === "orders"));
-      const [closures, festives, pending] = await Promise.all([
+      const [closures, festives, pending, notices] = await Promise.all([
         api.get(`route-festives?${range}`).then(r => r.data || []).catch(() => []),
         api.get(`festives?${range}`).then(r => r.data || []).catch(() => []),
         isMember
           ? api.get("emitted-invoices/pending-provider?_limit=-1&_sort=name:ASC").then(r => r.data).catch(() => null)
-          : Promise.resolve(null)
+          : Promise.resolve(null),
+        api.get("member-notices?_where[read]=false&_sort=id:DESC&_limit=20").then(r => r.data || []).catch(() => [])
       ]);
+      this.notices = Array.isArray(notices) ? notices : [];
       this.closures = closures;
       // the entity's holidays (a person's days off have a user)
       this.holidays = [...new Set(festives.filter(f => !f.users_permissions_user).map(f => String(f.date).slice(0, 10)))].sort();
@@ -128,6 +140,14 @@ export default {
         } catch (e) {
           // «de l'entitat»
         }
+      }
+    },
+    async markRead(notice) {
+      try {
+        await service({ requiresAuth: true }).put(`member-notices/${notice.id}`, { read: true });
+        this.notices = this.notices.filter(n => n.id !== notice.id);
+      } catch (e) {
+        this.$buefy.toast.open({ message: "No s'ha pogut desar", type: "is-danger" });
       }
     },
     substituteOf,
@@ -160,6 +180,9 @@ export default {
 </script>
 
 <style scoped>
+.notice-text {
+  white-space: pre-line;
+}
 .board {
   display: grid;
   gap: 1rem;

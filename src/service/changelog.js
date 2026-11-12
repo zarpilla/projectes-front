@@ -80,6 +80,11 @@ export const CHANGELOG = [
       type: "Novetats",
       modules: ["Logística"],
       text: ["A ", { to: "/comandes", label: "Comandes" }, ", les comandes de recollida (-R) es despleguen per veure les comandes que agrupen, amb la recollida i l'entrega previstes de cadascuna, que es poden editar a la mateixa fila. Moure la data o la ruta d'una -R mou la recollida de totes les seves comandes alhora; moure'n una sola la passa a una altra -R. Cap recollida no pot quedar després de l'entrega: si un canvi ho faria, no es desa i un avís diu quines comandes ho impedeixen, amb un enllaç a cadascuna."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Facturació automàtica: amb «Habilitar facturació automàtica» al projecte de logística del trimestre, el penúltim dia laborable del mes a les 14:10 es generen sols els esborranys del mes (totes les comandes amb entrega prevista del mes i les pendents de mesos anteriors), amb data de l'últim dia del mes. L'informe «FACTURACIÓ AUTOMÀTICA» arriba per correu amb el quadrament amb Comandes i les incidències; la sòcia que no pot tenir esborrany en rep un avís. A ", { to: "/comandes-per-facturar", label: "Facturar" }, " es pot previsualitzar un mes i generar-lo a mà."]
     }
   ]
 },

@@ -456,6 +456,16 @@
                 <b-switch v-model="form.structural_expenses"> </b-switch>
               </b-field>
 
+              <!-- the monthly logistics invoices go to this project (issues/430) -->
+              <b-field
+                v-if="canAutoInvoice || form.auto_invoicing"
+                label="Habilitar facturació automàtica"
+                horizontal
+                message="Les factures mensuals de logística es generen automàticament (el penúltim dia laborable del mes, a les 14:10) en aquest projecte, si les seves dates d'inici i final inclouen l'últim dia del mes."
+              >
+                <b-switch v-model="form.auto_invoicing" :disabled="!canAutoInvoice" data-test="auto-invoicing" />
+              </b-field>
+
               <!-- <b-field
                 label="Despesa Indirecta (%)"
                 horizontal
@@ -2687,6 +2697,8 @@ export default {
   },
   data() {
     return {
+      // the office and admins turn on the monthly logistics invoicing (issues/430)
+      canAutoInvoice: false,
       isLoading: false,
       isUpdating: false,
       needsUpdate: false,
@@ -3153,6 +3165,7 @@ export default {
     // if exist execution-> estimated
     this.ganttViewMode = this.form.project_phases && this.form.project_phases.length > 0 ? 'estimated' : 'original';
     this.getData();
+    this.loadAutoInvoicePermission();
   },
   beforeRouteLeave(to, from, next) {
     // called when the route that renders this component is about to be navigated away from.
@@ -3182,6 +3195,15 @@ export default {
     }
   },
   methods: {
+    async loadAutoInvoicePermission() {
+      try {
+        const me = (await service({ requiresAuth: true, cached: true }).get("users/me")).data;
+        const permissions = ((me && me.permissions) || []).map(p => p.permission);
+        this.canAutoInvoice = permissions.includes("orders_admin") || permissions.includes("admin");
+      } catch (e) {
+        this.canAutoInvoice = false;
+      }
+    },
     dayString(d) {
       return d ? moment(d).format("YYYY-MM-DD") : null;
     },

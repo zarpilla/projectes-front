@@ -46,6 +46,9 @@
         </template>
       </div>
 
+      <!-- the monthly drafts, generated on their own (issues/430) -->
+      <auto-invoicing-panel @invoiced="getData" />
+
       <section class="a-box invoice-setup">
         <div class="setup-row">
           <b-field label="Projecte on es creen les factures *" class="setup-project" :type="!projectId && triedWithoutProject ? 'is-danger' : ''" :message="!projectId && triedWithoutProject ? 'Cal triar un projecte abans de facturar.' : ''">
@@ -165,6 +168,7 @@
 import service from "@/service/index";
 import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
+import AutoInvoicingPanel from "@/components/AutoInvoicingPanel.vue";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { plural } from "@/helpers/catalan";
 import { groupOrders, linkedToInvoice, quarterOf, quarterProject } from "@/domain/logisticsInvoicing.js";
@@ -172,6 +176,7 @@ import { groupOrders, linkedToInvoice, quarterOf, quarterProject } from "@/domai
 export default {
   name: "OrdersInvoiceTable",
   components: {
+    AutoInvoicingPanel,
     TitleBar
   },
   data() {
