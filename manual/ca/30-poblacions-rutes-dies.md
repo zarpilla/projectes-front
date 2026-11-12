@@ -129,6 +129,26 @@ Un municipi surt pintat si alguna de les seves poblacions té ruta, encara que n
 
 Si una població amb ruta no es pot situar, l'oficina la veu a **Poblacions sense ubicar**, on pot triar-ne el municipi o treure-la del mapa.
 
+### Consulta i autorització nou punt d'entrega
+
+Per demanar un punt d'entrega on encara no hi ha servei, la pestanya **Consulta i autorització nou punt d'entrega**
+té un formulari:
+
+| Camp | Què vol dir | Obligatori |
+|---|---|---|
+| **Nom comercial** | El nom de l'establiment. | No |
+| **Població** | On és. | Sí |
+| **Adreça** | El carrer i el número. | Sí |
+| **Horari** | Amb la màxima amplitud: tots els dies i les hores en què s'hi pot lliurar (text lliure). | Sí |
+| **Pes estimat de la comanda** | Per exemple, *15 kg*. | No |
+| **Notes** | Qualsevol altra cosa que calgui saber. | No |
+
+**Envia la consulta** l'envia per correu a l'oficina (el **Correu que rep els missatges** de **Configuració
+general**, el mateix de les incidències), amb una còpia a la sòcia. L'oficina respon per correu.
+
+A sota hi ha l'historial: cada sòcia veu les seves consultes, i l'oficina les de totes, amb la sòcia que l'ha
+feta, la data i l'interruptor **Resposta**, que l'oficina marca quan l'ha contestada.
+
 ### 3. Poblacions i punts (oficina)
 
 Les poblacions escrites als punts d'entrega que no són a la llista de poblacions. Les comandes cap a aquests

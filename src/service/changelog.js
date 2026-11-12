@@ -70,6 +70,11 @@ export const CHANGELOG = [
       type: "Novetats",
       modules: ["Logística"],
       text: ["Cada incidència nova té una categoria (Paquet perdut, Retard en l'entrega, Falta albarà, Altres causes…), que es tria en crear-la; la descripció passa a ser opcional. A ", { to: "/incidencies", label: "Incidències" }, " es pot filtrar per categoria i corregir-la, i l'exportació porta la categoria i les respostes («Usuària - data - missatge»). Les persones administradores editen la llista a Taules auxiliars › Logística › Categories d'incidència."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Nova pestanya ", { to: "/consulta-punt-entrega", label: "Consulta i autorització nou punt d'entrega" }, " al costat del Simulador: les sòcies demanen un punt d'entrega on encara no arribem (nom comercial, població, adreça, horari, pes estimat i notes). L'oficina en rep un correu i respon per correu; la llista guarda qui l'ha feta, quan i si ja està resposta."]
     }
   ]
 },

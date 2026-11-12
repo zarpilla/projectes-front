@@ -18,6 +18,8 @@ export const TABS = [
   { to: "/mapa-rutes", label: "Mapa" },
   // what an order would cost (issues/361)
   { to: "/simulador-logistic", label: "Simulador" },
+  // ask for a delivery point where there is no service yet (issues/357)
+  { to: "/consulta-punt-entrega", label: "Consulta i autorització nou punt d'entrega" },
   { to: "/poblacions-punts-entrega", label: "Poblacions i punts", staff: true },
   // the office creates and disables routes (issues/141)
   { to: "/rutes", label: "Rutes", office: true }
