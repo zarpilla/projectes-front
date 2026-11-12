@@ -57,6 +57,16 @@ export const CHANGELOG = [
   date: "2026.11.12",
   items: [
     {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › «Moviments bancaris», «Pròxims» i «Anteriors» filtren per data i inclouen també els moviments executats; la pestanya «Executats» ja no hi és. La xifra «Endarrerits» de dalt continua obrint els previstos amb la data passada. Les files d'«Avui» i dels saldos ara es llegeixen bé amb el tema fosc."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "A les línies d'ingressos i despeses d'un projecte, en seleccionar una xifra d'una cel·la i arrossegar-la, el navegador la movia a la cel·la del costat. Ara només es poden arrossegar les nanses de les línies i de les fases."
+    },
+    {
       type: "Novetats",
       modules: ["Administració"],
       text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, " › «Factura electrònica (FACe)», el certificat de FACe té el botó «Descarrega la part pública (.cer)»: és el fitxer que demana FACe per donar d'alta l'entitat com a integradora. Al manual, el capítol nou «Posar en marxa FACe pas a pas» explica tot el procés, de l'alta a FACe a la primera factura real."]
