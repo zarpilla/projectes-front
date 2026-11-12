@@ -98,13 +98,14 @@
         <div v-for="y in yearRows" :key="y.year" class="year-col">
           <span class="year-result" :class="'has-text-' + sign(y.result)">{{ (y.result > 0 ? "+" : "") + money(y.result, 0) }}</span>
           <div class="year-bars">
+            <!-- issues/434: each colour says its own figure; an expense, its share of the year's expenses -->
             <span class="bar" :title="'Ingressos ' + money(y.incomes)">
-              <i class="c-inc" :style="{ height: h(y.incomes) }"></i>
+              <i class="c-inc" :style="{ height: h(y.incomes) }" :title="segmentTitle(y, 'incomes')"></i>
             </span>
             <span class="bar" :title="'Despeses ' + money(y.expenses)">
-              <i class="c-vat" :style="{ height: h(-y.vat) }"></i>
-              <i class="c-exp" :style="{ height: h(-y.invoices) }"></i>
-              <i class="c-pay" :style="{ height: h(-y.payroll) }"></i>
+              <i class="c-vat" :style="{ height: h(-y.vat) }" :title="segmentTitle(y, 'vat')"></i>
+              <i class="c-exp" :style="{ height: h(-y.invoices) }" :title="segmentTitle(y, 'invoices')"></i>
+              <i class="c-pay" :style="{ height: h(-y.payroll) }" :title="segmentTitle(y, 'payroll')"></i>
             </span>
           </div>
           <b>{{ y.year }}</b>
@@ -209,17 +210,43 @@
             <tr v-if="!byProjectRows.length">
               <td :colspan="grouping !== 'project' ? 6 : 5" class="has-text-muted">Cap projecte amb imports previstos {{ byProjectYear === 'all' ? '' : 'el ' + byProjectYear }}.</td>
             </tr>
-            <tr v-for="r in byProjectRows" :key="r.key">
-              <th>
-                <router-link v-if="r.projectId" :to="{ name: 'project.edit', params: { id: r.projectId } }">{{ r.label }}</router-link>
-                <span v-else :class="{ 'has-text-muted': r.none }">{{ r.label }}</span>
-              </th>
-              <td v-if="grouping !== 'project'" class="has-text-right">{{ r.projects }}</td>
-              <td class="has-text-right">{{ money(r.incomes) }}</td>
-              <td class="has-text-right" :class="{ 'has-text-neg': r.invoices < 0 }">{{ money(r.invoices) }}</td>
-              <td class="has-text-right" :class="{ 'has-text-neg': r.vat < 0 }">{{ money(r.vat) }}</td>
-              <td class="has-text-right">{{ money(r.payrollCover) }}</td>
-            </tr>
+            <template v-for="r in byProjectRows" :key="r.key">
+              <tr :class="{ 'is-expandable': grouping !== 'project' }">
+                <th>
+                  <!-- issues/434: a type opens into its projects, a scope into its types; folded at first -->
+                  <button
+                    v-if="grouping !== 'project'"
+                    type="button"
+                    class="group-toggle"
+                    :aria-expanded="isGroupOpen(r.key) ? 'true' : 'false'"
+                    @click="toggleGroup(r.key)"
+                  >
+                    <b-icon :icon="isGroupOpen(r.key) ? 'chevron-down' : 'chevron-right'" size="is-small" />
+                    <span :class="{ 'has-text-muted': r.none }">{{ r.label }}</span>
+                  </button>
+                  <router-link v-else-if="r.projectId" :to="{ name: 'project.edit', params: { id: r.projectId } }">{{ r.label }}</router-link>
+                  <span v-else :class="{ 'has-text-muted': r.none }">{{ r.label }}</span>
+                </th>
+                <td v-if="grouping !== 'project'" class="has-text-right">{{ r.projects }}</td>
+                <td class="has-text-right">{{ money(r.incomes) }}</td>
+                <td class="has-text-right" :class="{ 'has-text-neg': r.invoices < 0 }">{{ money(r.invoices) }}</td>
+                <td class="has-text-right" :class="{ 'has-text-neg': r.vat < 0 }">{{ money(r.vat) }}</td>
+                <td class="has-text-right">{{ money(r.payrollCover) }}</td>
+              </tr>
+              <template v-if="isGroupOpen(r.key)">
+                <tr v-for="c in groupChildren(r.key)" :key="r.key + '/' + c.key" class="is-child">
+                  <th>
+                    <router-link v-if="c.projectId" :to="{ name: 'project.edit', params: { id: c.projectId } }">{{ c.label }}</router-link>
+                    <span v-else :class="{ 'has-text-muted': c.none }">{{ c.label }}</span>
+                  </th>
+                  <td class="has-text-right">{{ c.projectId ? "" : c.projects }}</td>
+                  <td class="has-text-right">{{ money(c.incomes) }}</td>
+                  <td class="has-text-right" :class="{ 'has-text-neg': c.invoices < 0 }">{{ money(c.invoices) }}</td>
+                  <td class="has-text-right" :class="{ 'has-text-neg': c.vat < 0 }">{{ money(c.vat) }}</td>
+                  <td class="has-text-right">{{ money(c.payrollCover) }}</td>
+                </tr>
+              </template>
+            </template>
           </tbody>
           <tfoot v-if="byProjectRows.length">
             <tr class="is-group">
@@ -269,7 +296,7 @@ import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatNumber, sign } from "@/helpers/format-number";
-import { GROUPINGS, forecastRows, forecastTotals, sortForecastRows, defaultSortDir, SORT_COLUMNS } from "@/domain/forecastByProject.js";
+import { GROUPINGS, forecastRows, forecastChildRows, forecastTotals, sortForecastRows, defaultSortDir, SORT_COLUMNS } from "@/domain/forecastByProject.js";
 
 const BY_PROJECT_GROUPING_KEY = "PrevisioTable.grouping";
 function readGrouping() {
@@ -355,6 +382,8 @@ export default {
       byProjectSort: readSort(),
       // a year of yearRows, or "all"
       byProjectYear: null,
+      // issues/434: the type / scope rows opened (folded by default)
+      openGroups: {},
     };
   },
   async mounted() {
@@ -719,6 +748,8 @@ export default {
       }
     },
     grouping(g) {
+      // issues/434: another grouping, everything folded again
+      this.openGroups = {};
       try {
         localStorage.setItem(BY_PROJECT_GROUPING_KEY, g);
       } catch (e) {
@@ -745,6 +776,26 @@ export default {
     },
     money(value, decimals = 2) {
       return formatNumber(Number(value) || 0, decimals, decimals) + " €";
+    },
+    // issues/434: the chart's tooltip for one colour of a year's bar
+    segmentTitle(y, key) {
+      const labels = { incomes: "d'ingressos", payroll: "de nòmines", invoices: "de factures i despeses", vat: "d'IVA no deduïble" };
+      const text = `${y.year}: ${this.money(y[key])} ${labels[key]}`;
+      if (key === "incomes" || !y.expenses) return text;
+      return `${text} · ${this.percent(y[key] / y.expenses)} de les despeses`;
+    },
+    isGroupOpen(key) {
+      return !!this.openGroups[key];
+    },
+    toggleGroup(key) {
+      this.openGroups = { ...this.openGroups, [key]: !this.openGroups[key] };
+    },
+    groupChildren(key) {
+      const rows = forecastChildRows(this.forecastByProject, this.byProjectYears, this.grouping, key);
+      const { key: sortKey, dir } = this.byProjectSort;
+      // the children follow the table's order («Projectes» means nothing per project)
+      if (!sortKey || sortKey === "projects" && this.grouping === "type") return rows;
+      return sortForecastRows(rows, sortKey, dir);
     },
     percent(share) {
       return formatNumber((Number(share) || 0) * 100, 1) + " %";
@@ -1081,6 +1132,31 @@ export default {
 }
 .by-project-table th.sorted {
   color: var(--a-accent) !important;
+}
+/* issues/434: folding type / scope rows */
+.by-project-table .group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.by-project-table .group-toggle:hover span {
+  text-decoration: underline;
+}
+.by-project-table tr.is-child > * {
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+  background: var(--a-line-soft);
+}
+.by-project-table tr.is-child > th {
+  padding-left: 2.25rem;
+  font-weight: 500;
 }
 .by-project-table tfoot tr.is-uncovered > * {
   font-weight: 700;

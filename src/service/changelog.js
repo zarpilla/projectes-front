@@ -57,6 +57,31 @@ export const CHANGELOG = [
   date: "2026.11.12",
   items: [
     {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/previsio", label: "Previsió econòmica" }, ", al gràfic, cada color diu la seva xifra (per exemple, les nòmines) i, en les despeses, quin percentatge són de les despeses de l'any. A «Resum per projectes», agrupant per tipus de projecte cada tipus es desplega en els seus projectes, i agrupant per àmbit cada àmbit es desplega en els seus tipus de projecte; d'entrada, tot plegat."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: "A la planificació d'un projecte, en passar el ratolí per sobre d'una fase surt una paperera que esborra totes les dedicacions de la fase de cop, després de confirmar-ho. L'esborrat es desa en guardar el projecte."
+    },
+    {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: "A les fases d'un projecte, les que plegueu queden plegades la propera vegada que l'obriu (i les que deixeu obertes, obertes). Es recorda en aquest navegador i per a cada persona. Les fases noves, també les d'execució, s'obren desplegades."
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › «Moviments bancaris», «Pròxims» i «Anteriors» filtren per data i inclouen també els moviments executats; la pestanya «Executats» ja no hi és. La xifra «Endarrerits» de dalt continua obrint els previstos amb la data passada. Les files d'«Avui» i dels saldos ara es llegeixen bé amb el tema fosc."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "A les línies d'ingressos i despeses d'un projecte, en seleccionar una xifra d'una cel·la i arrossegar-la, el navegador la movia a la cel·la del costat. Ara només es poden arrossegar les nanses de les línies i de les fases."
+    },
+    {
       type: "Novetats",
       modules: ["Administració"],
       text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, " › «Factura electrònica (FACe)», el certificat de FACe té el botó «Descarrega la part pública (.cer)»: és el fitxer que demana FACe per donar d'alta l'entitat com a integradora. Al manual, el capítol nou «Posar en marxa FACe pas a pas» explica tot el procés, de l'alta a FACe a la primera factura real."]
@@ -95,6 +120,11 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Informes"],
       text: ["A ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }, " i ", { to: "/panell-previsio-dedicacio", label: "Previsió dedicació" }, ", «Detall per» també pot agrupar les hores per àmbit del projecte, i el nou filtre «Àmbit» compta només les hores dels àmbits triats (també «Sense àmbit»), en l'ocupació i en l'exportació."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: ["Despeses indirectes als projectes: si s'activa a ", { to: "/administracio/configuracio", label: "Configuració general" }, " › Projectes (ara ve desactivat), cada projecte té a «Dades › Gestió del projecte» el camp «Despeses indirectes (%)». El «Resum» calcula aquest percentatge sobre les despeses totals (original, previst i executat), el mostra en una fila pròpia i el suma a la targeta «Despeses». És orientatiu: no canvia el resultat ni els informes."]
     }
   ]
 },

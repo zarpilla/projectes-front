@@ -87,7 +87,7 @@ Tots els moviments, un per fila, amb la **Data**, l'**Import**, el **Saldo** des
 **Moviment**, el **Concepte** (amb l'enllaç al document), el **Projecte**, el **Contacte** i el **Compte
 bancari**. La taula s'obre a la pàgina dels moviments d'avui.
 
-- **Tots**, **Pròxims**, **Endarrerits** i **Executats** filtren per estat.
+- **Tots**, **Pròxims** (d'avui endavant) i **Anteriors** (abans d'avui) filtren per data, tant els moviments previstos com els executats. La xifra **Endarrerits** de dalt obre la llista dels moviments previstos amb la data ja passada.
 - **Cerca concepte, projecte o contacte**, i **Filtres per columna** per filtrar cada columna.
 - A **Accions**, la casella marca un moviment com a **validat** (comprovat amb el banc). En una factura o
   despesa encara **pendent**, a més, la marca com a **cobrada o pagada** (vegeu el pas 3).

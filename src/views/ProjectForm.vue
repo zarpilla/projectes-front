@@ -433,6 +433,25 @@
                 </b-select>
               </b-field>
 
+              <!-- issues/420: only shown, in the «Resum»; Configuració general › Projectes -->
+              <b-field
+                v-if="indirectExpensesOn"
+                label="Despeses indirectes (%)"
+                horizontal
+                message="Percentatge sobre les despeses totals del projecte. Al «Resum» s'hi afegeix la fila «Despeses indirectes» i se suma a les despeses. És orientatiu: no canvia el resultat ni cap informe."
+              >
+                <b-input
+                  v-model="form.structural_expenses_pct"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  placeholder="Ex.: 15"
+                  aria-label="Percentatge de despeses indirectes"
+                  class="indirect-pct-input"
+                />
+              </b-field>
+
               <!-- issues/371 -->
               <b-field
                 label="Facturació"
@@ -456,18 +475,6 @@
                 <b-switch v-model="form.structural_expenses"> </b-switch>
               </b-field>
 
-              <!-- <b-field
-                label="Despesa Indirecta (%)"
-                horizontal
-                v-if="me.options && me.options.structuralExpenses"
-              >
-                <b-input
-                  type="numeric"
-                  v-model="form.structural_expenses_pct"
-                  placeholder="Percentatge de despeses d'estructura"
-                >
-                </b-input>
-              </b-field> -->
 
               <b-field
                 label="Projecte mare"
@@ -878,7 +885,7 @@
               <span v-else>Recarrega el projecte per veure els totals correctes.</span>
               <b-button v-if="!form.dirty && hasBeenDirty" size="is-small" icon-left="refresh" @click.prevent="refresh">Recarrega</b-button>
             </div>
-            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" :billing-mode="billingMode" :price-per-hour="Number(form.invoice_hours_price) || 0" :planned-billing-price="plannedBillingPrice" />
+            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" :billing-mode="billingMode" :price-per-hour="Number(form.invoice_hours_price) || 0" :planned-billing-price="plannedBillingPrice" :indirect-pct="summaryIndirectPct" />
           </template>
           <card-component
             v-if="isProfileExists && !newSummary"
@@ -2635,6 +2642,7 @@ import WizardSteps from "@/components/WizardSteps.vue";
 import ProjectSummaryCards from "@/components/ProjectSummaryCards.vue";
 import ProjectHoursBudget from "@/components/ProjectHoursBudget.vue";
 import { BILLING_MODES, billingModeOf, defaultBillingMode, priceHoursLines, plannedPricePerHour } from "@/domain/hoursBudget.js";
+import { indirectPercent } from "@/domain/projectSummary.js";
 import ModalBox from "@/components/ModalBox.vue";
 import ModalBoxDuplicateProject from "@/components/ModalBoxDuplicateProject.vue";
 import CardComponent from "@/components/CardComponent.vue";
@@ -2908,6 +2916,13 @@ export default {
       ];
     },
     // the redesigned summary (tabs and wizard); duplicating keeps the old card
+    // issues/420: Configuració general › Projectes › «Despesa indirecta als projectes»
+    indirectExpensesOn() {
+      return !!(this.me && this.me.options && this.me.options.structuralExpenses);
+    },
+    summaryIndirectPct() {
+      return this.indirectExpensesOn ? indirectPercent(this.form.structural_expenses_pct) : 0;
+    },
     newSummary() {
       return this.tabsEnabled || (this.isCreationMode && !this.isDuplicating);
     },
@@ -3921,9 +3936,8 @@ export default {
         this.form.periodification = [];
       }
 
-      if (!this.form.structural_expenses_pct) {
-        this.form.structural_expenses_pct = null;
-      }
+      // issues/420: "12,5" → 12.5; empty, 0 or not a number → null
+      this.form.structural_expenses_pct = indirectPercent(this.form.structural_expenses_pct) || null;
       // No dedication type or region is sent as null, but the form keeps { id: 0 }:
       // the template binds their .id and a null there crashes the page (issues/041).
       const dedicationType = this.form.default_dedication_type;
@@ -4456,11 +4470,13 @@ export default {
       const pid = item._phase.id;
       const sid = item._subphase.id;
 
-      // Add to appropriate deletedHours array
-      if (isOriginalMode) {
-        this.deletedHoursOriginal.push(id);
-      } else {
-        this.deletedHours.push(id);
+      // Add to appropriate deletedHours array (an unsaved one has no id: nothing to delete on the server)
+      if (id) {
+        if (isOriginalMode) {
+          this.deletedHoursOriginal.push(id);
+        } else {
+          this.deletedHours.push(id);
+        }
       }
 
       // Get the appropriate phases array based on view mode
@@ -4470,7 +4486,8 @@ export default {
         
       const phase = phasesArray.find(p => p.id === pid);
       const income = phase.incomes.find(s => s.id === sid);
-      income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
+      // an unsaved one by its _uuid (by id, every unsaved one of the line went with it)
+      income.estimated_hours = income.estimated_hours.filter(h => (id ? h.id !== id : h._uuid !== item._uuid));
       
       // Mark the income (subphase) as dirty so the deletion is persisted
       income.dirty = true;

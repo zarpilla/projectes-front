@@ -149,7 +149,7 @@ coordina i les dates, i a sota les pestanyes:
 
 | Pestanya | Què hi ha |
 |---|---|
-| **Resum** | El resum financer: resultat, ingressos, despeses i hores, original, previst i executat, en total o per any. També el **Preu/hora** que en surt i, als projectes per hores, el que queda **Per facturar**. |
+| **Resum** | El resum financer: resultat, ingressos, despeses i hores, original, previst i executat, en total o per any. També el **Preu/hora** que en surt, als projectes per hores el que queda **Per facturar** i, si el projecte té un percentatge de **Despeses indirectes**, la fila amb el seu import. |
 | **Dades** | Les dades generals del projecte (vegeu més avall). |
 | **Pressupost i fases** | Les fases i les línies del pressupost original i del d'execució. Vegeu [05](05-fases-pressupost.md). |
 | **Periodificació** | El repartiment dels ingressos i les despeses entre anys. Vegeu [05](05-fases-pressupost.md). |
@@ -204,10 +204,10 @@ La pestanya està dividida en blocs.
 | Camp | Què vol dir |
 |---|---|
 | **Tipus de dedicació** | El tipus de dedicació que es proposa quan algú imputa hores a aquest projecte. |
+| **Despeses indirectes (%)** | Un percentatge sobre les despeses totals del projecte. A la pestanya **Resum** surt la fila **Despeses indirectes (X %)**, amb l'import original, previst i executat, i la targeta **Despeses** ja l'inclou. És només orientatiu: no canvia el **Resultat** ni cap informe. Només surt si l'entitat té activada l'opció **Despesa indirecta als projectes** (**Administració › Configuració general › Projectes**). |
 | **Facturació** | **Per projecte** (el pressupost per fases, amb l'import de cada línia) o **Per hores** (l'ingrés previst són les hores previstes × el preu/hora). Un projecte nou porta la que s'hagi triat a **Administració › Configuració general**. Vegeu [05](05-fases-pressupost.md#projectes-facturats-per-hores). |
 | **Preu/hora** | Només als projectes per hores: el que es factura per cada hora. |
 | **Projecte d'estructura** | Marcat si el projecte recull les despeses i les hores generals de l'entitat (gestió, local, administració) i no és un projecte per a cap clienta. |
-| **Despesa Indirecta (%)** | Percentatge de despeses d'estructura que s'aplica al projecte. Només surt si l'entitat té activada aquesta opció (**Administració › Configuració general › Projectes**). |
 | **Projecte mare** | El projecte que agrupa aquest (per exemple, el mateix servei any rere any). Vegeu [06. Projectes mare i fills](06-projectes-mare-fills.md). Si el projecte ja és mare d'altres, aquí es veuen els seus **Projectes fills**. |
 | **Periodificació d'ingressos i despeses** | Activa el repartiment manual dels ingressos i les despeses entre anys a la pestanya **Periodificació**. |
 

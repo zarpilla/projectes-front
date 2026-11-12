@@ -55,8 +55,10 @@ formulari i el missatge d'agraïment.
 
 **Projectes** — què es mostra als projectes i com es compta l'IVA:
 
-- **Despesa indirecta als projectes**: el camp **Despesa Indirecta (%)** a les dades de cada projecte (vegeu
-  [04](04-crear-editar-projecte.md)).
+- **Despesa indirecta als projectes**: el camp **Despeses indirectes (%)** a les dades de cada projecte. El
+  **Resum** del projecte calcula aquest percentatge sobre les despeses totals, el mostra en una fila pròpia i el
+  suma a les despeses; és orientatiu i no canvia el resultat ni els informes (vegeu
+  [04](04-crear-editar-projecte.md)). Desactivada per defecte.
 - **Lligar el pressupost amb les factures**: a les línies del pressupost d'execució, les columnes **Fact.**,
   **Doc** (la factura que paga cada línia) i **Compte** (el compte bancari previst).
 - **Cost/hora a la planificació**: el cost per hora de la persona a la finestra **Planificació** del Gantt.

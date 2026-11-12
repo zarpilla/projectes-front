@@ -415,6 +415,19 @@ export default {
           width: 90,
           template: (task) => (task._hours ? this.hoursAmount(task._hours) : ""),
         },
+        // issues/435: a bin on a phase with dedications deletes them all
+        ...(this.editable
+          ? [{
+              name: "actions",
+              label: "",
+              width: 32,
+              align: "center",
+              template: (task) =>
+                this.isPhaseTask(task) && this.phaseDedicationTasks(task.id).length
+                  ? '<span class="gantt-phase-trash" role="button" title="Esborra totes les dedicacions de la fase" aria-label="Esborra totes les dedicacions de la fase"><i class="mdi mdi-delete-outline"></i></span>'
+                  : "",
+            }]
+          : []),
       ];
 
       this.gantt.config.row_height = 34;
@@ -482,6 +495,11 @@ export default {
         this.gantt.attachEvent(
           "onTaskClick",
           (id, e) => {
+            if (e && e.target && e.target.closest && e.target.closest(".gantt-phase-trash")) {
+              const phaseTask = this.tasks.data.find((t) => t.id.toString() === id.toString());
+              if (phaseTask) this.confirmDeletePhaseDedications(phaseTask);
+              return false;
+            }
             if (
               e &&
               e.target &&
@@ -822,6 +840,40 @@ export default {
 
       this.$emit("gantt-item-delete", activity);
     },
+    // issues/435: a top-level phase row, and the dedications drawn under it
+    isPhaseTask(task) {
+      return !!(task && task._phase && !task._hours && !task.parent && task.id === task._phase.id);
+    },
+    phaseDedicationTasks(phaseId) {
+      return ((this.tasks && this.tasks.data) || []).filter(
+        (t) => t._hours && t._phase && String(t._phase.id) === String(phaseId)
+      );
+    },
+    confirmDeletePhaseDedications(phaseTask) {
+      const n = this.phaseDedicationTasks(phaseTask.id).length;
+      if (!n) return;
+      this.$buefy.dialog.confirm({
+        title: "Esborrar les dedicacions",
+        message: `S'esborraran ${n === 1 ? "la dedicació" : `les ${n} dedicacions`} de la fase «${this.escape(phaseTask.text)}». Es desa en guardar el projecte.`,
+        confirmText: "Esborra-les",
+        cancelText: "Cancel·la",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: () => this.deletePhaseDedications(phaseTask.id),
+      });
+    },
+    deletePhaseDedications(phaseId) {
+      const doomed = this.phaseDedicationTasks(phaseId);
+      if (!doomed.length) return;
+      const ids = new Set(doomed.map((t) => t.id.toString()));
+      this.tasks.data = this.tasks.data.filter((t) => !ids.has(t.id.toString()));
+      doomed.forEach((t) => {
+        if (this.gantt.isTaskExists && this.gantt.isTaskExists(t.id)) this.gantt.deleteTask(t.id);
+        this.$emit("gantt-item-delete", t);
+      });
+      // the bin goes with the last dedication
+      if (this.gantt.isTaskExists && this.gantt.isTaskExists(phaseId)) this.gantt.refreshTask(phaseId);
+    },
     modalCancel() {
       this.tasks.data = this.tasks.data.filter(
         (t) => t.id.toString() !== this.taskToAddId.toString()
@@ -950,6 +1002,17 @@ export default {
 }
 .gannt-container .gantt_row.is-group-row .gantt_cell {
   font-weight: 800;
+}
+/* issues/435: the phase's bin, shown on hovering the row */
+.gannt-container .gantt-phase-trash {
+  cursor: pointer;
+  color: var(--a-neg);
+  opacity: 0;
+  transition: opacity .1s;
+}
+.gannt-container .gantt_row:hover .gantt-phase-trash,
+.gannt-container .gantt-phase-trash:focus {
+  opacity: 1;
 }
 .gannt-container .gantt_row.is-dedication-row .gantt_cell {
   font-weight: 600;

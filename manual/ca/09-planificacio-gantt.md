@@ -73,6 +73,8 @@ El pas a pas amb imatges de la primera planificació és al capítol
 
 - Clicant una barra s'obre la mateixa finestra: es canvien les hores o la persona, o es clica **Esborra**.
 - Arrossegant una barra es mou en el temps; estirant-ne un extrem, s'allarga o s'escurça.
+- Per esborrar totes les dedicacions d'una fase de cop, passeu el ratolí per sobre de la fila de la fase i
+  cliqueu la paperera de la dreta. Abans demana confirmació, i l'esborrat es desa en **Guardar** el projecte.
 
 ![Editar una dedicació](img/09-planificacio-gantt/04-editar-dedicacio.png)
 
