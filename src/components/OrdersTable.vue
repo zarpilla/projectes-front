@@ -19,7 +19,7 @@
             class="export-item"
             :fetch="rowsToExport"
             :name="comandesCSVName()"
-            :fields="{ id: 'id', date: 'route_date', ...odsFields, ...csvExportFields }"
+            :fields="exportFields"
           >Comandes (.ods)</download-excel>
         </b-dropdown-item>
         <b-dropdown-item v-if="isStaff" aria-role="menuitem" @click="downloadRouterCSV">Per al planificador de rutes (.csv)</b-dropdown-item>
@@ -183,7 +183,7 @@
         <b-button size="is-small" :disabled="!newState" @click="setBulkState">Aplica</b-button>
         <span class="selection-actions">
           <b-button size="is-small" icon-left="printer" @click="pdfOrders">Imprimeix albarans</b-button>
-          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="{ id: 'id', date: 'route_date', ...odsFields, ...csvExportFields }">
+          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="exportFields">
             <b-button size="is-small" icon-left="download">Exporta selecció</b-button>
           </download-excel>
           <b-button size="is-small" type="is-text" @click="checkedRows = []">Desmarca</b-button>
@@ -427,7 +427,7 @@ import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage, leavingInvoicedTitle } from "@/domain/orderStatus";
-import { orderOdsFields, exportRows } from "@/domain/ordersExport";
+import { orderExportFields, exportRows } from "@/domain/ordersExport";
 import { signalWhere } from "@/domain/orderSignals";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
@@ -1031,8 +1031,9 @@ export default {
       // the table matches the checked rows by identity (issues/038)
       return this.orders;
     },
-    odsFields() {
-      return orderOdsFields(this.csvFields);
+    // Catalan column names (issues/349)
+    exportFields() {
+      return orderExportFields(this.csvFields, this.csvExportFields);
     },
     theOrdersChecked() {
       return this.checkedRows.length

@@ -314,7 +314,8 @@ El menú **Exporta** descarrega la llista que es veu (o només les comandes marc
 
 ![El menú Exporta de l'oficina](img/28-comandes/09-menu-exporta.png)
 
-- **Comandes (.ods)**: les comandes, amb el preu de la ruta, els descomptes i el preu final.
+- **Comandes (.ods)**: les comandes, amb el preu de la ruta, els descomptes i el preu final. Les columnes
+  tenen el mateix nom que a la pantalla (*Nom comercial*, *Ruta*, *Sòcia*…).
 - **Per al planificador de rutes (.csv)** i **Per a Ecologística (.ods)**: formats per a programes de
   planificació de rutes (només oficina i repartidora).
 - **Exemple CSV de comandes** i **Exemple CSV de punts d'entrega**: els fitxers d'exemple per importar.

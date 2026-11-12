@@ -60,6 +60,11 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Logística"],
       text: ["A ", { to: "/comandes", label: "Comandes" }, ", l'exportació «Per al planificador de rutes (.csv)» posa el número de comanda davant del nom a la columna «NOM CLIENT» («25770 - Formatgeria La Cleda») i ja no té la columna «ID COMANDA». A l'albarà, el número de comanda és tan gran com la data."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", les columnes de «Comandes (.ods)» i «Exporta selecció» tenen noms en català (Nom comercial, Raó social, Ruta, Sòcia, Data prevista d'entrega…) en lloc dels noms tècnics. L'exemple CSV per importar comandes no canvia."]
     }
   ]
 },
