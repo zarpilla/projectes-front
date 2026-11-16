@@ -465,6 +465,8 @@ import { invoicedPrice } from "@/domain/logisticsInvoicing";
 import { lateSurchargeOf } from "@/domain/lateOrders";
 import { csvDiscountQuery, withCsvDiscounts, csvOrderPayload } from "@/domain/csvOrderPreview";
 import { repricesOrder } from "@/domain/orderReprice";
+import { pointRouteError } from "@/domain/pointRoutes.js";
+import { isSubstituteDay } from "@/domain/routeClosures.js";
 
 // a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
 // example rows hold "1"/"0" strings (issues/251)
@@ -521,6 +523,7 @@ export default {
       pickups: [],
       routerates: [],
       cityRoutes: [],
+      pointRoutes: [],
       cities: [],
       sociesContacts: [],
       checkedRows: [],
@@ -877,6 +880,11 @@ export default {
     };
   },
   computed: {
+    // the office and the staff put any route on an order (issues/351)
+    routeRulesExempt() {
+      const p = this.permissions || [];
+      return p.includes("orders_admin") || p.includes("admin") || p.includes("projects");
+    },
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
     },
@@ -1747,6 +1755,11 @@ export default {
         await service({ requiresAuth: true }).get("cities?_limit=-1")
       ).data;
 
+      // the delivery points' own routes, for the CSV import (issues/351)
+      this.pointRoutes = (
+        await service({ requiresAuth: true }).get("point-routes?_limit=-1").catch(() => ({ data: [] }))
+      ).data || [];
+
       // Load socies contacts for collection points
       this.sociesContacts = (
         await service({ requiresAuth: true }).get("contacts/for-orders?socies=1")
@@ -2086,6 +2099,24 @@ export default {
             error: `Ruta ${record.route_name} no trobada (route_name)`
           });
           return false;
+        }
+
+        // a member's row on a route that doesn't stop at the point (issues/351)
+        if (!this.routeRulesExempt) {
+          const day = record.estimated_delivery_date ? moment(record.estimated_delivery_date, "YYYYMMDD").format("YYYY-MM-DD") : null;
+          const wrongRoute = pointRouteError({
+            contact,
+            route,
+            isSubstitute: day ? isSubstituteDay(route, day, closures) : false,
+            cities: this.cities,
+            cityRoutes: this.cityRoutes,
+            rows: this.pointRoutes,
+            allRoutes: this.routes
+          });
+          if (wrongRoute) {
+            this.csvErrors.push({ line: i, error: wrongRoute });
+            return false;
+          }
         }
 
         const routeDate = assignRouteDate(route, {

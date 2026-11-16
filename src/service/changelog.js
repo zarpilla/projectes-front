@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.16",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["L'oficina pot canviar les rutes d'un punt d'entrega concret, a la seva fitxa, a «Rutes del punt»: anul·lar-hi una ruta de la població, afegir-hi una ruta extraordinària (amb el seu horari en aquell punt) i marcar-ne una com a principal, que surt la primera i ja triada a la comanda. Les sòcies només poden enviar comandes a un punt per les seves rutes. A ", { to: "/clientes", label: "Punts d'entrega" }, ", l'etiqueta «Rutes especials» i la casella «Amb rutes especials» mostren els punts amb aquestes excepcions."]
+    },
+    {
       type: "Correccions",
       modules: ["Logística"],
       text: ["Les comandes de recollida (-R) ja no tenen mai descompte multientrega, ni en donen a les altres comandes del mateix punt aquell dia: no són una entrega. Amb el descompte de recollida al damunt, algunes -R sortien amb un import negatiu. Les comandes no facturades que el tenien per error l'han perdut; les facturades conserven l'import amb què es van facturar."]

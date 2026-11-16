@@ -8,7 +8,7 @@ order: 28
 roles: [orders, orders_admin, orders_delivery]
 routes: ["/comandes", "/comanda/:id", "/comanda/veure/:id"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-16
 ---
 # 28. Comandes
 
@@ -104,7 +104,9 @@ La repartidora veu la mateixa llista que l'oficina. Per a la seva feina del dia 
    punt. **Edita el punt** obre les dades del punt per corregir-les; si el punt no hi és, **Nou punt** el crea
    (vegeu [29. Punts d'entrega i de consum](29-punts-entrega-consum.md)).
 3. **Ruta**: surten les rutes que passen per la població del punt, cadascuna amb el dia de la setmana que fa.
-   Cal triar-la segons el dia i la destinació, perquè en depèn la tarifa.
+   Cal triar-la segons el dia i la destinació, perquè en depèn la tarifa. Si l'oficina ha canviat les rutes
+   d'aquell punt, en surten les del punt: la **principal** primer i ja triada, i les **extraordinàries** amb
+   el seu horari (vegeu [29](29-punts-entrega-consum.md#7-les-rutes-del-punt-oficina)).
 
    ![El punt triat i les rutes que hi passen](img/28-comandes/04-punt-i-rutes.png)
 
