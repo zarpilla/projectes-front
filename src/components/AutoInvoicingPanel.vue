@@ -93,7 +93,11 @@ export default {
     async load() {
       this.isLoading = true;
       try {
-        this.state = (await service({ requiresAuth: true }).get("auto-invoicing/status")).data;
+        const data = (await service({ requiresAuth: true }).get("auto-invoicing/status")).data;
+        // an answer without the lists (an older API, a test stub) is no state
+        this.state = data && Array.isArray(data.runs)
+          ? { autoProjects: [], otherProjects: [], ...data }
+          : null;
       } catch (e) {
         this.state = null;
       } finally {
