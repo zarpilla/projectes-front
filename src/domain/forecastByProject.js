@@ -71,6 +71,18 @@ export function forecastRows(projects, years, grouping = "project") {
 }
 
 /**
+ * issues/434: what a grouped row opens into. A project type opens into its
+ * projects; a scope into its project types (not the projects). Same figures,
+ * so the children add up to their group.
+ * @param groupKey the `key` of a forecastRows row of that grouping
+ */
+export function forecastChildRows(projects, years, grouping, groupKey) {
+  if (grouping !== "type" && grouping !== "scope") return [];
+  const members = (projects || []).filter(p => groupOf(p, grouping).key === groupKey);
+  return forecastRows(members, years, grouping === "scope" ? "type" : "project");
+}
+
+/**
  * Totals of the rows and the payroll left uncovered.
  * @param payroll planned payroll of those years, negative (as in the summary)
  */

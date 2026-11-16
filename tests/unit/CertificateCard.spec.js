@@ -82,6 +82,34 @@ describe('CertificateCard', () => {
     expect(w.find('.cert-edit').text()).toBe('Substitueix el certificat')
   })
 
+  it('FACe: downloads the public part (PEM text, .cer), named after the NIF; not for the AEAT', async () => {
+    const pem = '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n'
+    get.mockResolvedValue({ data: status({ kind: 'face', certificate: { ...certificate(), pem } }) })
+    const blobs = []
+    const createObjectURL = vi.fn(blob => { blobs.push(blob); return 'blob:pem' })
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () { this.dataset.clicked = this.download })
+    try {
+      const w = mountCard({ kind: 'face' })
+      await flushPromises()
+      await w.find('.cert-pem').trigger('click')
+
+      expect(click).toHaveBeenCalledTimes(1)
+      expect(click.mock.contexts[0].download).toBe('certificat-face-B12345678.cer')
+      expect(await blobs[0].text()).toBe(pem)
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:pem')
+
+      get.mockResolvedValue({ data: status({ certificate: { ...certificate(), pem } }) })
+      const aeat = mountCard()
+      await flushPromises()
+      expect(aeat.find('.cert-pem').exists()).toBe(false)
+    } finally {
+      click.mockRestore()
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('says when there is no certificate', async () => {
     get.mockResolvedValue({ data: status({ configured: false, fileName: null, valid: false, certificate: null }) })
     const w = mountCard({ kind: 'face' })

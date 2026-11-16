@@ -1,7 +1,7 @@
 // The project summary figures must equal what the "Resum financer projecte" card
 // computed in ProjectForm's template (the expressions are copied below, as they were).
 import { describe, it, expect } from 'vitest'
-import { projectSummary } from '@/domain/projectSummary'
+import { projectSummary, indirectPercent } from '@/domain/projectSummary'
 
 // the card's template expressions, kind = original | estimated | real
 const card = (totals, kind) => {
@@ -62,7 +62,7 @@ describe('projectSummary', () => {
 
   it('gives zeros for an empty project', () => {
     const summary = projectSummary(null)
-    expect(summary.real).toEqual({ result: 0, incomes: 0, invoices: 0, prorata: 0, hoursCost: 0, expenses: 0, hours: 0, costPerHour: 0, pricePerHour: 0 })
+    expect(summary.real).toEqual({ result: 0, incomes: 0, invoices: 0, prorata: 0, hoursCost: 0, expenses: 0, indirect: 0, expensesWithIndirect: 0, hours: 0, costPerHour: 0, pricePerHour: 0 })
   })
 
   it('adds invoices, prorata and hours into the expenses', () => {
@@ -70,5 +70,45 @@ describe('projectSummary', () => {
     expect(summary.real.expenses).toBe(421)
     expect(summary.real.costPerHour).toBe(15)
     expect(summary.real.pricePerHour).toBe(40)
+  })
+})
+
+// issues/420: the project's indirect expenses %, only shown in the «Resum»
+describe('projectSummary indirect expenses (issues/420)', () => {
+  const totals = {
+    total_original_expenses: 1000, total_original_hours_price: 500, total_original_expenses_vat: 0,
+    total_estimated_expenses: 2000, total_estimated_hours_price: 1000, total_estimated_expenses_vat: 33.33,
+    total_real_expenses: 800, total_real_hours_price: 200, total_real_expenses_vat: 0,
+    original_incomes_expenses: 100, estimated_incomes_expenses: 200, total_real_incomes_expenses: 300
+  }
+
+  it('is the % of the expenses total of each column, in cents, added to the expenses', () => {
+    const s = projectSummary(totals, 10)
+    expect(s.original.indirect).toBe(150)
+    expect(s.estimated.indirect).toBe(303.33) // 10 % of 3033,33
+    expect(s.real.indirect).toBe(100)
+    expect(s.original.expensesWithIndirect).toBe(1650)
+    expect(s.real.expensesWithIndirect).toBe(1100)
+  })
+
+  it('changes neither the expenses total nor the result', () => {
+    const s = projectSummary(totals, 25)
+    const without = projectSummary(totals)
+    for (const kind of ['original', 'estimated', 'real']) {
+      expect(s[kind].expenses).toBe(without[kind].expenses)
+      expect(s[kind].result).toBe(without[kind].result)
+      expect(s[kind].pricePerHour).toBe(without[kind].pricePerHour)
+    }
+  })
+
+  it('is 0 without a %, and takes what the form types', () => {
+    for (const pct of [undefined, null, '', 0, '0', -5, 'abc']) {
+      const s = projectSummary(totals, pct)
+      expect(s.real.indirect, String(pct)).toBe(0)
+      expect(s.real.expensesWithIndirect).toBe(s.real.expenses)
+    }
+    expect(projectSummary(totals, '12,5').original.indirect).toBe(187.5)
+    expect(projectSummary(totals, '12.5').original.indirect).toBe(187.5)
+    expect(indirectPercent('7,25')).toBe(7.25)
   })
 })

@@ -95,7 +95,8 @@ Filtres: l'**Estat** i la **Probabilitat** dels projectes que compten, i la **Pe
 - Xifres: el **Resultat previst** de l'any i del següent, les **Nòmines previstes** i el **Resultat** de tot el
   període.
 - **Ingressos i despeses per any**: per a cada any, els ingressos i les despeses (nòmines, factures i despeses,
-  IVA no deduïble), amb el resultat a dalt.
+  IVA no deduïble), amb el resultat a dalt. Passant el ratolí per sobre d'un color se'n veu l'import i, en les
+  despeses, quin percentatge són de les despeses de l'any.
 - **Resum de la previsió**: la taula amb les mateixes xifres.
 
 Un avís diu fins a quin any hi ha nòmines previstes: a partir d'aquí les despeses no inclouen el personal i el
@@ -106,6 +107,10 @@ projecte** o **Àmbit**, per a l'any triat o per a tots: els ingressos previstos
 deduïble i la **Despesa de nòmines que pot cobrir** cada projecte. Clicant el títol d'una columna la taula s'hi
 ordena (els noms de la A a la Z, els imports del més gran al més petit); un segon clic inverteix l'ordre. «Sense
 tipus» i «Sense àmbit» queden sempre al final, i l'ordre triat es manté en canviar l'agrupació o l'any.
+
+Agrupant per **Tipus de projecte**, clicant un tipus es despleguen els seus projectes amb les seves xifres;
+agrupant per **Àmbit**, un àmbit es desplega en els tipus de projecte que hi ha (no en els projectes). Tot surt
+plegat d'entrada.
 
 ## Previsió facturació
 

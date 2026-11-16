@@ -8,7 +8,7 @@ order: 18
 roles: [admin, projects]
 routes: ["/verifactu", "/administracio/verifactu*", "/administracio/cua-face*", "/administracio/cadena-verifactu*"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-11
 ---
 # 18. Facturació electrònica: Verifactu i FACe
 
@@ -27,8 +27,12 @@ consulta l'estat dels enviaments.
 
 ## Abans de començar
 
-- Cal el **certificat digital** de l'entitat. El certificat i la seva contrasenya es posen a l'**àrea
-  d'administració del servidor**, per seguretat; cal demanar-ho a qui manté el servidor.
+- Cal el **certificat digital** de l'entitat (`.p12` o `.pfx`) i la seva contrasenya. Es pugen des de l'aplicació: el
+  de Verifactu a la pestanya **Configuració** d'aquesta pàgina (**Certificat de l'AEAT**) i el de FACe a
+  **Administració › Configuració general** (**Certificat de FACe**). ESSTRAPIS comprova que la contrasenya l'obre i
+  avisa quan falten menys de 30 dies perquè caduqui.
+- Per a FACe, l'entitat s'ha de donar d'alta a FACe com a **integradora**. Tot el procés, des de l'alta fins a la
+  primera factura real, és a [41. Posar en marxa FACe pas a pas](41-face-pas-a-pas.md).
 - Per a FACe, cada administració pública ha de tenir el FACe activat i els codis **DIR3** a la seva fitxa de
   contacte (vegeu [11. Contactes](11-contactes.md#administracions-públiques-i-face)).
 
@@ -104,6 +108,7 @@ i els tres codis DIR3, i que el mode FACe de l'entitat no és **No**.
 
 ## Vegeu també
 
+- [41. Posar en marxa FACe pas a pas](41-face-pas-a-pas.md)
 - [17. Factures emeses](17-factures-emeses.md)
 - [11. Contactes](11-contactes.md)
 - [34. Configuració general](34-configuracio-general.md)

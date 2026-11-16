@@ -178,7 +178,7 @@
             <label class="option-row">
               <b-checkbox v-model="form.options.structuralExpenses">
                 <b>Despesa indirecta als projectes</b>
-                <small>Mostra el camp «Despesa Indirecta (%)» a les dades de cada projecte, per aplicar-hi un percentatge de despeses d'estructura.</small>
+                <small>Afegeix a cada projecte (Dades › Gestió del projecte) el camp «Despeses indirectes (%)». Si s'omple, el «Resum» del projecte calcula aquest percentatge sobre les despeses totals, el mostra en una fila «Despeses indirectes» i el suma a les despeses. És només orientatiu: no canvia el resultat del projecte ni els informes.</small>
               </b-checkbox>
             </label>
             <label class="option-row">

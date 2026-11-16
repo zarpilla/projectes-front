@@ -8,7 +8,7 @@ order: 34
 roles: [admin]
 routes: ["/administracio/configuracio"]
 lang: ca
-updated: 2026-10-30
+updated: 2026-11-11
 ---
 # 34. Configuració general de l'entitat
 
@@ -41,7 +41,9 @@ blanc. S'arrossega a la zona o es tria; **Treu el logo** el treu. Si el fitxer s
 (**Gestiona les sèries**).
 
 **Factura electrònica (FACe)** — el mode (**No**, **Test**, **Real**), el **Format de factura** (**UBL** o
-**FacturaE**) i les adreces del servei de test i real. Vegeu [18. Verifactu i FACe](18-verifactu-face.md).
+**FacturaE**), les adreces del servei de test i real i el **Certificat de FACe** (pujar-lo, substituir-lo i
+descarregar-ne la part pública, `.cer`, per al portal d'integradors de FACe). Vegeu
+[18. Verifactu i FACe](18-verifactu-face.md) i [41. Posar en marxa FACe pas a pas](41-face-pas-a-pas.md).
 
 **Textos de peu** — el text del peu de les factures, dels pressupostos i de les comandes (per exemple, el compte
 bancari o la validesa d'un pressupost). El de les comandes s'imprimeix al peu de cada albarà.
@@ -53,8 +55,10 @@ formulari i el missatge d'agraïment.
 
 **Projectes** — què es mostra als projectes i com es compta l'IVA:
 
-- **Despesa indirecta als projectes**: el camp **Despesa Indirecta (%)** a les dades de cada projecte (vegeu
-  [04](04-crear-editar-projecte.md)).
+- **Despesa indirecta als projectes**: el camp **Despeses indirectes (%)** a les dades de cada projecte. El
+  **Resum** del projecte calcula aquest percentatge sobre les despeses totals, el mostra en una fila pròpia i el
+  suma a les despeses; és orientatiu i no canvia el resultat ni els informes (vegeu
+  [04](04-crear-editar-projecte.md)). Desactivada per defecte.
 - **Lligar el pressupost amb les factures**: a les línies del pressupost d'execució, les columnes **Fact.**,
   **Doc** (la factura que paga cada línia) i **Compte** (el compte bancari previst).
 - **Cost/hora a la planificació**: el cost per hora de la persona a la finestra **Planificació** del Gantt.
@@ -93,7 +97,7 @@ són a **Taules auxiliars › Tarifes de ruta** (vegeu [35](35-taules-auxiliars.
 
 ## Què no és aquí
 
-Els certificats de Verifactu i FACe els configura qui manté el servidor (vegeu
+El certificat de Verifactu (l'AEAT) es puja a **Administració › Verifactu i FACe**, pestanya **Configuració** (vegeu
 [18. Verifactu i FACe](18-verifactu-face.md)).
 
 ## Vegeu també

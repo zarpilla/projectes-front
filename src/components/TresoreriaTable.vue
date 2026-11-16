@@ -423,10 +423,7 @@
           :row-class="
             (row, index) =>
               (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
-              (row.type == 'Avui' && 'has-background-warning-light') ||
-              (row.type == 'Inici Any' && 'has-background-warning-light') ||
-              (row.is_balance_annotation && 'has-background-warning-light') ||
-              (row.is_real_balance_adjustment && 'has-background-warning-light')
+              ((row.type == 'Avui' || row.type == 'Inici Any' || row.is_balance_annotation || row.is_real_balance_adjustment) && 'tres-marker-row')
           "
         >
           <b-table-column
@@ -904,8 +901,11 @@ export default {
       return [
         { id: "all", label: "Tots", count: null },
         { id: "next", label: "Pròxims", count: rows.filter(r => this.movementState(r) === "next").length },
-        { id: "overdue", label: "Endarrerits", count: rows.filter(r => this.movementState(r) === "overdue").length },
-        { id: "done", label: "Executats", count: rows.filter(r => this.movementState(r) === "done").length }
+        { id: "past", label: "Anteriors", count: rows.filter(r => this.movementState(r) === "past").length },
+        // the header's «Endarrerits» figure opens this one; only shown while chosen
+        ...(this.movementsTab === "overdue"
+          ? [{ id: "overdue", label: "Endarrerits", count: rows.filter(r => this.isOverdue(r)).length }]
+          : [])
       ];
     },
     // the movements list after the tab and the search (balance rows only in "Tots")
@@ -913,7 +913,8 @@ export default {
       const q = this.movementsSearch.trim().toLowerCase();
       return this.treasuryDataDesc.filter(r => {
         if (this.movementsTab !== "all") {
-          if (!this.isMovement(r) || this.movementState(r) !== this.movementsTab) return false;
+          if (!this.isMovement(r)) return false;
+          if (this.movementsTab === "overdue" ? !this.isOverdue(r) : this.movementState(r) !== this.movementsTab) return false;
         }
         if (!q) return true;
         return [r.concept, r.project_name, r.contact, r.type].some(v => v && String(v).toLowerCase().includes(q));
@@ -998,7 +999,7 @@ export default {
     },
     // the same rows as the "Endarrerits" tab of the movements (shown year and filters)
     overdueCount() {
-      return this.treasuryDataDesc.filter(r => this.isMovement(r) && this.movementState(r) === "overdue").length;
+      return this.treasuryDataDesc.filter(r => this.isMovement(r) && this.isOverdue(r)).length;
     },
     pivotData2() {
       return this.monthlySummaryForPivot;
@@ -1258,10 +1259,14 @@ export default {
     isMovement(r) {
       return r.type !== "Avui" && r.type !== "Inici Any" && !r.is_balance_annotation && !r.is_real_balance_adjustment;
     },
-    // executed (paid or real), overdue (forecast with a past date) or next
+    // issues/425: the tabs go by date only, executed or not: «Pròxims» from
+    // today on (and undated), «Anteriors» before today
     movementState(r) {
-      if (r.paid || r.real) return "done";
-      return r.datef && this.isBeforeToday(r.datef) ? "overdue" : "next";
+      return r.datef && this.isBeforeToday(r.datef) ? "past" : "next";
+    },
+    // planned (not paid, not real) and its date is gone: the header's «Endarrerits»
+    isOverdue(r) {
+      return !r.paid && !r.real && !!r.datef && this.isBeforeToday(r.datef);
     },
     // header actions: the operations card (manual movements and real balance)
     showOverdue() {
@@ -1643,6 +1648,12 @@ export default {
 </script>
 <style scoped>
 /* Redesign A */
+/* issues/425: «Avui», «Inici Any» and balance rows, readable in the dark theme
+   too (Bulma's warning-light stayed almost white under light text) */
+.movements-section :deep(tr.tres-marker-row) td {
+  background: var(--a-warn-bg);
+  color: var(--a-fg);
+}
 .tres-nodate {
   font-size: .875rem;
 }

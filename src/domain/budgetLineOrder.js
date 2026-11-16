@@ -55,3 +55,9 @@ export function lineHasDocument(line, kind, documentType, documentId) {
   const linkedId = linked && typeof linked === "object" ? linked.id : linked;
   return linkedId !== null && linkedId !== undefined && String(linkedId) === String(documentId);
 }
+
+// issues/427: a drag that starts on a line or phase handle (not text selected in a cell)
+export const isHandleDrag = target => {
+  const el = target && target.nodeType === 1 ? target : target && target.parentElement;
+  return !!(el && el.closest && el.closest(".line-drag-handle, .phase-drag-handle"));
+};
