@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.16",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Les comandes de recollida (-R) ja no tenen mai descompte multientrega, ni en donen a les altres comandes del mateix punt aquell dia: no són una entrega. Amb el descompte de recollida al damunt, algunes -R sortien amb un import negatiu. Les comandes no facturades que el tenien per error l'han perdut; les facturades conserven l'import amb què es van facturar."]
+    }
+  ]
+},
+{
   date: "2026.11.12",
   items: [
     {
