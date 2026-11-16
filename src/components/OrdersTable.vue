@@ -265,7 +265,7 @@
                     <!-- quick edit (pencil) -->
                     <template v-if="editingRowId && editingRowId === order.id && quickEditField(col)">
                       <b-select v-if="col.edit === 'route'" v-model="editForm.route" size="is-small" @update:model-value="updateCalculatedPrice">
-                        <option v-for="r in routes" :key="r.id" :value="r.id">{{ r.name }}</option>
+                        <option v-for="r in quickEditRoutes" :key="r.id" :value="r.id">{{ r.name }}{{ r.point_main ? " (principal)" : "" }}</option>
                       </b-select>
                       <b-datepicker v-else-if="col.edit === 'estimated'" v-model="editForm.estimated_delivery_date" size="is-small" :show-week-number="false" locale="ca-ES" :first-day-of-week="1" placeholder="Data" />
                       <b-autocomplete
@@ -465,7 +465,7 @@ import { invoicedPrice } from "@/domain/logisticsInvoicing";
 import { lateSurchargeOf } from "@/domain/lateOrders";
 import { csvDiscountQuery, withCsvDiscounts, csvOrderPayload } from "@/domain/csvOrderPreview";
 import { repricesOrder } from "@/domain/orderReprice";
-import { pointRouteError } from "@/domain/pointRoutes.js";
+import { pointRouteError, pointRoutesFor } from "@/domain/pointRoutes.js";
 import { isSubstituteDay } from "@/domain/routeClosures.js";
 
 // a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
@@ -1097,6 +1097,27 @@ export default {
     },
     sumPrice() {
       return _.sumBy(this.sumRows, o => Number(o.finalPrice) || 0);
+    },
+    // the routes the quick edit offers: a member, the point's (issues/351),
+    // and the one the order has; the office, all of them
+    quickEditRoutes() {
+      if (this.routeRulesExempt || !this.editForm || !this.editForm.contact) return this.routes;
+      const order = this.editingOrder || {};
+      const sameContact = order.contact && order.contact.id === this.editForm.contact;
+      const listed = (this.contacts || []).find(c => c.id === this.editForm.contact);
+      const city = sameContact ? order.contact_city || order.contact.city : listed && listed.city;
+      const { known, routes } = pointRoutesFor({
+        contact: { id: this.editForm.contact, city },
+        cities: this.cities,
+        cityRoutes: this.cityRoutes,
+        rows: this.pointRoutes,
+        allRoutes: this.routes
+      });
+      if (!known) return this.routes;
+      const offered = routes.map(r => ({ ...r.route, point_main: r.main }));
+      const current = this.routes.find(r => r.id === this.editForm.route);
+      if (current && !offered.some(r => r.id === current.id)) offered.push(current);
+      return offered;
     },
     filteredContacts() {
       return this.contacts.filter(option => {
