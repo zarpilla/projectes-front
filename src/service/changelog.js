@@ -60,6 +60,11 @@ export const CHANGELOG = [
       type: "Correccions",
       modules: ["Logística"],
       text: ["Les comandes de recollida (-R) ja no tenen mai descompte multientrega, ni en donen a les altres comandes del mateix punt aquell dia: no són una entrega. Amb el descompte de recollida al damunt, algunes -R sortien amb un import negatiu. Les comandes no facturades que el tenien per error l'han perdut; les facturades conserven l'import amb què es van facturar."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A la fitxa i al formulari de comanda i a ", { to: "/comandes", label: "Comandes" }, ", els descomptes surten en l'ordre en què s'apliquen: primer el descompte de volum (en euros) i després els percentatges (multientrega, recollida). El preu ja es calculava així: per exemple, 12,07 € − 2 € = 10,07 €, i amb el 20 % de multientrega, 8,06 €."]
     }
   ]
 },

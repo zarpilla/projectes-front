@@ -444,11 +444,12 @@
             <dl class="facts">
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
               <dt>Preu</dt><dd>{{ money(route_price) }}</dd>
+              <!-- in the order the price takes them: the € first (issues/439) -->
+              <template v-if="hasDiscount"><dt>Descompte volum</dt><dd>{{ money(-1 * (form.volume_discount || 0)) }}</dd></template>
               <template v-if="lateSurcharge"><dt>Recàrrec fora de temps</dt><dd class="has-text-danger">+{{ percent(lateSurcharge) }} %</dd></template>
               <template v-if="hasDiscount">
                 <dt>Descompte multientrega</dt><dd>−{{ percent(form.multidelivery_discount) }} %</dd>
                 <dt>Descompte recollida</dt><dd>−{{ percent(form.contact_pickup_discount) }} %</dd>
-                <dt>Descompte volum</dt><dd>{{ money(-1 * (form.volume_discount || 0)) }}</dd>
               </template>
               <dt>Preu amb descompte</dt><dd class="is-total">{{ money(discountedPrice) }}</dd>
               <template v-if="form.emitted_invoice_datetime"><dt>Facturada</dt><dd>{{ formatDateTime(form.emitted_invoice_datetime) }}</dd></template>

@@ -2888,10 +2888,12 @@ export default {
       // from the fields, not from finalPrice ≠ price: +25 % and −20 % cancel out
       if (order.finalPrice === undefined || order.finalPrice === null) return [];
       const pct = v => `${formatNumber(v, 2)} %`;
+      // in the order the price takes them: the volume discount (€) first, then
+      // the surcharge, then the percentages (issues/439)
       return [
+        Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
         lateSurchargeOf(order) ? { key: "surcharge", text: `+${pct(order.late_surcharge)}`, title: `Recàrrec fora de temps (+${pct(order.late_surcharge)})` } : null,
         Number(order.multidelivery_discount) ? { key: "multidelivery", text: `−${pct(order.multidelivery_discount)}`, title: `Descompte multientrega (${pct(order.multidelivery_discount)})` } : null,
-        Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
         Number(order.contact_pickup_discount) ? { key: "pickup", text: `−${pct(order.contact_pickup_discount)}`, title: `Descompte recollida (${pct(order.contact_pickup_discount)})` } : null
       ].filter(Boolean);
     },
