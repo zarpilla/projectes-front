@@ -2,7 +2,7 @@
   <div class="dedication-tooltip">
     <!-- Header: total worked/estimated for the period -->
     <div class="dt-header">
-      <span class="dt-header-label">Total hores</span>
+      <span class="dt-header-label">{{ headerLabel }}</span>
       <span class="dt-header-hours">{{ totalHoursFormatted }} h</span>
     </div>
 
@@ -83,7 +83,7 @@
       <div class="dt-divider"></div>
       <div class="dt-footer">
         <div class="dt-row dt-capacity">
-          <span class="dt-row-label">Hores període</span>
+          <span class="dt-row-label">{{ expectedLabel }}</span>
           <span class="dt-row-hours">{{ formatHours(cell.expected) }} h</span>
         </div>
         <div v-if="festive !== null" class="dt-row dt-festive">
@@ -119,6 +119,15 @@ export default {
     cell: {
       type: Object,
       required: true,
+    },
+    // the «Total» column says which year, and its working-day hours (issues/444)
+    headerLabel: {
+      type: String,
+      default: "Total hores",
+    },
+    expectedLabel: {
+      type: String,
+      default: "Hores període",
     },
     grouping: {
       type: String,

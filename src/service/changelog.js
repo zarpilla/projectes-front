@@ -60,6 +60,11 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Projectes"],
       text: ["A ", { to: "/projectes", label: "Projectes" }, " es pot filtrar per «Tipus de projecte», entre «Coordina» i «Àmbit»."]
+    },
+    {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }, " i ", { to: "/panell-previsio-dedicacio", label: "Previsió dedicació" }, ", en passar per sobre de la columna «Total» surt el detall de tot l'any com el d'un mes: hores per projecte, tipus de projecte, probabilitat o àmbit (segons «Detall per») amb els percentatges, i les hores de jornada de l'any. Clicant-la, el detall queda fixat."]
     }
   ]
 },

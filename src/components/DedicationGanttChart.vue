@@ -43,7 +43,12 @@
                 </div>
                 <div v-else class="cell-content is-none">—</div>
               </td>
-              <td class="total-col">{{ hoursText(totalOf(leader.id)) }} h</td>
+              <td
+                class="total-col total-cell"
+                @mouseenter="showTooltip($event, annualCells[leader.id], true)"
+                @mouseleave="scheduleHide"
+                @click="pinTooltip($event, annualCells[leader.id], true)"
+              >{{ hoursText(totalOf(leader.id)) }} h</td>
             </tr>
           </tbody>
         </table>
@@ -54,7 +59,7 @@
           {{ withoutHours.map(l => l.username).join(", ") }}.
           <button type="button" class="link-button" @click="showAll = !showAll">{{ showAll ? "Amaga-les" : "Mostra-les" }}</button>
         </p>
-        <p class="has-text-muted">Passa per sobre d'una cel·la per veure'n el detall per projecte; clica-la per fixar-lo.</p>
+        <p class="has-text-muted">Passa per sobre d'una cel·la per veure'n el detall per projecte; clica-la per fixar-lo. La columna «Total» dona el detall de tot l'any.</p>
       </footer>
     </section>
 
@@ -77,6 +82,8 @@
         v-if="activeCell"
         :cell="activeCell"
         :grouping="grouping"
+        :header-label="activeIsAnnual ? `Total hores ${mainYear}`.trim() : 'Total hores'"
+        :expected-label="activeIsAnnual ? 'Hores de jornada' : 'Hores període'"
       />
     </div>
 
@@ -88,6 +95,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import DedicationTooltip from "@/components/DedicationTooltip.vue";
 import { formatNumber } from "@/helpers/format-number";
+import { annualCell } from "@/domain/dedicationAnnual.js";
 
 // Default cell used when a leader has no data for a period.
 const EMPTY_CELL = Object.freeze({
@@ -127,6 +135,8 @@ export default {
       // Only this field + the tooltip element's style change on hover; the
       // table rows above never re-render because they don't depend on it.
       activeCell: null,
+      // the tooltip shows the «Total» column: the whole year (issues/444)
+      activeIsAnnual: false,
       // When true, the tooltip is locked to its cell and no longer follows
       // the mouse or hides on mouseleave. Click outside to release.
       pinned: false,
@@ -163,6 +173,14 @@ export default {
         if (y) counts[y] = (counts[y] || 0) + 1;
       });
       return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || "";
+    },
+    // every period of each person added up, for the «Total» tooltip (issues/444)
+    annualCells() {
+      const out = {};
+      (this.leaders || []).forEach((l) => {
+        out[l.id] = annualCell(this.cells ? this.cells[l.id] : null, this.periods);
+      });
+      return out;
     },
     grandTotal() {
       return this.visibleLeaders.reduce((acc, l) => acc + this.totalOf(l.id), 0);
@@ -242,7 +260,7 @@ export default {
       return cellObj.tooltip && cellObj.tooltip !== "Sense dedicació";
     },
 
-    showTooltip(event, cellObj) {
+    showTooltip(event, cellObj, annual = false) {
       // While pinned, the tooltip is locked to a cell: hover has no effect.
       if (this.pinned) return;
       if (!this._hasContent(cellObj)) return;
@@ -251,10 +269,11 @@ export default {
 
       // Anchor the tooltip to the hovered CELL (not the cursor), so it stays
       // put while the user moves the mouse inside it to click group headers.
-      const target = event.target.closest(".period-cell");
+      const target = event.target.closest(".period-cell, .total-cell");
       this._anchor = target ? target.getBoundingClientRect() : null;
 
       this.activeCell = cellObj;
+      this.activeIsAnnual = annual;
       // Position after the DOM updates (so offsetWidth/Height reflect the new
       // content height).
       this.$nextTick(() => this.positionTooltip());
@@ -263,14 +282,15 @@ export default {
     // Pin the tooltip to the clicked cell. Uses a capture-phase document
     // listener so the very next pointer-down outside the tooltip/cell area
     // releases it.
-    pinTooltip(event, cellObj) {
+    pinTooltip(event, cellObj, annual = false) {
       if (!this._hasContent(cellObj)) return;
 
       // Re-anchor to the clicked cell.
-      const target = event.target.closest(".period-cell");
+      const target = event.target.closest(".period-cell, .total-cell");
       this._anchor = target ? target.getBoundingClientRect() : null;
 
       this.activeCell = cellObj;
+      this.activeIsAnnual = annual;
 
       this.pinned = true;
       this.cancelHide();
@@ -291,7 +311,7 @@ export default {
     onDocumentClick(event) {
       const el = this.$refs.tooltip;
       if (el && el.contains(event.target)) return;
-      if (event.target.closest && event.target.closest(".period-cell")) return;
+      if (event.target.closest && event.target.closest(".period-cell, .total-cell")) return;
       this.unpin();
     },
 
@@ -472,7 +492,11 @@ export default {
   border-left: 1px solid var(--a-surface);
   cursor: pointer;
 }
-.period-cell:hover {
+.total-cell {
+  cursor: pointer;
+}
+.period-cell:hover,
+.total-cell:hover {
   box-shadow: inset 0 0 0 2px var(--a-fg);
 }
 .cell-content {
