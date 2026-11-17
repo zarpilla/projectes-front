@@ -36,6 +36,16 @@
             </option>
           </b-select>
         </label>
+        <!-- issues/443: between Coordina and Àmbit -->
+        <label v-if="project_types && project_types.length" class="filter-select">
+          <span>Tipus de projecte</span>
+          <b-select v-model="filters.typeId" @change="onTypeChange($event)">
+            <option :value="0">Tots</option>
+            <option v-for="t in project_types" :key="t.id" :value="t.id">
+              {{ t.name }}
+            </option>
+          </b-select>
+        </label>
         <div v-if="scopes && scopes.length" class="segmented" role="group" aria-label="Àmbit">
           <button type="button" :class="{ 'is-on': 0 === filters.scopeId }" :aria-pressed="0 === filters.scopeId ? 'true' : 'false'" @click="setScope(0)">
             Tots
@@ -125,7 +135,7 @@ export default {
       estimatedDedication: 0,
       project_states: [],
       project_types: [],
-      filters: { project_state: 1, q: "", user: "0", scopeId: 0 },
+      filters: { project_state: 1, q: "", user: "0", typeId: 0, scopeId: 0 },
       queryChanged: 0,
       users: [],
       loading: false,
@@ -269,6 +279,9 @@ export default {
     onUserChange(event) {
       this.doFilteredQuery(this.filters.q);
     },
+    onTypeChange(event) {
+      this.doFilteredQuery(this.filters.q);
+    },
     randomChartData(n) {
       const data = [];
 
@@ -298,11 +311,14 @@ export default {
         this.filters.user && this.filters.user > 0
           ? "&leader=" + this.filters.user
           : "";
+      const where4 = this.filters.typeId
+        ? "&project_type=" + this.filters.typeId
+        : "";
       this.loading = true;
       if (q) {
         service({ requiresAuth: true })
           .get(
-            `projects/basic?_limit=-1&_sort=name:ASC&_q=${encodeURIComponent(this.filters.q)}${where1}${where2}${where3}`
+            `projects/basic?_limit=-1&_sort=name:ASC&_q=${encodeURIComponent(this.filters.q)}${where1}${where2}${where3}${where4}`
           )
           .then(r => {
             this.projects = sortProjectsByName(r.data);
@@ -311,7 +327,7 @@ export default {
           });
       } else {
         service({ requiresAuth: true })
-          .get(`projects/basic?_limit=-1${where1}${where2}${where3}`)
+          .get(`projects/basic?_limit=-1${where1}${where2}${where3}${where4}`)
           .then(r => {
             this.projects = sortProjectsByName(r.data);
             this.loading = false;

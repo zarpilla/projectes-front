@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.17",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: ["A ", { to: "/projectes", label: "Projectes" }, " es pot filtrar per «Tipus de projecte», entre «Coordina» i «Àmbit»."]
+    }
+  ]
+},
+{
   date: "2026.11.12",
   items: [
     {
