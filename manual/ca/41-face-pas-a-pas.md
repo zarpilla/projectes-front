@@ -8,7 +8,7 @@ order: 41
 roles: [admin]
 routes: ["/administracio/configuracio", "/administracio/cua-face*"]
 lang: ca
-updated: 2026-11-11
+updated: 2026-11-17
 ---
 # 41. Posar en marxa FACe pas a pas
 
@@ -111,7 +111,8 @@ als dos entorns.
 
 5. Responeu la pregunta de seguretat i **Revisar y enviar**.
 
-FACe respon per correu quan l'alta està feta.
+FACe respon per correu quan l'alta està feta. No és immediat: sol trigar uns dies laborables, i fins aleshores no es
+pot fer el pas 3. Demaneu-la amb temps, abans de la primera factura que s'hagi d'enviar a una administració.
 
 ## 3. Entrar al portal d'integradors
 
