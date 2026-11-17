@@ -884,8 +884,10 @@ export default {
       return [...this.users].sort((a, b) => (a.fullname || a.username || "").localeCompare(b.fullname || b.username || ""));
     },
     perPageEffective() {
-      // a single day fits in one page; other ranges are paged
-      return this.dateFilter ? 1000 : Number(this.perPage);
+      // a single day fits in one page; other ranges are paged. Grouped, the
+      // groups need every order: paged, a group only showed the orders of the
+      // page and reversing the sort moved some to the next one (issues/445)
+      return this.dateFilter || this.groupBy !== "none" ? 1000 : Number(this.perPage);
     },
     morePages() {
       return this.total > this.perPageEffective;
@@ -2787,6 +2789,8 @@ export default {
     saveGroupBy() {
       this.collapsed = {};
       localStorage.setItem("OrdersTable.groupBy", JSON.stringify(this.groupBy));
+      // the page size depends on the grouping: reloaded from the first page
+      this.refresh();
     },
     // like the old list: orders of a coming week look lighter
     isFutureWeek(order) {

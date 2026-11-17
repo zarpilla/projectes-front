@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn(), put: vi.fn(), post: vi.fn() }) }))
 import OrdersTable from '@/components/OrdersTable.vue'
 
-const vm = () => ({ ...OrdersTable.data.call({}), routeFilter: [] })
+const vm = () => ({ ...OrdersTable.data.call({}), routeFilter: [], refresh: vi.fn() })
 
 describe('OrdersTable grouping', () => {
   beforeEach(() => localStorage.clear())
@@ -37,5 +37,24 @@ describe('OrdersTable grouping', () => {
     const state = vm()
     OrdersTable.methods.restoreGroupBy.call(state)
     expect(state.groupBy).toBe('none')
+  })
+
+  // issues/445: grouped, a group showed only the orders of the page (150), and
+  // reversing the sort moved some orders to page 2: grouped loads them all
+  it('loads every order when grouped, pages of 150 without grouping', () => {
+    const perPage = (state) => OrdersTable.computed.perPageEffective.call(state)
+    const state = vm()
+    expect(perPage(state)).toBe(150)
+    state.groupBy = 'route'
+    expect(perPage(state)).toBe(1000)
+    state.groupBy = 'owner'
+    expect(perPage(state)).toBe(1000)
+  })
+
+  it('reloads from the first page when the grouping changes', () => {
+    const state = vm()
+    state.groupBy = 'route'
+    OrdersTable.methods.saveGroupBy.call(state)
+    expect(state.refresh).toHaveBeenCalled()
   })
 })
