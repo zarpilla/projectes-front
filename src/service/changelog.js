@@ -104,7 +104,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["Facturació automàtica: amb «Habilitar facturació automàtica» al projecte de logística del trimestre, el penúltim dia laborable del mes a les 14:10 es generen sols els esborranys del mes (totes les comandes amb entrega prevista del mes i les pendents de mesos anteriors), amb data de l'últim dia del mes. L'informe «FACTURACIÓ AUTOMÀTICA» arriba per correu amb el quadrament amb Comandes i les incidències; la sòcia que no pot tenir esborrany en rep un avís. A ", { to: "/comandes-per-facturar", label: "Facturar" }, " es pot previsualitzar un mes i generar-lo a mà."]
+      text: ["Facturació automàtica: amb «Habilitar facturació automàtica» al projecte de logística del trimestre (el que porta el trimestre al nom, com «4T 2026 - Logística», el mateix que proposa Facturar), el penúltim dia laborable del mes a les 14:10 es generen sols els esborranys del mes (totes les comandes amb entrega prevista del mes i les pendents de mesos anteriors), amb data de l'últim dia del mes. L'informe «FACTURACIÓ AUTOMÀTICA» arriba per correu amb el quadrament amb Comandes i les incidències; la sòcia que no pot tenir esborrany en rep un avís. A ", { to: "/comandes-per-facturar", label: "Facturar" }, " es pot previsualitzar un mes i generar-lo a mà, i crear en un clic el projecte del trimestre que falta, amb les dates del trimestre i una fase «Logística»."]
     },
     {
       type: "Millores",

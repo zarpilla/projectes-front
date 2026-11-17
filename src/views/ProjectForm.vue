@@ -480,7 +480,7 @@
                 v-if="canAutoInvoice || form.auto_invoicing"
                 label="Habilitar facturació automàtica"
                 horizontal
-                message="Les factures mensuals de logística es generen automàticament (el penúltim dia laborable del mes, a les 14:10) en aquest projecte, si les seves dates d'inici i final inclouen l'últim dia del mes."
+                message="Les factures mensuals de logística es generen automàticament (el penúltim dia laborable del mes, a les 14:10) al projecte del trimestre, el que porta el trimestre al nom («4T 2026 - Logística»), si té aquesta opció. Les dates del projecte no hi compten."
               >
                 <b-switch v-model="form.auto_invoicing" :disabled="!canAutoInvoice" data-test="auto-invoicing" />
               </b-field>

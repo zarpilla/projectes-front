@@ -94,7 +94,13 @@ trimestre (*Logística 2026 4T*, *4T 2026 - Logística*…) i mira el trimestre 
 
 - Si en troba un, diu *Les comandes de 4T 2026 van al projecte …* i **Fes-lo servir** el tria.
 - Si no, diu *Encara no hi ha cap projecte de logística per al 4T 2026*, amb el nom de l'últim que hi ha, i
-  **Crea el projecte** obre un projecte nou (cal el permís `projects`).
+  **Crea «4T 2026 - Logística»** el crea en un clic, després de confirmar-ho: amb el nom com l'últim, les dates
+  del trimestre (de l'1 d'octubre al 31 de desembre), actiu i amb una sola fase *Logística*. De l'últim projecte
+  copia el client, el tipus, l'àmbit, la persona responsable, la facturació i **Habilitar facturació
+  automàtica**. Queda triat i es pot retocar a la fitxa del projecte.
+
+Les dates del projecte no compten per trobar-lo: només el nom. És la mateixa regla que fa servir la facturació
+automàtica (vegeu més avall).
 
 Un cop triat el projecte, la columna de la dreta, **Últimes factures del projecte**, en mostra les sis
 últimes factures: a qui, quan, si és un **Esborrany** o ja té número, i la base. **Totes les factures
@@ -207,15 +213,17 @@ import amb descomptes de la xifra **Import**.
 ### 8. La facturació automàtica
 
 Els esborranys de cada mes es poden generar sols. Per activar-ho, marca **Habilitar facturació automàtica** al
-projecte de logística del trimestre (a la fitxa del projecte; només l'oficina i les persones administradores). Les
-dates d'inici i final del projecte han d'incloure l'últim dia del mes.
+projecte de logística del trimestre (a la fitxa del projecte; només l'oficina i les persones administradores). El
+projecte del trimestre és el que porta *logística*, l'any i el trimestre al nom (*4T 2026 - Logística*), el mateix
+que proposa **Facturar**; les seves dates no hi compten. Cada trimestre cal el seu projecte, amb l'opció: el que
+es crea amb **Crea «…»** ja la porta si l'anterior la tenia.
 
 El **penúltim dia laborable del mes, a les 14:10** (segons els **Dies laborables** de **Configuració general** i
 els festius de tothom), l'aplicació:
 
 - agafa totes les comandes amb **entrega prevista** dins el mes que no estiguin anul·lades ni ja facturades,
   lliurades o no, i també les de mesos anteriors que encara no s'hagin facturat;
-- fa un esborrany per sòcia, amb data de l'**últim dia del mes**, al projecte que té l'opció. Les comandes de
+- fa un esborrany per sòcia, amb data de l'**últim dia del mes**, al projecte del trimestre. Les comandes de
   mesos anteriors hi surten al final, amb el concepte *Serveis pendents de setembre 2026 · …*;
 - si una sòcia no pot tenir esborrany (una comanda sense preu, cap contacte per facturar-li), no el fa i li deixa
   un avís a **Avisos** amb el motiu i les comandes;
@@ -229,11 +237,13 @@ els festius de tothom), l'aplicació:
 Els esborranys es revisen i s'emeten a **Ingressos**, com els que es fan a mà. Mentre són esborranys, no compten
 en l'import pendent de pagar de la sòcia.
 
-A **Facturar**, la caixa **Facturació automàtica** diu quan serà la propera i en quin projecte, i té:
+A **Facturar**, la caixa **Facturació automàtica** diu quan serà la propera i en quin projecte. Si el trimestre
+encara no en té, ho diu i té el botó per crear-lo; si en té però sense l'opció, enllaça el projecte per activar-la.
+També té:
 
 - **Previsualitza**: l'informe del mes triat sense crear res;
-- **Genera ara**: fa el mes triat en aquell moment (per exemple, si la data ha passat sense cap projecte amb
-  l'opció);
+- **Genera ara**: fa el mes triat en aquell moment (per exemple, si la data ha passat sense el projecte del
+  trimestre o sense l'opció);
 - **Darreres execucions**, amb l'informe de cadascuna.
 
 ## Camps i opcions
@@ -248,7 +258,7 @@ A **Facturar**, la caixa **Facturació automàtica** diu quan serà la propera i
 | **Factura** (a la fila) | Factura aquella sòcia i aquell mes. |
 | **Factura la selecció (N comandes)** | Una factura per cada fila marcada. |
 | **Exporta** | Baixa la taula en un full de càlcul. |
-| **Fes-lo servir** / **Crea el projecte** | Tria el projecte del trimestre, o n'obre un de nou si no n'hi ha. |
+| **Fes-lo servir** / **Crea «…»** | Tria el projecte del trimestre, o el crea si no n'hi ha (dates del trimestre, una fase *Logística*). |
 
 ### Factures (sòcia)
 

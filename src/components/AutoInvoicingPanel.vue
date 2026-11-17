@@ -6,26 +6,38 @@
     <header class="box-head">
       <h2>Facturació automàtica</h2>
       <span v-if="state" class="box-hint">
-        {{ state.project ? `Propera: ${runAtText} · ${state.monthName}` : "Desactivada" }}
+        {{ state.project ? `Propera: ${runAtText} · ${state.monthName}` : state.autoProjects.length ? "Aturada" : "Desactivada" }}
       </span>
     </header>
     <b-loading :is-full-page="false" :model-value="isLoading" />
 
     <template v-if="state">
+      <!-- the project is the quarter's, by its name, as in Facturar; its dates don't count -->
       <p v-if="state.project" class="box-help">
         El <b>{{ runAtText }}</b> es generaran els esborranys {{ ofMonth(state.monthName) }}, amb data {{ formatDay(state.invoiceDay) }},
         al projecte <router-link :to="{ name: 'project.edit', params: { id: state.project.id } }">{{ state.project.name }}</router-link>.
         Cal revisar-los i emetre'ls a Ingressos. L'informe s'envia per correu a l'adreça de les incidències.
       </p>
-      <p v-else-if="state.autoProjects.length" class="notification is-warning is-light" data-test="no-project">
-        Cap projecte amb «Habilitar facturació automàtica» no inclou el {{ formatDay(state.invoiceDay) }}: aquest mes no es generarà res.
-        Activa-ho al projecte de logística del trimestre.
+      <p v-else-if="state.quarterProject && state.autoProjects.length" class="notification is-warning is-light" data-test="no-option">
+        El projecte del {{ quarterLabel }},
+        <router-link :to="{ name: 'project.edit', params: { id: state.quarterProject.id } }">{{ state.quarterProject.name }}</router-link>,
+        no té «Habilitar facturació automàtica»: aquest mes no es generarà res. Activa-ho al projecte.
       </p>
-      <p v-else class="box-help" data-test="disabled">
-        Per activar-la, marca «Habilitar facturació automàtica» al projecte de logística del trimestre (les seves dates han d'incloure l'últim dia del mes).
+      <p v-else-if="state.quarterProject" class="box-help" data-test="disabled">
+        Per activar-la, marca «Habilitar facturació automàtica» al projecte del {{ quarterLabel }},
+        <router-link :to="{ name: 'project.edit', params: { id: state.quarterProject.id } }">{{ state.quarterProject.name }}</router-link>.
       </p>
+      <div v-else class="notification is-light quarter-missing" :class="state.autoProjects.length ? 'is-warning' : 'is-info'" data-test="no-project">
+        <span>
+          Encara no hi ha el projecte de logística del <b>{{ quarterLabel }}</b><template v-if="state.autoProjects.length">: aquest mes no es generarà res</template>.
+          <template v-if="!state.autoProjects.length">Quan hi sigui, per activar-la marca-hi «Habilitar facturació automàtica».</template>
+        </span>
+        <b-button v-if="state.newProjectName" size="is-small" type="is-primary" icon-left="plus" :loading="isCreating" data-test="create-quarter-project" @click="confirmCreateProject">
+          Crea «{{ state.newProjectName }}»
+        </b-button>
+      </div>
       <p v-if="state.otherProjects.length" class="notification is-warning is-light">
-        També tenen l'opció i inclouen aquest dia: {{ state.otherProjects.map(p => p.name).join(", ") }}. Només es fa servir el primer.
+        També són del {{ quarterLabel }} i tenen l'opció: {{ state.otherProjects.map(p => p.name).join(", ") }}. Només es fa servir el primer.
       </p>
 
       <div class="auto-actions">
@@ -60,17 +72,18 @@ import moment from "moment";
 import service from "@/service/index";
 import AutoInvoicingReport from "@/components/AutoInvoicingReport.vue";
 import { refusalMessage } from "@/domain/collectionGroup";
-import { autoRunLabel, autoRunTag, monthOptions, ofMonth } from "@/domain/autoInvoicing";
+import { autoRunLabel, autoRunTag, createQuarterProject, monthOptions, newQuarterProjectText, ofMonth } from "@/domain/autoInvoicing";
 
 export default {
   name: "AutoInvoicingPanel",
   components: { AutoInvoicingReport },
-  emits: ["invoiced"],
+  emits: ["invoiced", "project-created"],
   data() {
     return {
       isLoading: true,
       isPreviewing: false,
       isRunning: false,
+      isCreating: false,
       state: null,
       report: null,
       month: moment().format("YYYY-MM"),
@@ -78,6 +91,9 @@ export default {
     };
   },
   computed: {
+    quarterLabel() {
+      return this.state && this.state.quarter ? this.state.quarter.label : "trimestre";
+    },
     runAtText() {
       if (!this.state) return "";
       return moment(this.state.runAt, "YYYY-MM-DD HH:mm").locale("ca").format("dddd D/MM/YYYY [a les] HH:mm");
@@ -96,12 +112,36 @@ export default {
         const data = (await service({ requiresAuth: true }).get("auto-invoicing/status")).data;
         // an answer without the lists (an older API, a test stub) is no state
         this.state = data && Array.isArray(data.runs)
-          ? { autoProjects: [], otherProjects: [], ...data }
+          ? { autoProjects: [], otherProjects: [], quarterProject: null, newProjectName: null, ...data }
           : null;
       } catch (e) {
         this.state = null;
       } finally {
         this.isLoading = false;
+      }
+    },
+    // the quarter's project in a click, modelled on the last one (issues/430)
+    confirmCreateProject() {
+      const found = { quarter: this.state.quarter, latest: this.state.latestProject, newName: this.state.newProjectName };
+      this.$buefy.dialog.confirm({
+        title: "Crear el projecte del trimestre",
+        message: newQuarterProjectText(found),
+        confirmText: "Crea'l",
+        cancelText: "Cancel·la",
+        onConfirm: () => this.createProject()
+      });
+    },
+    async createProject() {
+      this.isCreating = true;
+      try {
+        const created = await createQuarterProject(service({ requiresAuth: true }), this.state.month);
+        this.$buefy.snackbar.open({ message: `Projecte «${created.project.name}» creat`, type: "is-success", queue: false });
+        this.$emit("project-created", created.project);
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: refusalMessage(e, "No s'ha pogut crear el projecte"), type: "is-danger", queue: false });
+      } finally {
+        this.isCreating = false;
+        await this.load();
       }
     },
     async preview() {
@@ -166,6 +206,13 @@ export default {
 }
 .auto-actions :deep(.field) {
   margin-bottom: 0;
+}
+.quarter-missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
 }
 .runs h3 {
   font-weight: 600;

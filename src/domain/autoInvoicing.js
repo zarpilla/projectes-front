@@ -35,3 +35,25 @@ export function sortedMembers (members) {
   const rank = m => (m.blockers && m.blockers.length ? 0 : m.warnings && m.warnings.length ? 1 : 2)
   return [...(members || [])].sort((a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name)))
 }
+
+const day = value => (value ? moment(value, 'YYYY-MM-DD').format('DD/MM/YYYY') : '')
+
+/**
+ * The logistics project of a quarter (issues/430), one rule for Facturar and
+ * the automatic invoicing, in the API (auto-invoicing/quarter-project): the
+ * project named after the quarter, «4T 2026 - Logística»; its dates don't count.
+ * What the confirmation of a new one says: `found` is that answer
+ * ({ quarter, latest, newName }).
+ */
+export function newQuarterProjectText (found) {
+  const q = found.quarter
+  const model = found.latest
+    ? ` Copiarà de «${found.latest.name}» el client, el tipus, l'àmbit, la persona responsable i la facturació${found.latest.auto_invoicing ? ", i tindrà «Habilitar facturació automàtica»" : ""}.`
+    : ''
+  return `Es crearà el projecte «${found.newName}», actiu, del ${day(q.date_start)} al ${day(q.date_end)} i amb una sola fase «Logística».${model}`
+}
+
+/** Creates the quarter's project of `month`: the API's answer ({ project }). */
+export async function createQuarterProject (api, month) {
+  return (await api.post('auto-invoicing/quarter-project', { month })).data
+}
