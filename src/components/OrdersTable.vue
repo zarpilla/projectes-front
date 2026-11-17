@@ -190,6 +190,12 @@
         </span>
       </div>
 
+      <!-- grouped, the groups only add up the loaded page (issues/445) -->
+      <div v-if="groupedIncomplete" class="notification is-warning is-light grouped-incomplete" role="status">
+        Els grups només inclouen {{ formatCount(theOrders.length) }} de {{ formatCount(total) }} comandes (pàgina {{ page }}).
+        Tria una data o filtra la llista per veure-les totes agrupades.
+      </div>
+
       <div class="a-box orders-box">
         <b-loading :is-full-page="false" :model-value="isLoading" />
         <div class="table-container">
@@ -891,6 +897,10 @@ export default {
     },
     morePages() {
       return this.total > this.perPageEffective;
+    },
+    // grouped and still paged (more than 1,000 orders): the groups miss orders
+    groupedIncomplete() {
+      return this.groupBy !== "none" && this.morePages;
     },
     // the figures above the list: every matching order (orders/totals,
     // issues/177); the loaded rows until the answer comes
@@ -3131,6 +3141,10 @@ select.col-filter {
 .col-pickup small.is-deposited {
   color: var(--a-pos);
   font-weight: 700;
+}
+.grouped-incomplete {
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 1rem;
 }
 .group-row td {
   background: var(--a-thead);

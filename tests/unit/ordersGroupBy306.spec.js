@@ -57,4 +57,23 @@ describe('OrdersTable grouping', () => {
     OrdersTable.methods.saveGroupBy.call(state)
     expect(state.refresh).toHaveBeenCalled()
   })
+
+  // issues/445: past 1,000 orders a grouped list still pages, and says so
+  it('warns when a grouped list is still paged', () => {
+    const incomplete = (state) =>
+      OrdersTable.computed.groupedIncomplete.call({
+        ...state,
+        morePages: OrdersTable.computed.morePages.call({
+          ...state,
+          perPageEffective: OrdersTable.computed.perPageEffective.call(state)
+        })
+      })
+    const state = vm()
+    state.total = 24962
+    expect(incomplete(state)).toBe(false) // not grouped: the pager is enough
+    state.groupBy = 'route'
+    expect(incomplete(state)).toBe(true)
+    state.total = 693
+    expect(incomplete(state)).toBe(false)
+  })
 })
