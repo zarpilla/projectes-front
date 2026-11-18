@@ -94,6 +94,29 @@ export function onCleanup (fn) {
   cleanups.push(fn)
 }
 
+// Orders entered by the spec are never late, whatever the time and day of the
+// run: every day a working day, limit and closing at 23 h; restored after the
+// spec. The empty database's next-day limit is 13 h, so a nightly run after
+// 13 h (or on a weekend) got the office's «Comanda fora de temps» dialog
+// (issues/363) and the order was never saved. The late rules have their own
+// test in logistics.spec.mjs.
+export async function ordersNeverLate () {
+  const me = await api('GET', 'me?populate=orders_options')
+  const options = me.orders_options || {}
+  onCleanup(() => api('PUT', 'me', { data: { orders_options: { ...options, id: undefined } } }))
+  await api('PUT', 'me', {
+    data: {
+      orders_options: {
+        ...options,
+        id: undefined,
+        next_day_limit_hour: 23,
+        route_closing_hour: 23,
+        working_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+      }
+    }
+  })
+}
+
 // Registers the hooks of a spec file: one session for all its tests, the sentinel
 // check, and a failure screenshot plus the uncaught-errors check after each test.
 export function useE2E ({ serial = true } = {}) {
@@ -111,7 +134,9 @@ export function useE2E ({ serial = true } = {}) {
   })
 
   test.afterAll(async () => {
-    for (const fn of cleanups.splice(0)) {
+    // last registered, first undone: a later change of the same setting is
+    // undone before the setup's own restore
+    for (const fn of cleanups.splice(0).reverse()) {
       await fn().catch(e => console.warn(`cleanup failed: ${e.message}`))
     }
     await page?.context().close()
@@ -225,6 +250,11 @@ export async function typeDate (input, text) {
   await input.click()
   await input.fill(text)
   await input.press('Tab')
+  // its calendar sometimes stays open after the Tab and covers the next fields
+  // (the «Proveïdora» of a received invoice: nightly failures since 2026-11-04)
+  const calendar = page.locator('.datepicker .dropdown-menu').filter({ visible: true })
+  if (await calendar.count()) await page.keyboard.press('Escape')
+  await expect(calendar).toHaveCount(0)
 }
 
 // "1.234,50 €" / "4.75 h" → number

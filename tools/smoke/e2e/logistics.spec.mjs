@@ -13,6 +13,7 @@
 
 import { test, expect } from '@playwright/test'
 import {
+  ordersNeverLate,
   useE2E, page, state, api, env, login, openSession, onCleanup, NAME, STAMP, visit, settle, field, button,
   expectSnackbar, confirmDialog, isoToday, parseNumber
 } from './helpers.mjs'
@@ -73,6 +74,7 @@ test('setup: the logistics permissions, a town on the route, delivery points and
   state.remote = await one('pickups', 'E2E Magatzem Remot')
   state.deliveryType = await one('delivery-types', 'E2E Normal')
   expect(state.route && state.pickup && state.remote && state.deliveryType, 'the logistics fixture (logistics-fixture.sql) is loaded').toBeTruthy()
+  await ordersNeverLate()
 
   const permissions = new Set([...(state.me.permissions || []).map(p => p.permission), 'orders', 'orders_admin'])
   await api('PUT', `users/${state.me.id}`, { permissions: [...permissions].map(permission => ({ permission })) })
@@ -104,8 +106,8 @@ test('"Franges": a town\'s own time slot on its route, shown in the order form (
   await button('Franges', route).click()
   const row = route.locator('tr', { hasText: TOWN })
   await expect(row).toContainText('Per definir')
-  await row.getByLabel(`Franja de ${TOWN} a ${state.route.name}: de`).fill('16:00')
-  await row.getByLabel(`Franja de ${TOWN} a ${state.route.name}: a`).fill('18:30')
+  await row.getByLabel(`Franja de ${TOWN} a ${state.route.name}: de`, { exact: true }).fill('16:00')
+  await row.getByLabel(`Franja de ${TOWN} a ${state.route.name}: a`, { exact: true }).fill('18:30')
   // saved when the focus leaves the pair
   await page.getByPlaceholder('Població', { exact: true }).click()
   await expectSnackbar('Franja desada')
@@ -142,7 +144,11 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   const routeRow = page.locator('tr').filter({ has: page.locator('th.rd-route b', { hasText: new RegExp(`^\\s*${state.route.name}\\s*$`) }) }).first()
   const cell = routeRow.locator('.rd-cell', { hasText: ddmm(tomorrow) }).first()
   await expect(cell).toContainText('Oberta')
+  // a click asks for the reason and a substitute route (issues/353–355)
   await cell.click()
+  const closure = page.locator('[data-test="closure-modal"]')
+  await closure.locator('textarea').fill('E2E tancament')
+  await closure.getByRole('button', { name: 'Tanca la ruta' }).click()
   await expect(cell).toContainText('Tancada')
   expect(await closures()).toHaveLength(1)
 
@@ -164,6 +170,7 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   await visit('/rutes-dies')
   await expect(cell).toContainText('Tancada')
   await cell.click()
+  await page.locator('[data-test="closure-modal"] [data-test="reopen"]').click()
   await expect(cell).toContainText('Oberta')
   expect(await closures()).toEqual([])
 })

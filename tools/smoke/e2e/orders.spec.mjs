@@ -10,6 +10,7 @@
 
 import { test, expect } from '@playwright/test'
 import {
+  ordersNeverLate,
   useE2E, page, state, api, env, login, NAME, STAMP, visit, settle, field, button, modal,
   expectSnackbar, confirmDialog, createProject, pickAutocomplete
 } from './helpers.mjs'
@@ -25,6 +26,7 @@ test('setup: the logistics permissions, the member contact and a project', async
   state.route = (await api('GET', 'routes?_where[name]=E2E Ruta&_limit=1'))[0]
   state.pickup = (await api('GET', 'pickups?_where[name]=E2E Magatzem&_limit=1'))[0]
   expect(state.route && state.pickup, 'the logistics fixture (logistics-fixture.sql) is loaded').toBeTruthy()
+  await ordersNeverLate()
 
   const permissions = new Set([...(state.me.permissions || []).map(p => p.permission), 'orders', 'orders_admin'])
   await api('PUT', `users/${state.me.id}`, { permissions: [...permissions].map(permission => ({ permission })) })
