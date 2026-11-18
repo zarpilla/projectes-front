@@ -60,6 +60,11 @@ export const CHANGELOG = [
       type: "Novetats",
       modules: ["Informes", "Hores"],
       text: ["A ", { to: "/panell-dedicacio", label: "Dedicació" }, ", la taula «Jornada i conveni per persona» mostra per a cada persona les hores laborables de l'any segons la seva jornada a Persones (menys festius, vacances i lliure elecció), el màxim del conveni i el saldo, al costat de les hores previstes i fetes. Són les mateixes xifres que el «Resum hores» de cada persona."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Plataforma"],
+      text: "En mode fosc, la llista dels desplegables (com el de l'any a Ingressos i despeses) es veia blanca amb lletra gris clar. Ara tots els desplegables tenen el fons fosc i la lletra clara."
     }
   ]
 },

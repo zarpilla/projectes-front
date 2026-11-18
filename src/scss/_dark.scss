@@ -67,6 +67,17 @@
   }
 }
 
+// The list of a native select: the browser draws it with the select's background,
+// and the filter-bar selects are transparent, so it came out white with the
+// theme's light text (Ingressos i despeses, issues/447). Every option, any select.
+[data-theme=dark] {
+  option,
+  optgroup {
+    background-color: var(--a-surface);
+    color: var(--a-fg);
+  }
+}
+
 // dhtmlx Gantt (Planificació, Persones, Previsió / real dedicació): its CSS sets
 // these on :root and loads later, so `html` wins on specificity
 html[data-theme=dark] {
