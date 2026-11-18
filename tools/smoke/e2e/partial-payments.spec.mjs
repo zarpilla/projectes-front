@@ -119,7 +119,8 @@ test('once the entries reach the total the invoice is collected, on the last dat
 
 test('a received invoice paid in part: each payment validated on its own, the rest pending', async () => {
   test.skip(!state.projectId, 'needs the project')
-  const number = `${NAME}-P1`
+  // not «-P1»: core.spec.mjs gives that number to another received invoice of the run
+  const number = `${NAME}-PARCIAL1`
   const id = await createReceivedInvoice({
     contact: state.contact,
     projectName: PROJECT,

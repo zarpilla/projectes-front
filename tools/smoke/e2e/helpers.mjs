@@ -252,8 +252,13 @@ export async function typeDate (input, text) {
   await input.press('Tab')
   // its calendar sometimes stays open after the Tab and covers the next fields
   // (the «Proveïdora» of a received invoice: nightly failures since 2026-11-04)
+  // A click outside closes it; not Escape, which also closes an enclosing
+  // modal (the «Jornada» one of Persones). The modal's head or the page title.
   const calendar = page.locator('.datepicker .dropdown-menu').filter({ visible: true })
-  if (await calendar.count()) await page.keyboard.press('Escape')
+  if (await calendar.count()) {
+    const head = page.locator('.modal.is-active .modal-card-head').filter({ visible: true })
+    await ((await head.count()) ? head.last() : page.locator('.is-title-bar .title-text').first()).click()
+  }
   await expect(calendar).toHaveCount(0)
 }
 
