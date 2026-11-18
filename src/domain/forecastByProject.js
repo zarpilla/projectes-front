@@ -8,18 +8,30 @@
 // planned payroll is «Nòmines que falten per cobrir».
 //
 // `projects` is the forecast's `forecast_by_project`:
-//   [{ id, name, project_type, project_scope, years: { "2026": {
+//   [{ id, name, project_type, project_scope, project_state, periodified,
+//      years: { "2026": {
 //      forecast_incomes, forecast_expenses, forecast_expenses_vat } } }]
 // with the expenses as positive amounts; here they are negative, as in the
 // global summary.
+//
+// By «Estat» (Raiels, 2026-11-18) the periodified projects make a group of
+// their own, «Periodificats», whatever their state: so each project is counted
+// once and the groups still add up to the total. It goes after the states.
 
 export const GROUPINGS = [
   { id: "project", label: "Projecte" },
+  { id: "state", label: "Estat" },
   { id: "type", label: "Tipus de projecte" },
   { id: "scope", label: "Àmbit" }
 ];
 
-const NONE = { type: "Sense tipus", scope: "Sense àmbit" };
+const NONE = { type: "Sense tipus", scope: "Sense àmbit", state: "Sense estat" };
+const RELATION = { type: "project_type", scope: "project_scope", state: "project_state" };
+const PERIODIFIED = { key: "state-periodified", label: "Periodificats", tail: true };
+
+// the order of a group that always goes last: the states, «Periodificats»,
+// «Sense …»
+const rank = (r) => (r.none ? 2 : r.tail ? 1 : 0);
 
 function projectFigures(p, years) {
   let incomes = 0;
@@ -37,7 +49,8 @@ function projectFigures(p, years) {
 
 function groupOf(p, grouping) {
   if (grouping === "project") return { key: `p${p.id}`, label: p.name || `#${p.id}`, projectId: p.id };
-  const ref = grouping === "type" ? p.project_type : p.project_scope;
+  if (grouping === "state" && p.periodified) return { ...PERIODIFIED };
+  const ref = p[RELATION[grouping]];
   return ref && ref.id ? { key: `${grouping}${ref.id}`, label: ref.name } : { key: `${grouping}-none`, label: NONE[grouping], none: true };
 }
 
@@ -66,18 +79,18 @@ export function forecastRows(projects, years, grouping = "project") {
     row.payrollCover += fig.payrollCover;
   }
   return [...groups.values()].sort(
-    (a, b) => (a.none ? 1 : 0) - (b.none ? 1 : 0) || b.incomes - a.incomes || String(a.label).localeCompare(String(b.label), "ca")
+    (a, b) => rank(a) - rank(b) || b.incomes - a.incomes || String(a.label).localeCompare(String(b.label), "ca")
   );
 }
 
 /**
- * issues/434: what a grouped row opens into. A project type opens into its
- * projects; a scope into its project types (not the projects). Same figures,
- * so the children add up to their group.
+ * issues/434: what a grouped row opens into. A project type or a state opens
+ * into its projects; a scope into its project types (not the projects). Same
+ * figures, so the children add up to their group.
  * @param groupKey the `key` of a forecastRows row of that grouping
  */
 export function forecastChildRows(projects, years, grouping, groupKey) {
-  if (grouping !== "type" && grouping !== "scope") return [];
+  if (!RELATION[grouping]) return [];
   const members = (projects || []).filter(p => groupOf(p, grouping).key === groupKey);
   return forecastRows(members, years, grouping === "scope" ? "type" : "project");
 }
@@ -100,8 +113,8 @@ export function forecastTotals(rows, payroll) {
 
 // issues/424: the columns of the table can be sorted. Names go A→Z first,
 // amounts the biggest first (expenses by their size, not their sign); a
-// second click turns the order round. «Sense tipus» / «Sense àmbit» stay
-// last either way.
+// second click turns the order round. «Periodificats» and «Sense tipus» /
+// «Sense àmbit» / «Sense estat» stay last either way.
 export const SORT_COLUMNS = [
   { key: "label", text: true },
   { key: "projects" },
@@ -129,8 +142,8 @@ export function sortForecastRows(rows, key, dir = defaultSortDir(key)) {
   const value = (r) => (col.expense ? -(Number(r[key]) || 0) : Number(r[key]) || 0);
   const byLabel = (a, b) => String(a.label).localeCompare(String(b.label), "ca", { sensitivity: "base", numeric: true });
   return [...rows].sort((a, b) => {
-    const none = (a.none ? 1 : 0) - (b.none ? 1 : 0);
-    if (none) return none;
+    const last = rank(a) - rank(b);
+    if (last) return last;
     const c = col.text ? byLabel(a, b) : value(a) - value(b);
     return sign * c || byLabel(a, b);
   });

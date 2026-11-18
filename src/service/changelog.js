@@ -58,6 +58,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Millores",
+      modules: ["Informes"],
+      text: ["A ", { to: "/previsio", label: "Previsió econòmica" }, " › «Resum per projectes» també podeu agrupar per «Estat». Els projectes periodificats van en un grup a part, «Periodificats», sigui quin sigui el seu estat, i cada grup es desplega en els seus projectes."]
+    },
+    {
+      type: "Millores",
       modules: ["Logística"],
       text: ["A ", { to: "/factures-proveidor", label: "Factures" }, " de la sòcia també surten els esborranys que prepara «Facturar», marcats «Esborrany», abans que l'oficina els emeti."]
     },
