@@ -1114,7 +1114,8 @@ export default {
   border-bottom-color: var(--a-accent);
 }
 .by-project-bar {
-  margin-bottom: .75rem;
+  /* in line with the box's title */
+  margin: .75rem 1.25rem;
 }
 .by-project-table .col-sort {
   border: 0;
