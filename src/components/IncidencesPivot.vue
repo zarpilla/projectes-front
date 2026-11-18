@@ -35,6 +35,9 @@
         closed_user: 'closed_user',
         description: 'description',
         order_id: 'order_id',
+        category: 'category',
+        establishment: 'establishment',
+        replies: 'replies',
         year: 'year',
         month: 'month'
       }"

@@ -381,8 +381,9 @@ l'establiment era tancat… Es crea des de la comanda:
 
 ![La caixa Incidències de la fitxa d'una comanda](img/32-incidencies-contacte/01-caixa-incidencies-comanda.png)
 
-Escriu què passa a **Descripció de la incidència** (fins a 500 caràcters), deixa l'**Estat** a **Oberta** i
-**Crear incidència**.
+Tria la **Categoria** (la causa: *Paquet perdut*, *Retard en l'entrega*…), si cal explica-ho a **Descripció**
+(fins a 500 caràcters), deixa l'**Estat** a **Oberta** i **Crear incidència**. El QR de l'albarà obre la mateixa
+pàgina de seguiment.
 
 ![El formulari per crear una incidència](img/32-incidencies-contacte/02-crear-incidencia.png)
 

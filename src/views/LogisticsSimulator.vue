@@ -88,7 +88,24 @@
             <!-- where to -->
             <section class="a-box">
               <header class="box-head"><h2>On va?</h2></header>
-              <b-field label="Població">
+              <!-- a delivery point brings its own routes (main, extraordinary,
+                   cancelled) and its discounts (issues/351) -->
+              <b-field label="Punt d'entrega">
+                <b-autocomplete
+                  v-model="pointSearch"
+                  placeholder="Busca el punt (opcional)"
+                  :keep-first="true"
+                  :data="pointOptions"
+                  :custom-formatter="pointLabel"
+                  clearable
+                  data-test="point-select"
+                  @select="selectPoint"
+                />
+              </b-field>
+              <p v-if="point" class="box-help" data-test="point-town">
+                {{ point.city || "Sense població" }}<template v-if="pointRouteSettings">: {{ pointRouteSettings }}</template>
+              </p>
+              <b-field v-else label="Població">
                 <b-autocomplete
                   v-model="townSearch"
                   placeholder="Escriu una població"
@@ -100,19 +117,21 @@
                   @select="selectTown"
                 />
               </b-field>
-              <template v-if="town">
-                <p v-if="!routesOfTown.length" class="notification is-warning is-light">Cap ruta passa per {{ town.name }}.</p>
+              <p v-if="!point && town" class="box-help">Sense punt, les rutes de la població. Tria el punt per comptar-ne les rutes especials i els descomptes.</p>
+              <template v-if="town || point">
+                <p v-if="!routeOptions.length" class="notification is-warning is-light" data-test="no-routes">{{ noRoutesText }}</p>
                 <b-field v-else label="Ruta">
                   <div class="pill-group">
                     <button
-                      v-for="r in routesOfTown"
-                      :key="r.id"
+                      v-for="item in routeOptions"
+                      :key="item.route.id"
                       type="button"
                       class="button pill"
-                      :class="{ 'is-warning': routeId === r.id, 'is-outlined': routeId !== r.id }"
-                      :data-day="routeDaysText(r)"
-                      @click="selectRoute(r.id)"
-                    >{{ r.name }}</button>
+                      :class="{ 'is-warning': routeId === item.route.id, 'is-outlined': routeId !== item.route.id }"
+                      :data-day="routeDaysText(item.route)"
+                      :data-test="`route-${item.route.id}`"
+                      @click="selectRoute(item.route.id)"
+                    ><span>{{ item.route.name }}<span v-for="tag in routeTags(item)" :key="tag" class="pill-tag">{{ tag }}</span></span></button>
                   </div>
                 </b-field>
                 <b-field v-if="route" label="Data prevista d'entrega">
@@ -154,7 +173,10 @@
                   <b-input v-model="kilograms" type="number" min="0" step="any" data-test="kilograms" />
                 </b-field>
               </div>
-              <b-field class="mt-3">
+              <p v-if="pointHasOtherOrder && multideliveryPercent" class="box-help mt-3" data-test="point-multidelivery">
+                Aquell dia ja hi ha una altra comanda al punt: descompte multientrega del {{ percent(multideliveryPercent) }} %.
+              </p>
+              <b-field v-else class="mt-3">
                 <b-checkbox v-model="otherOrderToPoint" :disabled="!multideliveryPercent">
                   Hi haurà una altra comanda al mateix punt d'entrega aquell dia
                   <small v-if="multideliveryPercent" class="has-text-muted">(descompte multientrega del {{ percent(multideliveryPercent) }} %)</small>
@@ -172,13 +194,15 @@
             <p v-if="!ready" class="box-help">{{ missingText }}</p>
             <template v-else>
               <dl class="quote-list">
-                <dt>Ruta</dt><dd>{{ route.name }}</dd>
+                <template v-if="point"><dt>Punt</dt><dd>{{ pointName(point) }}</dd></template>
+                <dt>Ruta</dt><dd>{{ route.name }}<template v-if="routeTagText"> ({{ routeTagText }})</template></dd>
                 <dt>Entrega</dt><dd>{{ formatDate(date) }}<template v-if="slotText"> · {{ slotText }}</template></dd>
                 <dt>Tarifa</dt><dd>{{ quote.rate ? quote.rate.name || `#${quote.rate.id}` : "Cap tarifa" }}</dd>
                 <dt>Preu de la ruta</dt><dd>{{ money(quote.price) }}</dd>
                 <template v-if="quote.volume.discount"><dt>Descompte per volum</dt><dd class="has-text-success">−{{ money(quote.volume.discount) }}</dd></template>
                 <template v-if="quote.late.late"><dt>Recàrrec fora de temps</dt><dd class="has-text-danger">+{{ percent(quote.late.surcharge) }} %</dd></template>
-                <template v-if="quote.multidelivery.discount"><dt>Descompte multientrega</dt><dd class="has-text-success">−{{ percent(quote.multidelivery.discount) }} %</dd></template>
+                <template v-if="quote.multidelivery.discount"><dt>Descompte multientrega</dt><dd class="has-text-success" data-test="quote-multidelivery">−{{ percent(quote.multidelivery.discount) }} %</dd></template>
+                <template v-if="quote.pointDiscount"><dt>Descompte recollida del punt</dt><dd class="has-text-success" data-test="quote-point-discount">−{{ percent(quote.pointDiscount) }} %</dd></template>
                 <template v-if="quote.collection">
                   <dt class="subtotal">Comanda</dt><dd class="subtotal">{{ money(quote.orderTotal) }}</dd>
                   <dt class="section">Recollida a finca (-R)</dt><dd class="section">{{ formatDate(pickupDate) }}</dd>
@@ -221,6 +245,8 @@ import { orderMembers } from "@/domain/routeAccess";
 import { routeDays, searchTowns, slotOf } from "@/domain/cityRoutes";
 import { checkIfDateIsValidInroute } from "@/service/assignRouteRate.js";
 import { quoteDate, quoteOrder, quoteRows, townRoutes, transferNeeded } from "@/domain/logisticsQuote";
+import { extraSlotLink, pointRoutesFor, routeTags, rowsOfPoint, settingsSummary } from "@/domain/pointRoutes";
+import { contactLabel, contactName, matchesContact } from "@/domain/orderContacts";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 
 const idOf = value => (value && typeof value === "object" ? value.id : value);
@@ -258,6 +284,13 @@ export default {
       pendingCollection: null,
       townSearch: "",
       town: null,
+      // the delivery point (optional) and the route settings of the points (issues/351)
+      points: [],
+      pointSearch: "",
+      point: null,
+      pointRouteRows: [],
+      // the server's check of the point that day: another order there (multidelivery)
+      pointHasOtherOrder: false,
       routeId: null,
       date: null,
       dateWarning: "",
@@ -308,11 +341,47 @@ export default {
     townOptions() {
       return searchTowns(this.cities, this.townSearch, 10);
     },
-    routesOfTown() {
-      return this.town ? townRoutes(this.town.id, this.cityRoutes, this.routes) : [];
+    pointOptions() {
+      const q = this.pointSearch.trim();
+      if (!q) return [];
+      return this.points.filter(c => matchesContact(c, q)).slice(0, 15);
+    },
+    // The routes offered: those of the delivery point when there is one (its
+    // town's less the cancelled, plus the extraordinary, the main one first,
+    // issues/351), else the town's. → [{ route, extra, main, row }]
+    routeOptions() {
+      const full = id => this.routes.find(r => r.id === id) || null;
+      if (this.point) {
+        return pointRoutesFor({
+          contact: this.point,
+          cities: this.cities,
+          cityRoutes: this.cityRoutes,
+          rows: this.pointRouteRows,
+          allRoutes: this.routes
+        })
+          .routes.map(item => ({ ...item, route: full(item.route.id) }))
+          .filter(item => item.route);
+      }
+      if (!this.town) return [];
+      return townRoutes(this.town.id, this.cityRoutes, this.routes).map(route => ({ route, extra: false, main: false, row: null }));
+    },
+    routeItem() {
+      return this.routeOptions.find(item => item.route.id === this.routeId) || null;
     },
     route() {
-      return this.routesOfTown.find(r => r.id === this.routeId) || null;
+      return this.routeItem ? this.routeItem.route : null;
+    },
+    routeTagText() {
+      return routeTags(this.routeItem).join(", ");
+    },
+    pointRouteSettings() {
+      if (!this.point) return "";
+      const name = id => (this.routes.find(r => r.id === id) || {}).name || `#${id}`;
+      return settingsSummary(rowsOfPoint(this.pointRouteRows, this.point.id), name);
+    },
+    noRoutesText() {
+      if (this.point) return `Cap ruta passa pel punt d'entrega${this.point.city ? ` (${this.point.city})` : ""}.`;
+      return this.town ? `Cap ruta passa per ${this.town.name}.` : "";
     },
     multideliveryPercent() {
       if (this.member && this.member.multidelivery_discount === false) return 0;
@@ -330,8 +399,8 @@ export default {
     missingText() {
       if (!this.memberId) return this.isOffice ? "Tria la sòcia." : "";
       if (!this.warehouse) return "Tria el magatzem d'origen.";
-      if (!this.town) return "Tria la població d'entrega.";
-      if (!this.route) return this.routesOfTown.length ? "Tria la ruta." : "Cap ruta passa per aquesta població.";
+      if (!this.town && !this.point) return "Tria el punt o la població d'entrega.";
+      if (!this.route) return this.routeOptions.length ? "Tria la ruta." : this.noRoutesText;
       if (!this.date) return "Tria el dia d'entrega.";
       if (!this.deliveryTypeId) return "Tria el tipus de servei.";
       if (!(Number(this.kilograms) > 0)) return "Escriu els kg.";
@@ -350,7 +419,8 @@ export default {
           warehouse: this.warehouse,
           farmPickup: this.farmPickup,
           collectionPoint: this.collectionPoint,
-          pickupRoute: this.pickupRoute
+          pickupRoute: this.pickupRoute,
+          point: this.point
         },
         {
           routeRates: this.routeRates,
@@ -360,7 +430,7 @@ export default {
           ownerId: this.memberId,
           pendingOrders: this.pendingOrders,
           sameDayOrders: this.sameDayOrders,
-          otherOrderToPoint: this.otherOrderToPoint,
+          otherOrderToPoint: this.otherOrderToPoint || this.pointHasOtherOrder,
           multideliveryAllowed: !(this.member && this.member.multidelivery_discount === false),
           ordersOptions: this.ordersOptions,
           // the quote is for the member: the office plays with her case
@@ -372,7 +442,11 @@ export default {
       return !this.farmPickup && transferNeeded(this.warehouse, this.route, this.cityRoutes);
     },
     slotText() {
-      if (!this.town || !this.route) return "";
+      if (!this.route) return "";
+      // an extraordinary route of the point, with its own time slot there
+      const own = extraSlotLink(this.routeItem);
+      if (own) return slotOf(own, this.route).text;
+      if (!this.town) return "";
       const link = this.cityRoutes.find(cr => idOf(cr.city) === this.town.id && idOf(cr.route) === this.route.id);
       return slotOf(link, this.route).text;
     },
@@ -389,10 +463,16 @@ export default {
           farmPickup: this.farmPickup,
           collectionPoint: this.collectionPoint,
           pickupRoute: this.pickupRoute,
-          pickupDate: this.pickupDate
+          pickupDate: this.pickupDate,
+          point: this.point
         },
         this.quote,
-        { member: this.member ? this.memberName(this.member) : "", town: this.town ? this.town.name : "", deliveryTypeName: type ? type.name : "" }
+        {
+          member: this.member ? this.memberName(this.member) : "",
+          town: this.town ? this.town.name : this.point ? this.point.city || "" : "",
+          deliveryTypeName: type ? type.name : "",
+          routeTag: this.routeTagText
+        }
       );
     },
     exportName() {
@@ -412,7 +492,7 @@ export default {
       const me = (await api.get("users/me")).data;
       this.me = me;
       this.permissions = (me.permissions || []).map(p => p.permission);
-      const [org, pickups, types, rates, routes, cities, cityRoutes, closures] = await Promise.all([
+      const [org, pickups, types, rates, routes, cities, cityRoutes, closures, points, pointRouteRows] = await Promise.all([
         api.get("me").then(r => r.data).catch(() => ({})),
         api.get("pickups?_limit=-1").then(r => r.data),
         api.get("delivery-types?_limit=-1").then(r => r.data),
@@ -420,8 +500,13 @@ export default {
         api.get("routes?_limit=-1&_sort=order:ASC&_where[active]=true").then(r => r.data),
         api.get("cities?_limit=-1&_sort=name").then(r => r.data),
         api.get("city-routes/basic").then(r => r.data),
-        api.get("route-festives?_limit=-1").then(r => r.data).catch(() => [])
+        api.get("route-festives?_limit=-1").then(r => r.data).catch(() => []),
+        // the delivery points and their route settings (issues/351)
+        api.get("contacts/for-orders?owned=1").then(r => r.data).catch(() => []),
+        service({ requiresAuth: true }).get("point-routes?_limit=-1").then(r => r.data).catch(() => [])
       ]);
+      this.points = (Array.isArray(points) ? points : []).map(c => ({ ...c, display: contactLabel(c) }));
+      this.pointRouteRows = Array.isArray(pointRouteRows) ? pointRouteRows : [];
       this.ordersOptions = (org && org.orders_options) || {};
       this.pickups = pickups || [];
       this.deliveryTypes = types || [];
@@ -542,12 +627,39 @@ export default {
         this.pendingCollection = null;
       }
     },
+    pointLabel(c) {
+      return c ? c.display || contactLabel(c) : "";
+    },
+    pointName(c) {
+      return c ? contactName(c) : "";
+    },
+    // A delivery point: its town and its routes; the main route chosen for
+    // her, as the order form does (issues/351).
+    selectPoint(p) {
+      this.point = p || null;
+      this.pointHasOtherOrder = false;
+      const key = name =>
+        String(name || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim()
+          .toLowerCase();
+      this.town = p ? this.cities.find(c => key(c.name) === key(p.city)) || null : null;
+      this.townSearch = "";
+      this.clearRoute();
+      const main = this.routeOptions.find(item => item.main);
+      const chosen = this.routeOptions.length === 1 ? this.routeOptions[0] : main;
+      if (chosen) this.selectRoute(chosen.route.id);
+    },
     selectTown(t) {
       this.town = t || null;
+      this.clearRoute();
+      if (this.routeOptions.length === 1) this.selectRoute(this.routeOptions[0].route.id);
+    },
+    clearRoute() {
       this.routeId = null;
       this.date = null;
       this.dateWarning = "";
-      if (this.routesOfTown.length === 1) this.selectRoute(this.routesOfTown[0].id);
     },
     selectRoute(id) {
       this.routeId = id;
@@ -567,6 +679,7 @@ export default {
     // the member's orders on the route: the pending ones (rate of a farm
     // pickup) and those of the day (volume discount)
     async loadMemberOrders() {
+      this.checkPoint();
       if (!this.memberId || !this.routeId) {
         this.pendingOrders = [];
         this.routeOrders = [];
@@ -585,6 +698,30 @@ export default {
         this.routeOrders = [];
         this.pendingOrders = [];
       }
+    },
+    // Another order to the point that day, of anyone, makes the multidelivery
+    // discount: the server's own check, the order form's (check-multidelivery).
+    async checkPoint() {
+      this.pointHasOtherOrder = false;
+      if (!this.point || !this.date || !this.memberId) return;
+      const key = [this.point.id, moment(this.date).format("YYYY-MM-DD"), this.memberId, this.routeId].join(":");
+      try {
+        const res = await service({ requiresAuth: true }).post("orders/check-multidelivery", {
+          contactId: this.point.id,
+          date: moment(this.date).format("YYYY-MM-DD"),
+          ownerId: this.memberId,
+          routeId: this.routeId,
+          status: "pending"
+        });
+        const now = this.point && this.date ? [this.point.id, moment(this.date).format("YYYY-MM-DD"), this.memberId, this.routeId].join(":") : "";
+        if (now !== key) return;
+        this.pointHasOtherOrder = Boolean(res && res.data && Number(res.data.multidelivery_discount) > 0);
+      } catch (e) {
+        this.pointHasOtherOrder = false;
+      }
+    },
+    routeTags(item) {
+      return routeTags(item);
     },
     money(v) {
       return formatMoney(Number(v) || 0);
@@ -651,6 +788,16 @@ export default {
   font-size: .6875rem;
   font-weight: 600;
   color: var(--a-muted);
+}
+.pill-tag {
+  display: inline-block;
+  margin-left: .375rem;
+  padding: 0 .375rem;
+  border-radius: 999px;
+  font-size: .6875rem;
+  font-weight: 700;
+  background: var(--a-chip);
+  color: var(--a-fg);
 }
 .quote-list {
   display: grid;

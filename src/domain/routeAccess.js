@@ -84,6 +84,8 @@ export const ROUTE_PERMISSIONS = {
   '/avisos': LOGISTICS,
   // the logistics simulator (issues/361)
   '/simulador-logistic': [...MEMBER, ...OFFICE],
+  // ask for a new delivery point (issues/357)
+  '/consulta-punt-entrega': [...MEMBER, ...OFFICE],
   '/punts-recollida': [...MEMBER, ...OFFICE],
   '/factures-proveidor': MEMBER,
   '/contacta': MEMBER,

@@ -62,7 +62,9 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'city', label: 'Poblacions' },
       { entity: 'route-rate', label: 'Tarifes de ruta' },
       // issues/313
-      { entity: 'route-pickup-notice', label: 'Avisos de dipòsit' }
+      { entity: 'route-pickup-notice', label: 'Avisos de dipòsit' },
+      // issues/431: admins only (not in OFFICE_TABLES)
+      { entity: 'incidence-category', label: "Categories d'incidència" }
     ]
   }
 ]

@@ -67,6 +67,16 @@ export const CHANGELOG = [
       text: "En mode fosc, la llista dels desplegables (com el de l'any a Ingressos i despeses) es veia blanca amb lletra gris clar. Ara tots els desplegables tenen el fons fosc i la lletra clara."
     },
     {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A ", { to: "/consulta-punt-entrega", label: "Consulta i autorització nou punt d'entrega" }, " l'oficina aprova o rebutja cada consulta, amb un missatge opcional, i la sòcia en rep un correu. D'una consulta aprovada, «Crea el punt d'entrega» obre el punt ja omplert (sòcia, nom, adreça, població i CP, franges de l'horari, notes) i el deixa enllaçat a la consulta. Les consultes decidides es poden arxivar perquè la llista no porti tot l'històric."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Al ", { to: "/simulador-logistic", label: "Simulador" }, " pots triar el punt d'entrega en lloc de la població: surten les rutes del punt (sense les anul·lades, amb les extraordinàries i el seu horari, i la principal la primera i ja triada) i el preu hi aplica tots els descomptes del punt: el descompte de recollida del punt i el multientrega si aquell dia ja hi ha una altra comanda al punt, a més del de volum i el recàrrec fora de temps."]
+    },
+    {
       type: "Correccions",
       modules: ["Logística", "Plataforma"],
       text: ["Els camps amb errors o que falten tornen a sortir en vermell a tots els formularis. A la fitxa de punt d'entrega (", { to: "/clientes", label: "Punts d'entrega" }, "), en desar, cada camp en vermell diu què hi falta (també el sector i els horaris de contacte), l'avís diu quins camps cal revisar, i el vermell desapareix en corregir-los."]
@@ -89,8 +99,58 @@ export const CHANGELOG = [
   ]
 },
 {
+  date: "2026.11.16",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["L'oficina pot canviar les rutes d'un punt d'entrega concret, a la seva fitxa, a «Rutes del punt»: anul·lar-hi una ruta de la població, afegir-hi una ruta extraordinària (amb el seu horari en aquell punt) i marcar-ne una com a principal, que surt la primera i ja triada a la comanda. Les sòcies només poden enviar comandes a un punt per les seves rutes. A ", { to: "/clientes", label: "Punts d'entrega" }, ", l'etiqueta «Rutes especials» i la casella «Amb rutes especials» mostren els punts amb aquestes excepcions."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Les comandes de recollida (-R) ja no tenen mai descompte multientrega, ni en donen a les altres comandes del mateix punt aquell dia: no són una entrega. Amb el descompte de recollida al damunt, algunes -R sortien amb un import negatiu. Les comandes no facturades que el tenien per error l'han perdut; les facturades conserven l'import amb què es van facturar."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A la fitxa i al formulari de comanda i a ", { to: "/comandes", label: "Comandes" }, ", els descomptes surten en l'ordre en què s'apliquen: primer el descompte de volum (en euros) i després els percentatges (multientrega, recollida). El preu ja es calculava així: per exemple, 12,07 € − 2 € = 10,07 €, i amb el 20 % de multientrega, 8,06 €."]
+    }
+  ]
+},
+{
   date: "2026.11.12",
   items: [
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", l'exportació «Per al planificador de rutes (.csv)» posa el número de comanda davant del nom a la columna «NOM CLIENT» («25770 - Formatgeria La Cleda») i ja no té la columna «ID COMANDA». A l'albarà, el número de comanda és tan gran com la data."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", les columnes de «Comandes (.ods)» i «Exporta selecció» tenen noms en català (Nom comercial, Raó social, Ruta, Sòcia, Data prevista d'entrega…) en lloc dels noms tècnics. L'exemple CSV per importar comandes no canvia."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Cada incidència nova té una categoria (Paquet perdut, Retard en l'entrega, Falta albarà, Altres causes…), que es tria en crear-la; la descripció passa a ser opcional. A ", { to: "/incidencies", label: "Incidències" }, " es pot filtrar per categoria i corregir-la, i l'exportació porta la categoria i les respostes («Usuària - data - missatge»). Les persones administradores editen la llista a Taules auxiliars › Logística › Categories d'incidència."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Nova pestanya ", { to: "/consulta-punt-entrega", label: "Consulta i autorització nou punt d'entrega" }, " al costat del Simulador: les sòcies demanen un punt d'entrega on encara no arribem (nom comercial, població, adreça, horari, pes estimat i notes). L'oficina en rep un correu i respon per correu; la llista guarda qui l'ha feta, quan i si ja està resposta."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", les comandes de recollida (-R) es despleguen per veure les comandes que agrupen, amb la recollida i l'entrega previstes de cadascuna, que es poden editar a la mateixa fila. Moure la data o la ruta d'una -R mou la recollida de totes les seves comandes alhora; moure'n una sola la passa a una altra -R. Cap recollida no pot quedar després de l'entrega: si un canvi ho faria, no es desa i un avís diu quines comandes ho impedeixen, amb un enllaç a cadascuna."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Facturació automàtica: amb «Habilitar facturació automàtica» al projecte de logística del trimestre (el que porta el trimestre al nom, com «4T 2026 - Logística», el mateix que proposa Facturar), el penúltim dia laborable del mes a les 14:10 es generen sols els esborranys del mes (totes les comandes amb entrega prevista del mes i les pendents de mesos anteriors), amb data de l'últim dia del mes. L'informe «FACTURACIÓ AUTOMÀTICA» arriba per correu amb el quadrament amb Comandes i les incidències; la sòcia que no pot tenir esborrany en rep un avís. A ", { to: "/comandes-per-facturar", label: "Facturar" }, " es pot previsualitzar un mes i generar-lo a mà, i crear en un clic el projecte del trimestre que falta, amb les dates del trimestre i una fase «Logística»."]
+    },
     {
       type: "Millores",
       modules: ["Informes"],

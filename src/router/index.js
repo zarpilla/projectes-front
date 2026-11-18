@@ -498,6 +498,17 @@ const routes = [
   },
   {
     meta: {
+      title: "Consulta nou punt d'entrega",
+      requiresAuth: true
+    },
+    // ask for a delivery point where there is no service yet (issues/357)
+    path: "/consulta-punt-entrega",
+    name: "delivery-point.request",
+    component: () =>
+      import("../views/DeliveryPointRequest.vue"),
+  },
+  {
+    meta: {
       title: "Poblacions i punts d'entrega",
       requiresAuth: true
     },

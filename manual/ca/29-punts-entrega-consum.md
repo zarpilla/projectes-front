@@ -8,7 +8,7 @@ order: 29
 roles: [orders, orders_admin, orders_delivery]
 routes: ["/clientes", "/punt-entrega/:id", "/punts-recollida"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-16
 ---
 # 29. Punts d'entrega i de consum
 
@@ -163,6 +163,34 @@ Qui ho veu:
   les comandes que hi van, encara que siguin d'altres sòcies.
 - **L'oficina**: totes.
 
+### 7. Les rutes del punt (oficina)
+
+Un punt d'entrega té les rutes de la seva població (vegeu [30](30-poblacions-rutes-dies.md#2-poblacions-i-rutes)).
+Quan un punt concret s'ha de tractar diferent, l'oficina ho canvia a la seva fitxa, a **Rutes del punt**. Els
+canvis es desen a l'acte, sense prémer **Guardar**. La repartidora i la sòcia no veuen aquest apartat.
+
+- **Anul·lada**: una ruta de la població que no s'ofereix en aquest punt (per exemple, la de dilluns, si
+  aquell dia no s'hi pot arribar). L'interruptor la torna a activar quan calgui; no té data de final.
+- **Afegeix una ruta extraordinària**: una ruta que no passa per la població però sí per aquest punt, per
+  exemple per un acord amb l'oficina. S'afegeix a les de la població, no les substitueix. La **Franja** és
+  opcional: si s'omple, és l'horari que veu la sòcia per a aquesta ruta en aquest punt; si no, el de la ruta.
+  La paperera la treu.
+- **Principal**: la ruta que surt la primera, marcada «principal», i ja triada quan la sòcia tria el punt (la
+  pot canviar). Només n'hi pot haver una; marcar-ne una altra treu la marca de l'anterior, i tornar a fer clic a
+  la mateixa la treu. Sense ruta principal, totes surten al mateix nivell.
+
+Les tres opcions es poden combinar: anul·lar la ruta de dilluns i posar com a principal una ruta extraordinària
+de dimarts, per exemple. Valen per a les entregues i per a les recollides a finca (la **Ruta de recollida** del
+punt de recollida).
+
+Una sòcia només pot enviar comandes a un punt per les seves rutes, des de la fitxa, des de la importació CSV o
+des de l'API: si no, surt *La ruta «…» no passa pel punt d'entrega (…)*. Les comandes que ja tenien la ruta
+abans del canvi la conserven. L'oficina pot posar qualsevol ruta.
+
+A la llista de punts d'entrega, els punts amb alguna d'aquestes opcions porten l'etiqueta **Rutes especials**
+(en passar-hi el ratolí, diu quines), i la casella **Amb rutes especials** mostra només aquests punts, per
+revisar-los i treure les excepcions que ja no calguin. L'exportació porta la columna **RutesEspecials**.
+
 ## Camps i opcions
 
 | Camp | Què vol dir | Obligatori |
@@ -194,6 +222,8 @@ Qui ho veu:
   noves.
 - **Puc veure un punt que no és meu?** Sí, si és compartit (**Totes** / **Multientrega**) o si hi has enviat
   alguna comanda. També el pots corregir.
+- **Una sòcia no veu una ruta que passa per la població del punt.** Potser l'oficina l'ha anul·lada per a
+  aquell punt: a la fitxa, **Rutes del punt** (vegeu el pas 7).
 - **Vull esborrar un punt.** Ho ha de fer l'oficina, i només si no té comandes. Si està repetit, primer
   **Unifica punts** i després esborrar el que sobra.
 

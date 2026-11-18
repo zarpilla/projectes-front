@@ -117,6 +117,8 @@ export const quoteCollection = (input, ctx = {}) => {
 /**
  * The quote. `input`:
  *   route, date, kilograms, deliveryType (id), warehouse (pickup row),
+ *   point (the delivery point, optional: its «Descompte recollida» comes off
+ *     the order, as the order form copies it to contact_pickup_discount),
  *   farmPickup (the farm pickup row when there is a pickup at the farm, else null),
  *   collectionPoint (the farm's collection point contact: the order takes the
  *     warehouses' rates and the pickup is a -R, see quoteCollection)
@@ -167,11 +169,14 @@ export const quoteOrder = (input, ctx = {}) => {
   const late = Boolean(!ctx.exempt && date && isLateDelivery(date, ctx.now || new Date(), rules));
   const late_surcharge = late ? rules.lateSurcharge : 0;
 
+  // the delivery point's «Descompte recollida» (contact-snapshot.js)
+  const contact_pickup_discount = Number(input.point && input.point.pickup_discount) || 0;
+
   const order = {
     price,
     volume_discount,
     multidelivery_discount,
-    contact_pickup_discount: 0,
+    contact_pickup_discount,
     late_order: late,
     late_surcharge
   };
@@ -182,6 +187,7 @@ export const quoteOrder = (input, ctx = {}) => {
     volume: { discount: volume_discount, fromOrders: volumeOrders, amount: volumePrice, orders: others + 1 },
     multidelivery: { discount: multidelivery_discount, percent: multideliveryPct },
     late: { late, surcharge: late_surcharge },
+    pointDiscount: contact_pickup_discount,
     orderTotal: invoicedPrice(order),
     collection,
     total: Math.round((invoicedPrice(order) + (collection ? collection.extra : 0)) * 100) / 100,
@@ -190,12 +196,13 @@ export const quoteOrder = (input, ctx = {}) => {
 };
 
 // The rows of the quote export (.ods), label and value
-export const quoteRows = (input, quote, { member = "", town = "", deliveryTypeName = "" } = {}) => {
+export const quoteRows = (input, quote, { member = "", town = "", deliveryTypeName = "", routeTag = "" } = {}) => {
   const money = v => Math.round((Number(v) || 0) * 100) / 100;
   const rows = [
     ["Sòcia", member],
+    ["Punt d'entrega", input.point ? input.point.trade_name || input.point.name || `#${input.point.id}` : ""],
     ["Població", town],
-    ["Ruta", input.route ? input.route.name : ""],
+    ["Ruta", input.route ? `${input.route.name}${routeTag ? ` (${routeTag})` : ""}` : ""],
     ["Data prevista", input.date ? moment(input.date).format("DD/MM/YYYY") : ""],
     ["Tipus de servei", deliveryTypeName],
     ["Magatzem d'origen", input.warehouse ? input.warehouse.name : ""],
@@ -206,6 +213,7 @@ export const quoteRows = (input, quote, { member = "", town = "", deliveryTypeNa
     ["Preu de la ruta (€)", money(quote.price)],
     ["Descompte per volum (€)", money(quote.volume.discount)],
     ["Descompte multientrega (%)", quote.multidelivery.discount],
+    ["Descompte recollida del punt (%)", quote.pointDiscount],
     ["Recàrrec fora de temps (%)", quote.late.surcharge],
     ["Total comanda (€)", money(quote.orderTotal)]
   ];

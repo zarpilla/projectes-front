@@ -8,7 +8,7 @@ order: 28
 roles: [orders, orders_admin, orders_delivery]
 routes: ["/comandes", "/comanda/:id", "/comanda/veure/:id"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-11-16
 ---
 # 28. Comandes
 
@@ -104,7 +104,9 @@ La repartidora veu la mateixa llista que l'oficina. Per a la seva feina del dia 
    punt. **Edita el punt** obre les dades del punt per corregir-les; si el punt no hi és, **Nou punt** el crea
    (vegeu [29. Punts d'entrega i de consum](29-punts-entrega-consum.md)).
 3. **Ruta**: surten les rutes que passen per la població del punt, cadascuna amb el dia de la setmana que fa.
-   Cal triar-la segons el dia i la destinació, perquè en depèn la tarifa.
+   Cal triar-la segons el dia i la destinació, perquè en depèn la tarifa. Si l'oficina ha canviat les rutes
+   d'aquell punt, en surten les del punt: la **principal** primer i ja triada, i les **extraordinàries** amb
+   el seu horari (vegeu [29](29-punts-entrega-consum.md#7-les-rutes-del-punt-oficina)).
 
    ![El punt triat i les rutes que hi passen](img/28-comandes/04-punt-i-rutes.png)
 
@@ -269,6 +271,21 @@ comandes associades (no es poden canviar). A baix, **Comandes a recollir** les l
 
 Una comanda de recollida que es queda sense cap comanda associada s'anul·la sola. No té albarà.
 
+A la llista de **Comandes**, el botó de la fletxa al costat del número d'una -R desplega les comandes que
+agrupa, sobre un fons de color i amb el títol **Comanda de recollida agrupada**. Cada fila mostra la
+**Recollida prevista** i l'**Entrega prevista** (data i ruta); el llapis les edita a la mateixa fila, i el
+número obre la fitxa de la comanda en una pestanya nova.
+
+- **Moure-les totes alhora**: edita la data (**Prevista**) o la **Ruta** de la -R, a la llista o a la fitxa.
+  La recollida de totes les comandes obertes del grup canvia amb ella, encara que abans se n'hagi mogut alguna
+  per separat (mana l'últim canvi).
+- **Moure'n una sola**: canvia-li la data o la ruta de recollida. Surt de la -R, que es queda amb el seu número,
+  i va a la -R de la sòcia per al nou dia i ruta (si no n'hi ha cap, se'n crea una amb un número nou).
+
+Primer es recull i després s'entrega: cap recollida no pot quedar després de l'entrega prevista de la seva
+comanda. Si un canvi ho faria, no es desa i surt un avís amb les comandes afectades; cada número obre la comanda
+en una pestanya nova, per canviar-ne abans la data d'entrega o moure-la per separat.
+
 ### 9. Imprimir albarans
 
 **Imprimeix albarà** (a la fitxa), **Albarà** (al seguiment) o, a la llista, marcar comandes i **Imprimeix
@@ -314,7 +331,8 @@ El menú **Exporta** descarrega la llista que es veu (o només les comandes marc
 
 ![El menú Exporta de l'oficina](img/28-comandes/09-menu-exporta.png)
 
-- **Comandes (.ods)**: les comandes, amb el preu de la ruta, els descomptes i el preu final.
+- **Comandes (.ods)**: les comandes, amb el preu de la ruta, els descomptes i el preu final. Les columnes
+  tenen el mateix nom que a la pantalla (*Nom comercial*, *Ruta*, *Sòcia*…).
 - **Per al planificador de rutes (.csv)** i **Per a Ecologística (.ods)**: formats per a programes de
   planificació de rutes (només oficina i repartidora).
 - **Exemple CSV de comandes** i **Exemple CSV de punts d'entrega**: els fitxers d'exemple per importar.

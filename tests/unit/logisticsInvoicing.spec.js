@@ -1,23 +1,9 @@
-// "Facturar": orders grouped by member and month, and the quarter's project
+// "Facturar": orders grouped by member and month
 import { describe, it, expect } from 'vitest'
-import { projectQuarter, quarterOf, quarterProject, invoicedPrice, groupOrders } from '@/domain/logisticsInvoicing.js'
+import { invoicedPrice, groupOrders } from '@/domain/logisticsInvoicing.js'
 
 describe('logisticsInvoicing', () => {
-  it('reads the quarter of the many ways logistics projects are named', () => {
-    expect(projectQuarter('3T 2026 - Logística')).toEqual({ year: 2026, quarter: 3 })
-    expect(projectQuarter('Logística - 2025 - 2T')).toEqual({ year: 2025, quarter: 2 })
-    expect(projectQuarter('2025 4T - Logística')).toEqual({ year: 2025, quarter: 4 })
-    expect(projectQuarter('LOGÍSTICA - 2024 - 3T')).toEqual({ year: 2024, quarter: 3 })
-    expect(projectQuarter('Logística - 2024')).toBeNull()
-    expect(projectQuarter('Formació 1T 2026')).toBeNull()
-    expect(quarterOf('2026-10')).toEqual({ year: 2026, quarter: 4 })
-  })
-
-  it('finds the project of the quarter, or says which is the latest', () => {
-    const projects = [{ id: 1, name: 'Logística - 2025 - 2T' }, { id: 2, name: '3T 2026 - Logística' }, { id: 3, name: '1T 2026 - Logística' }, { id: 4, name: 'Altres' }]
-    expect(quarterProject(projects, { year: 2026, quarter: 3 })).toEqual({ match: projects[1], latest: projects[1] })
-    expect(quarterProject(projects, { year: 2026, quarter: 4 })).toEqual({ match: null, latest: projects[1] })
-  })
+  // the quarter's project: the API's rule (projectes-v5 quarter-project.js, issues/430)
 
   it('prices and groups the orders as the invoice does', () => {
     // issues/145: (12 − 2) × (1 − (20 + 50) / 100); it compounded the percentages (4)

@@ -24,7 +24,9 @@ const BACKEND_ENTITIES = [
   // issues/310: the holidays for everyone
   'festive',
   // «Sèries de projecte» (2026-11-06)
-  'project-serie'
+  'project-serie',
+  // issues/431
+  'incidence-category'
 ]
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"

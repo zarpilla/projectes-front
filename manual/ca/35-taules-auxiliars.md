@@ -73,6 +73,11 @@ pes:
 - **Cada kg de més de 60**: per sobre de 60 kg, el preu de 60 kg més aquest import per cada kg.
 - **Per línia de punt de recollida**: es suma per cada línia que va a un punt de recollida.
 
+Al mateix grup, **Categories d'incidència** (només el permís `admin`): les causes que es trien en obrir una
+incidència (*Paquet perdut*, *Retard en l'entrega*, *Altres causes*…). Cada categoria té un **Nom** i un **Ordre**
+(la posició a la llista, les més petites primer). Mentre n'hi hagi alguna, la categoria és obligatòria en totes
+les incidències noves (vegeu [32](32-incidencies-contacte.md)).
+
 **Contactes**: **Tipus de contacte** (clienta, proveïdora, intercooperació…), **Formes jurídiques**, **Regions**
 (l'àmbit territorial dels projectes), **Sectors** i **Entitats socials**.
 

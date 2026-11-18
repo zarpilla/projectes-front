@@ -53,6 +53,8 @@
           <option v-for="name in pointOwners" :key="name" :value="name">{{ name }}</option>
         </b-select>
       </label>
+      <!-- the points the office changed the routes of (issues/351) -->
+      <b-checkbox v-if="orders_admin && pointRoutes.length" v-model="onlySpecialRoutes" class="filter-check" data-test="special-routes-filter">Amb rutes especials</b-checkbox>
       <span class="contacts-count">{{ filteredPoints.length }} {{ filteredPoints.length === 1 ? "punt" : "punts" }}</span>
       <div class="contacts-actions">
         <download-excel class="export" :data="filteredPoints" :escapeCsv="false" name="punts-entrega" :fields="csv2">
@@ -115,6 +117,7 @@
             {{ props.row.trade_name || props.row.name || "(sense nom)" }}
           </router-link>
           <span class="contact-subline">{{ [props.row.trade_name && props.row.name !== props.row.trade_name ? props.row.name : "", props.row.nif].filter(Boolean).join(" · ") || "—" }}</span>
+          <span v-if="props.row.route_settings" class="tag is-warning is-light special-routes" :title="props.row.route_settings" data-test="special-routes">Rutes especials</span>
         </b-table-column>
         <b-table-column label="Població" field="city" sortable v-slot="props">
           {{ props.row.city || "—" }}
@@ -153,6 +156,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import ModalBoxUnifyContacts from "@/components/ModalBoxUnifyContacts.vue";
 import { formatNumber } from "@/helpers/format-number";
+import { rowsOfPoint, settingsSummary } from "@/domain/pointRoutes.js";
 
 export default {
   name: "ContactsTable",
@@ -171,6 +175,9 @@ export default {
       search: "",
       typeFilter: "",
       pointOwner: null,
+      // «Rutes del punt» of every point (issues/351)
+      pointRoutes: [],
+      onlySpecialRoutes: false,
       isLoading: false,
       isUnifyModalActive: false,
       contacts: [],
@@ -226,6 +233,7 @@ export default {
         ContacteDe: "contact_of_display",
         TipusContacte: "contact_type_display",
         Horaris: "timeSlot1And2",
+        RutesEspecials: "route_settings",
         notes: "notes",
         Comandes: "num_orders",
         Rutes: "routes",
@@ -246,6 +254,7 @@ export default {
     filteredPoints() {
       const words = this.search.trim().toLowerCase().split(/\s+/).filter(Boolean);
       return (this.contacts || []).filter(c => {
+        if (this.onlySpecialRoutes && !c.route_settings) return false;
         if (this.pointOwner) {
           const owner = c.owner ? c.owner.fullname || c.owner.username : "";
           if (owner !== this.pointOwner && !(c.owners_flattened || "").split(/,\s*/).includes(this.pointOwner)) return false;
@@ -336,10 +345,13 @@ export default {
       const q = this.filters.q ? `&_q=${this.filters.q}` : "";
 
       if (this.orders_admin) {
-        const [contacts, withOrders] = await Promise.all([
+        const [contacts, withOrders, pointRoutes] = await Promise.all([
           get(`contacts/basic?_limit=-1&_sort=name:ASC${q}&_where[owner_ne]=null`),
-          this.filters.q ? [] : get("contacts/orders?_limit=-1&_sort=name:ASC")
+          this.filters.q ? [] : get("contacts/orders?_limit=-1&_sort=name:ASC"),
+          // never in the way of the points (issues/351)
+          Promise.resolve().then(() => get("point-routes?_limit=-1")).catch(() => [])
         ]);
+        this.pointRoutes = Array.isArray(pointRoutes) ? pointRoutes : [];
         this.cities = [];
         return this.mergeOrders(contacts, withOrders, true);
       }
@@ -408,7 +420,12 @@ export default {
           ", "
         )}`,
         num_orders: contact.num_orders || 0,
-        routes: city ? city.routes : null
+        routes: city ? city.routes : null,
+        // «Principal: X · Extraordinària: Y · Anul·lada: Z» (issues/351)
+        route_settings: settingsSummary(rowsOfPoint(this.pointRoutes, contact.id), routeId => {
+          const row = this.pointRoutes.find(r => r.route && r.route.id === routeId);
+          return row ? row.route.short_name || row.route.name : "";
+        })
       };
     },
     formatSlot2(s1, s2, prefix) {
@@ -501,6 +518,10 @@ export default {
 }
 .contact-name:hover {
   color: var(--a-accent);
+}
+.special-routes {
+  margin-top: .25rem;
+  cursor: help;
 }
 .contacts-toolbar :deep(.filter-select select) {
   max-width: 14rem;

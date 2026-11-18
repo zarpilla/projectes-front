@@ -8,7 +8,8 @@ const fieldCaptions = {
   year: 'Any',
   month: 'Mes',
   owner_name: 'Nom Sòcia',
-  created_user: 'Usuari'
+  created_user: 'Usuari',
+  category: 'Categoria'
 }
 
 const config = {
@@ -16,6 +17,11 @@ const config = {
   sortable: false,
   dataSource: {
     columns: [      
+      // issues/431: the category first, the cause of the incidences at a glance
+      {
+        name: 'category',
+        expand: false
+      },
       {
         name: 'state',
         expand: false
@@ -85,6 +91,10 @@ const config = {
           },
           closed_user: {
             type: 'string'
+          },
+          // issues/431
+          category: {
+            type: 'string'
           }
         }
       },
@@ -116,6 +126,9 @@ const config = {
           },
           closed_user: {
             caption: 'Usuari Tancament (T)'
+          },
+          category: {
+            caption: 'Categoria (T)'
           }
         },
         measures: {

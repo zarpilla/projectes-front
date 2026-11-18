@@ -2,6 +2,8 @@
   <!-- Redesign A (mockup A-Log-Comandes): the orders of a day (or of any dates),
        grouped by route, with their logistics status. Filtering stays at the API. -->
   <div class="orders-page">
+    <!-- a pickup after its delivery: the save was refused (issues/429) -->
+    <modal-pickup-conflict :active="pickupConflict.active" :message="pickupConflict.message" :orders="pickupConflict.orders" @close="pickupConflict.active = false" />
     <b-loading
       :is-full-page="true"
       v-model="importing"
@@ -19,7 +21,7 @@
             class="export-item"
             :fetch="rowsToExport"
             :name="comandesCSVName()"
-            :fields="{ id: 'id', date: 'route_date', ...odsFields, ...csvExportFields }"
+            :fields="exportFields"
           >Comandes (.ods)</download-excel>
         </b-dropdown-item>
         <b-dropdown-item v-if="isStaff" aria-role="menuitem" @click="downloadRouterCSV">Per al planificador de rutes (.csv)</b-dropdown-item>
@@ -183,7 +185,7 @@
         <b-button size="is-small" :disabled="!newState" @click="setBulkState">Aplica</b-button>
         <span class="selection-actions">
           <b-button size="is-small" icon-left="printer" @click="pdfOrders">Imprimeix albarans</b-button>
-          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="{ id: 'id', date: 'route_date', ...odsFields, ...csvExportFields }">
+          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="exportFields">
             <b-button size="is-small" icon-left="download">Exporta selecció</b-button>
           </download-excel>
           <b-button size="is-small" type="is-text" @click="checkedRows = []">Desmarca</b-button>
@@ -257,11 +259,10 @@
                 <td :colspan="sumColsAfter"></td>
               </tr>
               <template v-if="!collapsed[group.key]">
+                <template v-for="(order, i) in group.rows" :key="order.id || 'new-' + i">
                 <tr
-                  v-for="(order, i) in group.rows"
-                  :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-alert': isLate(order) }"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-alert': isLate(order), 'is-collection': order.is_collection_order, 'is-expanded': isExpanded(order) }"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
@@ -270,7 +271,7 @@
                     <!-- quick edit (pencil) -->
                     <template v-if="editingRowId && editingRowId === order.id && quickEditField(col)">
                       <b-select v-if="col.edit === 'route'" v-model="editForm.route" size="is-small" @update:model-value="updateCalculatedPrice">
-                        <option v-for="r in routes" :key="r.id" :value="r.id">{{ r.name }}</option>
+                        <option v-for="r in quickEditRoutes" :key="r.id" :value="r.id">{{ r.name }}{{ r.point_main ? " (principal)" : "" }}</option>
                       </b-select>
                       <b-datepicker v-else-if="col.edit === 'estimated'" v-model="editForm.estimated_delivery_date" size="is-small" :show-week-number="false" locale="ca-ES" :first-day-of-week="1" placeholder="Data" />
                       <b-autocomplete
@@ -306,6 +307,19 @@
                     <template v-else-if="col.key === 'idx'">
                       <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
                       <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
+                      <!-- the orders a -R gathers, under it (issues/429) -->
+                      <button
+                        v-if="order.id && order.is_collection_order"
+                        type="button"
+                        class="collection-toggle"
+                        :aria-expanded="isExpanded(order) ? 'true' : 'false'"
+                        :title="isExpanded(order) ? 'Amaga les comandes agrupades' : 'Mostra les comandes agrupades'"
+                        :aria-label="isExpanded(order) ? 'Amaga les comandes agrupades' : 'Mostra les comandes agrupades'"
+                        data-test="collection-toggle"
+                        @click="toggleExpanded(order)"
+                      >
+                        <b-icon :icon="isExpanded(order) ? 'chevron-up' : 'chevron-down'" size="is-small" />
+                      </button>
                     </template>
                     <!-- every mark of the order as one icon (issues/315, proposal C) -->
                     <template v-else-if="col.key === 'signals'">
@@ -352,6 +366,18 @@
                     </template>
                   </td>
                 </tr>
+                <tr v-if="isExpanded(order)" class="collection-children-row">
+                  <td :colspan="visibleCols.length + 2">
+                    <collection-group-rows
+                      :key="`group-${order.id}-${expandedCollections[order.id]}`"
+                      :collection-order="order"
+                      :routes="routes"
+                      :can-edit="canEditOrder(order)"
+                      @changed="onGroupChanged(order)"
+                    />
+                  </td>
+                </tr>
+                </template>
               </template>
             </tbody>
             <tbody v-if="!isLoading && !groups.length">
@@ -433,7 +459,10 @@ import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage, leavingInvoicedTitle } from "@/domain/orderStatus";
-import { orderOdsFields, exportRows } from "@/domain/ordersExport";
+import { orderExportFields, exportRows } from "@/domain/ordersExport";
+import CollectionGroupRows from "@/components/CollectionGroupRows.vue";
+import ModalPickupConflict from "@/components/ModalPickupConflict.vue";
+import { conflictOrders, refusalMessage } from "@/domain/collectionGroup";
 import { signalWhere } from "@/domain/orderSignals";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
@@ -442,6 +471,8 @@ import { invoicedPrice } from "@/domain/logisticsInvoicing";
 import { lateSurchargeOf } from "@/domain/lateOrders";
 import { csvDiscountQuery, withCsvDiscounts, csvOrderPayload } from "@/domain/csvOrderPreview";
 import { repricesOrder } from "@/domain/orderReprice";
+import { pointRouteError, pointRoutesFor } from "@/domain/pointRoutes.js";
+import { isSubstituteDay } from "@/domain/routeClosures.js";
 
 // a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
 // example rows hold "1"/"0" strings (issues/251)
@@ -458,7 +489,9 @@ export default {
   components: {
     FileUpload,
     MoneyFormat,
-    TitleBar
+    TitleBar,
+    CollectionGroupRows,
+    ModalPickupConflict
   },
   props: {
     titleStack: {
@@ -496,6 +529,7 @@ export default {
       pickups: [],
       routerates: [],
       cityRoutes: [],
+      pointRoutes: [],
       cities: [],
       sociesContacts: [],
       checkedRows: [],
@@ -633,7 +667,12 @@ export default {
         preu_final: "finalPrice"
       },
       csvFieldsRouter: {
-        "NOM CLIENT": "contact_trade_name",
+        // «ID - Nom Comercial» in one column, so the planner shows the order
+        // number next to the client (issues/432; replaces «ID COMANDA», 350)
+        "NOM CLIENT": {
+          field: "contact_trade_name",
+          callback: (value, row) => [row.id, value].filter(v => v !== null && v !== undefined && v !== "").join(" - ")
+        },
         TELEFON: {
           field: "contact_phone",
           callback: value => {
@@ -666,9 +705,7 @@ export default {
         "ID CLIENT": "fullName",
         "DETALLS REPARTIDORES": {
           field: "notes_delivery"
-        },
-        // last, so the planner's existing columns keep their place (issues/350)
-        "ID COMANDA": "id"
+        }
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -825,6 +862,9 @@ export default {
       apiUrl: import.meta.env.VUE_APP_API_URL,
       showExport: false,
       editingRowId: null,
+      // the -R whose orders are shown under it: id → reload count (issues/429)
+      expandedCollections: {},
+      pickupConflict: { active: false, message: "", orders: [] },
       editForm: {},
       contacts: [],
       contactSearch: '',
@@ -846,6 +886,11 @@ export default {
     };
   },
   computed: {
+    // the office and the staff put any route on an order (issues/351)
+    routeRulesExempt() {
+      const p = this.permissions || [];
+      return p.includes("orders_admin") || p.includes("admin") || p.includes("projects");
+    },
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
     },
@@ -1040,8 +1085,9 @@ export default {
       // the table matches the checked rows by identity (issues/038)
       return this.orders;
     },
-    odsFields() {
-      return orderOdsFields(this.csvFields);
+    // Catalan column names (issues/349)
+    exportFields() {
+      return orderExportFields(this.csvFields, this.csvExportFields);
     },
     theOrdersChecked() {
       return this.checkedRows.length
@@ -1063,6 +1109,27 @@ export default {
     },
     sumPrice() {
       return _.sumBy(this.sumRows, o => Number(o.finalPrice) || 0);
+    },
+    // the routes the quick edit offers: a member, the point's (issues/351),
+    // and the one the order has; the office, all of them
+    quickEditRoutes() {
+      if (this.routeRulesExempt || !this.editForm || !this.editForm.contact) return this.routes;
+      const order = this.editingOrder || {};
+      const sameContact = order.contact && order.contact.id === this.editForm.contact;
+      const listed = (this.contacts || []).find(c => c.id === this.editForm.contact);
+      const city = sameContact ? order.contact_city || order.contact.city : listed && listed.city;
+      const { known, routes } = pointRoutesFor({
+        contact: { id: this.editForm.contact, city },
+        cities: this.cities,
+        cityRoutes: this.cityRoutes,
+        rows: this.pointRoutes,
+        allRoutes: this.routes
+      });
+      if (!known) return this.routes;
+      const offered = routes.map(r => ({ ...r.route, point_main: r.main }));
+      const current = this.routes.find(r => r.id === this.editForm.route);
+      if (current && !offered.some(r => r.id === current.id)) offered.push(current);
+      return offered;
     },
     filteredContacts() {
       return this.contacts.filter(option => {
@@ -1200,6 +1267,19 @@ export default {
     // the order's card: the staff open it for the moves too
     canOpenOrder(order) {
       return mayOpenOrder(order, this.permissions);
+    },
+    isExpanded(order) {
+      return Boolean(order && order.id && this.expandedCollections[order.id]);
+    },
+    toggleExpanded(order) {
+      const next = { ...this.expandedCollections };
+      if (next[order.id]) delete next[order.id];
+      else next[order.id] = 1;
+      this.expandedCollections = next;
+    },
+    // an order moved out of the -R: the list's figures change, the group reloads
+    async onGroupChanged() {
+      await this.setStatusFilter({ ctrlKey: false, metaKey: false });
     },
     startEdit(order) {
       this.editingRowId = order.id;
@@ -1355,6 +1435,10 @@ export default {
         );
 
         this.cancelEdit();
+        // its orders moved with it: the open group shows them again (issues/429)
+        if (this.expandedCollections[order.id]) {
+          this.expandedCollections = { ...this.expandedCollections, [order.id]: this.expandedCollections[order.id] + 1 };
+        }
         
         this.$buefy.snackbar.open({
           message: "Comanda actualitzada correctament",
@@ -1364,6 +1448,12 @@ export default {
         // Refresh the data to get the updated order with all relationships
         await this.setStatusFilter({ ctrlKey: false, metaKey: false });
       } catch (error) {
+        // a moved -R whose orders would be delivered before it (issues/429)
+        const orders = conflictOrders(error);
+        if (orders.length) {
+          this.pickupConflict = { active: true, message: refusalMessage(error, ""), orders };
+          return;
+        }
         this.$buefy.snackbar.open({
           message: error.response?.data?.message || "Error actualitzant la comanda",
           type: "is-danger"
@@ -1697,6 +1787,11 @@ export default {
       this.cities = (
         await service({ requiresAuth: true }).get("cities?_limit=-1")
       ).data;
+
+      // the delivery points' own routes, for the CSV import (issues/351)
+      this.pointRoutes = (
+        await service({ requiresAuth: true }).get("point-routes?_limit=-1").catch(() => ({ data: [] }))
+      ).data || [];
 
       // Load socies contacts for collection points
       this.sociesContacts = (
@@ -2037,6 +2132,24 @@ export default {
             error: `Ruta ${record.route_name} no trobada (route_name)`
           });
           return false;
+        }
+
+        // a member's row on a route that doesn't stop at the point (issues/351)
+        if (!this.routeRulesExempt) {
+          const day = record.estimated_delivery_date ? moment(record.estimated_delivery_date, "YYYYMMDD").format("YYYY-MM-DD") : null;
+          const wrongRoute = pointRouteError({
+            contact,
+            route,
+            isSubstitute: day ? isSubstituteDay(route, day, closures) : false,
+            cities: this.cities,
+            cityRoutes: this.cityRoutes,
+            rows: this.pointRoutes,
+            allRoutes: this.routes
+          });
+          if (wrongRoute) {
+            this.csvErrors.push({ line: i, error: wrongRoute });
+            return false;
+          }
         }
 
         const routeDate = assignRouteDate(route, {
@@ -2672,7 +2785,7 @@ export default {
           } else if (typeof fieldDef === 'object' && fieldDef.field) {
             // Field with callback
             const rawValue = this.getNestedValue(row, fieldDef.field);
-            value = fieldDef.callback ? fieldDef.callback(rawValue) : rawValue;
+            value = fieldDef.callback ? fieldDef.callback(rawValue, row) : rawValue;
           }
           
           // Handle null/undefined
@@ -2841,10 +2954,12 @@ export default {
       // from the fields, not from finalPrice ≠ price: +25 % and −20 % cancel out
       if (order.finalPrice === undefined || order.finalPrice === null) return [];
       const pct = v => `${formatNumber(v, 2)} %`;
+      // in the order the price takes them: the volume discount (€) first, then
+      // the surcharge, then the percentages (issues/439)
       return [
+        Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
         lateSurchargeOf(order) ? { key: "surcharge", text: `+${pct(order.late_surcharge)}`, title: `Recàrrec fora de temps (+${pct(order.late_surcharge)})` } : null,
         Number(order.multidelivery_discount) ? { key: "multidelivery", text: `−${pct(order.multidelivery_discount)}`, title: `Descompte multientrega (${pct(order.multidelivery_discount)})` } : null,
-        Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
         Number(order.contact_pickup_discount) ? { key: "pickup", text: `−${pct(order.contact_pickup_discount)}`, title: `Descompte recollida (${pct(order.contact_pickup_discount)})` } : null
       ].filter(Boolean);
     },
@@ -3085,6 +3200,31 @@ select.col-filter {
   background: none;
   color: var(--a-neg);
   cursor: pointer;
+}
+/* a grouped pickup (-R) and its orders, set apart (issues/429) */
+.order-row.is-collection td:first-child {
+  box-shadow: inset 3px 0 0 var(--a-accent);
+}
+.order-row.is-expanded td {
+  border-bottom: 0;
+}
+.collection-toggle {
+  display: inline-flex;
+  align-items: center;
+  margin-left: .25rem;
+  padding: 0 .125rem;
+  border: 1px solid var(--a-line);
+  border-radius: .25rem;
+  background: var(--a-surface);
+  color: var(--a-accent);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.collection-toggle:hover {
+  background: var(--a-accent-soft);
+}
+.collection-children-row > td {
+  padding-top: 0;
 }
 .order-row.is-editing td {
   background: var(--a-warn-bg);

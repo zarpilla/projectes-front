@@ -41,6 +41,17 @@
 
       <section class="a-box">
         <header class="box-head">
+          <h2>Per categoria</h2>
+          <span v-if="categories.some(g => g.other)" class="box-hint">Les {{ categories.length - 1 }} primeres</span>
+        </header>
+        <div class="ls-chart" :style="{ height: barsHeight(categories.length) }">
+          <bar-chart v-if="categories.length" chart-id="ls-inc-categories" :chart-data="categoryChart" :extra-options="categoryOptions" />
+          <p v-else class="box-empty">Cap incidència.</p>
+        </div>
+      </section>
+
+      <section class="a-box">
+        <header class="box-head">
           <h2>Rutes amb més incidències</h2>
           <span class="box-hint">Per cada 100 comandes de la ruta</span>
         </header>
@@ -90,7 +101,7 @@
 <script>
 import BarChart from '@/components/Charts/BarChart.js'
 import service from '@/service/index'
-import { periodMode, incidenceTotals, incidencePeriods, topGroups, resolutionBuckets, routeRates } from '@/domain/logisticsStats'
+import { periodMode, incidenceTotals, incidencePeriods, topGroups, resolutionBuckets, routeRates, incidenceCategories } from '@/domain/logisticsStats'
 import { formatNumber } from '@/helpers/format-number'
 import { chartColors, shortLabel } from '@/components/Charts/chartTheme'
 
@@ -127,6 +138,9 @@ export default {
     },
     routes () {
       return this.routeOrders ? routeRates(this.rows, this.routeOrders) : []
+    },
+    categories () {
+      return incidenceCategories(this.rows)
     },
     owners () {
       return topGroups(this.rows, 'owner_name')
@@ -172,6 +186,26 @@ export default {
           y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
         }
       }
+    },
+    // closed and open stacked, like the chart per period
+    categoryChart () {
+      const c = this.colors
+      const bar = { borderRadius: 3, maxBarThickness: 22 }
+      return {
+        labels: this.categories.map(g => g.label),
+        datasets: [
+          { label: 'Tancades', data: this.categories.map(g => g.closed), backgroundColor: c.first, ...bar },
+          { label: 'Per resoldre', data: this.categories.map(g => g.open), backgroundColor: c.warn, ...bar }
+        ]
+      }
+    },
+    categoryOptions () {
+      const o = this.horizontal({ footer: items => `Total: ${this.categories[items[0].dataIndex].value}` }, { precision: 0 })
+      o.interaction = { mode: 'index', intersect: false }
+      o.plugins.legend = { position: 'bottom', labels: { boxWidth: 12 } }
+      o.scales.x.stacked = true
+      o.scales.y.stacked = true
+      return o
     },
     routeChart () {
       return {

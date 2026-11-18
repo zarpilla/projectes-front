@@ -46,6 +46,9 @@
         </template>
       </div>
 
+      <!-- the monthly drafts, generated on their own (issues/430) -->
+      <auto-invoicing-panel ref="autoPanel" @invoiced="getData" @project-created="projectCreated" />
+
       <section class="a-box invoice-setup">
         <div class="setup-row">
           <b-field label="Projecte on es creen les factures *" class="setup-project" :type="!projectId && triedWithoutProject ? 'is-danger' : ''" :message="!projectId && triedWithoutProject ? 'Cal triar un projecte abans de facturar.' : ''">
@@ -67,14 +70,15 @@
             </div>
           </b-field>
         </div>
-        <div v-if="suggestion" class="notification is-info suggestion">
-          <template v-if="suggestion.match">
-            <span>Les comandes de {{ suggestion.label }} van al projecte <b>{{ suggestion.match.name }}</b>.</span>
-            <button v-if="projectId !== suggestion.match.id" type="button" class="link-button" @click="projectSelected(suggestion.match)">Fes-lo servir</button>
+        <!-- the quarter's project, the same rule as the automatic invoicing (API, issues/430) -->
+        <div v-if="suggestion" class="notification is-info suggestion" data-test="quarter-suggestion">
+          <template v-if="suggestion.project">
+            <span>Les comandes del {{ suggestion.quarter.label }} van al projecte <b>{{ suggestion.project.name }}</b>.</span>
+            <button v-if="projectId !== suggestion.project.id" type="button" class="link-button" @click="useSuggested">Fes-lo servir</button>
           </template>
           <template v-else>
-            <span>Encara no hi ha cap projecte de logística per al <b>{{ suggestion.label }}</b><template v-if="suggestion.latest">; l'últim és «{{ suggestion.latest.name }}»</template>.</span>
-            <router-link to="/projecte/0" class="link-button">Crea el projecte</router-link>
+            <span>Encara no hi ha cap projecte de logística per al <b>{{ suggestion.quarter.label }}</b><template v-if="suggestion.latest">; l'últim és «{{ suggestion.latest.name }}»</template>.</span>
+            <button type="button" class="link-button" :disabled="creatingProject" data-test="create-quarter-project" @click="confirmCreateProject">Crea «{{ suggestion.newName }}»</button>
           </template>
         </div>
       </section>
@@ -165,13 +169,18 @@
 import service from "@/service/index";
 import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
+import AutoInvoicingPanel from "@/components/AutoInvoicingPanel.vue";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { plural } from "@/helpers/catalan";
-import { groupOrders, linkedToInvoice, quarterOf, quarterProject } from "@/domain/logisticsInvoicing.js";
+import { groupOrders, linkedToInvoice } from "@/domain/logisticsInvoicing.js";
+import { createQuarterProject, newQuarterProjectText } from "@/domain/autoInvoicing";
+import { clearCache } from "@/service/cache";
+import { refusalMessage } from "@/domain/collectionGroup";
 
 export default {
   name: "OrdersInvoiceTable",
   components: {
+    AutoInvoicingPanel,
     TitleBar
   },
   data() {
@@ -188,6 +197,8 @@ export default {
       selected: [],
       lastInvoices: [],
       triedWithoutProject: false,
+      suggestion: null,
+      creatingProject: false,
       exportFields: { Mes: "month", Sòcia: "owner", Comandes: "count", Caixes: "units", Kg: "kg", Descomptes: "discounts", Import: "amount" }
     };
   },
@@ -242,18 +253,18 @@ export default {
     someChecked() {
       return !this.allChecked && this.visibleGroups.some(g => this.selected.includes(g.key));
     },
-    // the quarter of the newest month shown, and its project
-    suggestion() {
-      const month = this.monthFilter || this.months[0];
-      if (!month) return null;
-      const q = quarterOf(month);
-      return { label: `${q.quarter}T ${q.year}`, ...quarterProject(this.projects, q) };
+    // the newest month shown: its quarter's project is suggested
+    suggestionMonth() {
+      return this.monthFilter || this.months[0] || null;
     },
     exportRows() {
       return this.visibleGroups.map(g => ({ month: g.month, owner: this.ownerName(g), count: g.count, units: g.units, kg: g.kg, discounts: g.discounts.toFixed(2), amount: g.amount.toFixed(2) }));
     }
   },
   watch: {
+    suggestionMonth() {
+      this.loadSuggestion();
+    },
     // typing in the project field after picking one unpicks it (issues/153)
     projectSearch(text) {
       if (!this.projectId) return;
@@ -386,6 +397,53 @@ export default {
       this.selected = [];
       await this.getData();
       this.loadLastInvoices();
+    },
+    // the quarter's project of the newest month shown, by the API's rule (issues/430)
+    async loadSuggestion() {
+      const month = this.suggestionMonth;
+      if (!month) {
+        this.suggestion = null;
+        return;
+      }
+      try {
+        const found = (await service({ requiresAuth: true }).get(`auto-invoicing/quarter-project?month=${month}`)).data;
+        if (month === this.suggestionMonth) this.suggestion = found && found.quarter ? found : null;
+      } catch (e) {
+        this.suggestion = null;
+      }
+    },
+    useSuggested() {
+      const project = this.projects.find(p => p.id === this.suggestion.project.id) || this.suggestion.project;
+      this.projectSelected(project);
+    },
+    confirmCreateProject() {
+      this.$buefy.dialog.confirm({
+        title: "Crear el projecte del trimestre",
+        message: newQuarterProjectText(this.suggestion),
+        confirmText: "Crea'l",
+        cancelText: "Cancel·la",
+        onConfirm: () => this.createProject()
+      });
+    },
+    async createProject() {
+      this.creatingProject = true;
+      try {
+        const created = await createQuarterProject(service({ requiresAuth: true }), this.suggestionMonth);
+        this.$buefy.snackbar.open({ message: `Projecte «${created.project.name}» creat`, type: "is-success", queue: false });
+        await this.projectCreated(created.project);
+        if (this.$refs.autoPanel) await this.$refs.autoPanel.load();
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: refusalMessage(e, "No s'ha pogut crear el projecte"), type: "is-danger", queue: false });
+      } finally {
+        this.creatingProject = false;
+      }
+    },
+    // a new quarter's project (here or in the panel): in the list, picked, suggested
+    async projectCreated(project) {
+      clearCache("projects");
+      this.projects = (await service({ requiresAuth: true, cached: true }).get("projects/basic?_limit=-1&_sort=name:ASC")).data;
+      this.projectSelected(this.projects.find(p => p.id === project.id) || project);
+      await this.loadSuggestion();
     },
     projectSelected(project) {
       if (!project) {

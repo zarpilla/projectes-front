@@ -28,6 +28,7 @@
       @confirm="confirmContact"
     ></modal-box-contact-user>
 
+    <modal-pickup-conflict :active="pickupConflict.active" :message="pickupConflict.message" :orders="pickupConflict.orders" @close="pickupConflict.active = false" />
     <modal-box-incidence
       :is-active="isIncidenceModalActive"
       :order-id="form.id || 0"
@@ -147,7 +148,7 @@
                     :data-day="s.substitute ? substituteDayText(s) : routeDays(s)"
                     :disabled="!canEdit"
                     @click="form.route = s.id; changeRoute();"
-                  >{{ s.name }}</button>
+                  >{{ s.name }}<span v-if="s.point_main" class="pill-tag" data-test="main-route">principal</span><span v-else-if="s.point_extra" class="pill-tag">extraordinària</span></button>
                 </div>
                 <p class="field-note">Rutes que passen per {{ form.contact_city || "la població del punt" }}. Tria-la segons el dia de la setmana i la destinació: en depèn la tarifa.</p>
                 <!-- when we pass by the point's town on that route (issues/314) -->
@@ -271,7 +272,7 @@
                 message="Determina el dia de recollida a la finca."
               >
                 <b-select v-model="form.collection_pickup_route" placeholder="Tria la ruta" expanded :disabled="!canEdit || form.is_collection_order" @update:model-value="onCollectionPickupRouteChange">
-                  <option v-for="r in collectionPickupRoutes" :key="r.id" :value="r.id">{{ r.name }}</option>
+                  <option v-for="r in collectionPickupRoutes" :key="r.id" :value="r.id">{{ r.name }}{{ r.point_main ? " (principal)" : "" }}</option>
                 </b-select>
               </b-field>
 
@@ -443,11 +444,12 @@
             <dl class="facts">
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
               <dt>Preu</dt><dd>{{ money(route_price) }}</dd>
+              <!-- in the order the price takes them: the € first (issues/439) -->
+              <template v-if="hasDiscount"><dt>Descompte volum</dt><dd>{{ money(-1 * (form.volume_discount || 0)) }}</dd></template>
               <template v-if="lateSurcharge"><dt>Recàrrec fora de temps</dt><dd class="has-text-danger">+{{ percent(lateSurcharge) }} %</dd></template>
               <template v-if="hasDiscount">
                 <dt>Descompte multientrega</dt><dd>−{{ percent(form.multidelivery_discount) }} %</dd>
                 <dt>Descompte recollida</dt><dd>−{{ percent(form.contact_pickup_discount) }} %</dd>
-                <dt>Descompte volum</dt><dd>{{ money(-1 * (form.volume_discount || 0)) }}</dd>
               </template>
               <dt>Preu amb descompte</dt><dd class="is-total">{{ money(discountedPrice) }}</dd>
               <template v-if="form.emitted_invoice_datetime"><dt>Facturada</dt><dd>{{ formatDateTime(form.emitted_invoice_datetime) }}</dd></template>
@@ -579,6 +581,8 @@ import {
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
+import ModalPickupConflict from "@/components/ModalPickupConflict.vue";
+import { conflictOrders, refusalMessage } from "@/domain/collectionGroup";
 import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
@@ -586,6 +590,7 @@ import { contactName, contactLabel, matchesContact } from "@/domain/orderContact
 import { RATE_ORDERS_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
+import { effectiveRoutes, extraSlotLink, rowsOfPoint } from "@/domain/pointRoutes.js";
 import {
   DEFAULT_ROUTE_CLOSED_MESSAGE,
   isAfternoonPickupCutoff,
@@ -609,6 +614,7 @@ export default {
     MoneyFormat,
     ModalBoxContactUser,
     ModalBoxIncidence,
+    ModalPickupConflict,
     OrderHistory
   },
   props: {
@@ -619,6 +625,8 @@ export default {
   },
   data() {
     return {
+      // a pickup after its delivery: the refused save names the orders (issues/429)
+      pickupConflict: { active: false, message: "", orders: [] },
       isProfileExists: false,
       isLoading: false,
       submitted: false,
@@ -663,7 +671,9 @@ export default {
       isIncidenceModalActive: false,
       isLoadingDeposit: {},
       isLoadingPickup: {},
-      collectionPickupRoutes: []
+      collectionPickupRoutes: [],
+      // the delivery points' own routes (issues/351)
+      pointRoutes: []
     };
   },
   computed: {
@@ -671,7 +681,11 @@ export default {
     // its time slot, or the route's (issues/314)
     routeSlotLink() {
       const routeId = this.form.route && typeof this.form.route === "object" ? this.form.route.id : this.form.route;
-      if (!routeId || !this.form.contact_city_id) return null;
+      if (!routeId) return null;
+      // an extraordinary route of the point, with its own time slot there (issues/351)
+      const own = (this.routes || []).find(r => r.id === routeId && r.point_slot);
+      if (own) return { ...own.point_slot, route: own };
+      if (!this.form.contact_city_id) return null;
       return this.cityRoutes.find(cr => cr.city && cr.route && cr.city.id === this.form.contact_city_id && cr.route.id === routeId) || null;
     },
     routeSlotText() {
@@ -1430,7 +1444,8 @@ export default {
         routeFestives,
         sociesContacts,
         depositNotices,
-        festives
+        festives,
+        pointRoutes
       ] = await Promise.all([
         service({ requiresAuth: true, cached: true }).get("products?_limit=-1"),
         service({ requiresAuth: true, cached: true }).get("pickups?_limit=-1"),
@@ -1449,7 +1464,9 @@ export default {
             `festives?_where[date_gte]=${moment().subtract(7, "days").format("YYYY-MM-DD")}` +
               `&_where[date_lte]=${moment().add(3, "months").format("YYYY-MM-DD")}&_limit=-1`
           )
-          .catch(() => ({ data: [] }))
+          .catch(() => ({ data: [] })),
+        // the delivery points' own routes (issues/351)
+        service({ requiresAuth: true }).get("point-routes?_limit=-1").catch(() => ({ data: [] }))
       ]);
 
       this.products = products.data;
@@ -1462,6 +1479,7 @@ export default {
       this.routeFestives = routeFestives.data;
       this.sociesContacts = sociesContacts.data;
       this.depositNotices = depositNotices.data || [];
+      this.pointRoutes = Array.isArray(pointRoutes.data) ? pointRoutes.data : [];
       this.holidays = (festives.data || []).filter(f => f && !f.users_permissions_user).map(f => String(f.date).slice(0, 10));
     },
     async changeOwner() {
@@ -1943,6 +1961,13 @@ export default {
         }
       } catch (err) {
         console.error(err);
+        this.isLoading = false;
+        // a pickup after its delivery, a moved -R included: which orders (issues/429)
+        const orders = conflictOrders(err);
+        if (orders.length) {
+          this.pickupConflict = { active: true, message: refusalMessage(err, ""), orders };
+          return;
+        }
 
         this.$buefy.snackbar.open({
           message: orderSaveErrorMessage(err),
@@ -1950,8 +1975,6 @@ export default {
           duration: 8000,
           queue: false
         });
-
-        this.isLoading = false;
       }
     },
     clientSelected(option) {
@@ -2014,6 +2037,7 @@ export default {
 
       if (this.routes.length > 0) {
         // Auto-select only if there's exactly one route
+        const main = this.routes.find(r => r.point_main);
         if (this.routes.length === 1) {
           this.form.route = this.routes[0].id;
           await this.changeRoute();
@@ -2021,42 +2045,54 @@ export default {
           // Clear route if currently selected route is not in available routes
           this.form.route = null;
         }
+        // the point's main route, chosen for her; she can change it (issues/351)
+        if (!this.form.route && main) {
+          this.form.route = main.id;
+          await this.changeRoute();
+        }
       } else {
         //this.form.route = null
       }
     },
+    // The routes of the delivery point: its town's, less the ones the office
+    // cancelled there, plus its extraordinary ones, the main one first
+    // (issues/351); then the substitutes of their closures (issues/355).
     validCityRoutes() {
       if (!this.form.contact_city_id) {
         return [];
       }
 
-      const filteredCityRoutes = this.cityRoutes.filter(
-        cr =>
-          cr.city &&
-          cr.route &&
-          cr.city.id &&
-          cr.city.id === this.form.contact_city_id &&
-          cr.route.active
-      );
-      
-      const routes = filteredCityRoutes.map(cr => cr.route);
-      
-      // Remove duplicates based on route.id
-      const uniqueRoutes = routes.filter((route, index, self) =>
-        index === self.findIndex((r) => r.id === route.id)
-      );
+      const townRoutes = [];
+      for (const cr of this.cityRoutes) {
+        if (!cr.city || !cr.route || !cr.city.id || cr.city.id !== this.form.contact_city_id || !cr.route.active) continue;
+        if (!townRoutes.some(r => r.id === cr.route.id)) townRoutes.push(cr.route);
+      }
+      const point = Number(this.form.contact) || null;
+      const items = effectiveRoutes({
+        townRoutes,
+        rows: rowsOfPoint(this.pointRoutes, point),
+        allRoutes: this.allRoutes || []
+      });
+      const routes = items.map(item => ({
+        ...item.route,
+        point_main: item.main,
+        point_extra: item.extra,
+        point_slot: extraSlotLink(item)
+      }));
+      const offered = new Set(routes.map(r => r.id));
 
       // the substitute routes of the town's closed routes (issues/355): a
-      // member sees them from 10 days before, the office always
+      // member sees them from 10 days before, the office always; not those of
+      // a route cancelled for the point
       const substitutes = townSubstitutes({
         cityId: this.form.contact_city_id,
         cityRoutes: this.cityRoutes,
         closures: this.routeFestives,
         exempt: this.dateRulesExempt,
-        known: uniqueRoutes.map(r => r.id)
-      });
+        known: routes.map(r => r.id)
+      }).filter(r => offered.has(r.substitute.closedRoute && typeof r.substitute.closedRoute === "object" ? r.substitute.closedRoute.id : r.substitute.closedRoute));
 
-      return [...uniqueRoutes, ...substitutes];
+      return [...routes, ...substitutes];
     },
     routeSelected(option) {
       if (!option || !option.id) {
@@ -2462,9 +2498,14 @@ export default {
         );
         this.collectionPickupRoutes = response.data || [];
 
-        // If there's only one route, select it automatically
-        if (this.collectionPickupRoutes.length === 1) {
-          this.form.collection_pickup_route = this.collectionPickupRoutes[0].id;
+        // If there's only one route, or the point has a main one and none is
+        // chosen (issues/351), select it automatically
+        const main = this.collectionPickupRoutes.find(r => r.point_main);
+        const chosen = this.collectionPickupRoutes.length === 1
+          ? this.collectionPickupRoutes[0]
+          : !this.form.collection_pickup_route && !loading ? main : null;
+        if (chosen) {
+          this.form.collection_pickup_route = chosen.id;
           if (!loading || !this.form.collection_pickup_date) {
             await this.calculateCollectionPickupDate();
           }
@@ -3251,6 +3292,17 @@ tr.is-late td:first-child {
   padding: .375rem .75rem;
   white-space: normal;
   text-align: left;
+}
+// the point's main or extraordinary route (issues/351)
+.pill-tag {
+  display: inline-block;
+  margin-left: .375rem;
+  padding: 0 .375rem;
+  border-radius: 999px;
+  font-size: .6875rem;
+  font-weight: 700;
+  background: var(--a-chip);
+  color: var(--a-fg);
 }
 // the weekdays of a route under its name (CSS, so the button text stays the name)
 .pill.button[data-day]:not([data-day=""])::after {

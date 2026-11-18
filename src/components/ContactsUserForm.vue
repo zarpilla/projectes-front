@@ -9,6 +9,10 @@
               <b-notification v-if="readOnly" type="is-warning" :closable="false" role="status">
                 Aquest punt d'entrega és d'una altra sòcia: el pots veure però no canviar. Si cal canviar-lo, demana-ho a l'oficina.
               </b-notification>
+              <b-notification v-if="fromRequest && !form.id" type="is-info" :closable="false" role="status" data-test="point-from-request">
+                Punt d'entrega a partir de la consulta aprovada de {{ requesterName }}: revisa les dades i completa la resta (CP, telèfon, NIF, sector…).
+                L'horari i el pes que va indicar són a «Detalls repartidores».
+              </b-notification>
               <b-field
                 label="Contacte de *"
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
@@ -358,6 +362,15 @@
                   @update:model-value="fixDecimals('pickup_discount', form.pickup_discount)"
                 />
               </b-field>
+              <!-- the point's own routes, the office only (issues/351) -->
+              <point-routes-editor
+                v-if="form.id && canEditPointRoutes"
+                :contact-id="Number(form.id)"
+                :town="form.city || ''"
+                :town-routes="pointTownRoutes"
+                :link-of="pointTownLinkOf"
+                :all-routes="routes"
+              />
               <div class="form-actions">
                 <div class="is-flex" v-if="!modal">
                   <b-button
@@ -415,6 +428,7 @@
 <script>
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
+import PointRoutesEditor from "@/components/PointRoutesEditor.vue";
 import service from "@/service/index";
 import { orderMembers } from "@/domain/routeAccess";
 import MoneyFormat from "@/components/MoneyFormat.vue";
@@ -434,6 +448,7 @@ import {
   pointFieldErrors,
   pointErrorsSnackbar
 } from "@/domain/deliveryPointForm.js";
+import { isOfficeUser, pointFromRequest } from "@/domain/deliveryPointRequest";
 
 export default {
   name: "ContactUsersForm",
@@ -441,7 +456,8 @@ export default {
   components: {
     CardComponent,
     TitleBar,
-    MoneyFormat
+    MoneyFormat,
+    PointRoutesEditor
   },
   props: {
     id: {
@@ -464,6 +480,7 @@ export default {
   data() {
     return {
       tradeNameRequired: TRADE_NAME_REQUIRED,
+      fromRequest: null,
       isProfileExists: false,
       isLoading: false,
       series: [],
@@ -490,6 +507,10 @@ export default {
     };
   },
   computed: {
+    requesterName() {
+      const user = this.fromRequest && this.fromRequest.user;
+      return user && typeof user === "object" ? user.fullname || user.username : "la sòcia";
+    },
     // a driver leaves the discount and the owner to the office (issues/191)
     discountLocked() {
       return driverLocksDiscount(this.permissions);
@@ -504,6 +525,20 @@ export default {
     },
     routeLinks() {
       return indexLinks(this.cities, this.routes, this.cityRouteLinks);
+    },
+    // «Rutes del punt» (issues/351): the office only
+    canEditPointRoutes() {
+      return this.permissions.includes("orders_admin") || this.permissions.includes("admin");
+    },
+    pointTown() {
+      return (this.form.city && this.cities.find(c => c.name === this.form.city)) || null;
+    },
+    pointTownRoutes() {
+      return this.pointTown ? this.routeLinks.routesByTown.get(this.pointTown.id) || [] : [];
+    },
+    pointTownLinkOf() {
+      const town = this.pointTown;
+      return routeId => (town ? this.routeLinks.linkOf(town.id, routeId) : null);
     },
     // the days and slots we pass by the chosen town (issues/360)
     townDelivery() {
@@ -734,7 +769,36 @@ export default {
         } else {
           this.form.multiowner = false;
         }
+        await this.fillFromRequest();
       }
+    },
+    // «Crea el punt d'entrega» from an approved request (issues/357, seguiment): the new
+    // point starts with what the request says; saving links it to the request
+    async fillFromRequest() {
+      const requestId = this.modal ? null : Number(this.$route.query.consulta);
+      if (!requestId || !isOfficeUser(this.permissions)) return;
+      try {
+        const { data } = await service({ requiresAuth: true }).get(`delivery-point-requests/${requestId}`, {
+          params: { "populate[0]": "user" }
+        });
+        const request = data && data.data ? data.data : data;
+        if (!request || !request.id) return;
+        this.fromRequest = request;
+        Object.assign(this.form, pointFromRequest(request, { cities: this.cities, townPostcodes: this.townPostcodes }));
+        this.citySearch = this.form.city || "";
+        this.syncSlotClosedFlags();
+      } catch (e) {
+        this.fromRequest = null;
+      }
+    },
+    async linkRequest(contactId) {
+      if (!this.fromRequest) return;
+      try {
+        await service({ requiresAuth: true }).put(`delivery-point-requests/${this.fromRequest.id}`, { data: { contact: contactId } });
+      } catch (e) {
+        this.$buefy.toast.open({ message: "El punt s'ha creat, però no s'ha pogut enllaçar amb la consulta", type: "is-warning" });
+      }
+      this.fromRequest = null;
     },
     syncSlotClosedFlags() {
       const slot1IniEmpty = this.form.time_slot_1_ini === null || this.form.time_slot_1_ini === undefined || this.form.time_slot_1_ini === "";
@@ -914,6 +978,7 @@ export default {
             "contacts",
             this.form
           );
+          await this.linkRequest(newProject.data.id);
 
           if (this.modal) {
             this.$emit("confirm", { id: newProject.data.id });

@@ -205,9 +205,10 @@
               <dl class="facts">
                 <template v-if="order.route_rate && order.route_rate.name"><dt>Tarifa</dt><dd>{{ order.route_rate.name }}</dd></template>
                 <dt>Preu</dt><dd>{{ money(order.price) }}</dd>
+                <!-- in the order the price takes them: the € first (issues/439) -->
+                <template v-if="Number(order.volume_discount)"><dt>Descompte volum</dt><dd>−{{ money(order.volume_discount) }}</dd></template>
                 <template v-if="Number(order.multidelivery_discount)"><dt>Multientrega</dt><dd>−{{ formatNumber(order.multidelivery_discount, 2) }} %</dd></template>
                 <template v-if="Number(order.contact_pickup_discount)"><dt>Descompte recollida</dt><dd>−{{ formatNumber(order.contact_pickup_discount, 2) }} %</dd></template>
-                <template v-if="Number(order.volume_discount)"><dt>Descompte volum</dt><dd>−{{ money(order.volume_discount) }}</dd></template>
                 <dt>Amb descompte</dt><dd class="is-total">{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : money(order.price) }}</dd>
               </dl>
             </section>

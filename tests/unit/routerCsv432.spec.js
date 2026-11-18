@@ -1,5 +1,7 @@
 // issues/350: the «Per al planificador de rutes (.csv)» export had no order id,
-// so the planner's rows could not be matched back to the orders.
+// so the planner's rows could not be matched back to the orders; it got a last
+// «ID COMANDA» column. issues/432: the Diligència wants it in «NOM CLIENT»
+// instead, as «ID - Nom Comercial», and no separate id column.
 import { describe, it, expect, vi, afterEach } from 'vitest'
 
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn(), put: vi.fn(), post: vi.fn() }) }))
@@ -21,21 +23,24 @@ async function routerCsv(rows) {
   return (await blob.text()).replace(/^﻿/, '').split('\n').map(l => l.split(','))
 }
 
-describe('route planner CSV (issues/350)', () => {
-  it('ends with an «ID COMANDA» column holding the order id', async () => {
+describe('route planner CSV (issues/350, 432)', () => {
+  it('prints «ID - Nom Comercial» in «NOM CLIENT»', async () => {
     const [headers, line] = await routerCsv([
       { id: 25770, contact_trade_name: 'Formatgeria', fullName: 'Formatgeria La Cleda' }
     ])
-    expect(headers[headers.length - 1]).toBe('ID COMANDA')
-    expect(line[headers.indexOf('ID COMANDA')]).toBe('25770')
+    expect(line[headers.indexOf('NOM CLIENT')]).toBe('25770 - Formatgeria')
   })
 
-  it('keeps the earlier columns in their place', async () => {
+  it('prints the id alone when the point has no trade name', async () => {
+    const [headers, line] = await routerCsv([{ id: 25771, contact_trade_name: null }])
+    expect(line[headers.indexOf('NOM CLIENT')]).toBe('25771')
+  })
+
+  it('has no separate «ID COMANDA» column', async () => {
     const [headers] = await routerCsv([])
     expect(headers).toEqual([
       'NOM CLIENT', 'TELEFON', 'ADREÇA', 'DETALLS COMANDA', 'HORARIS CLIENT', 'CAIXES',
-      'TOTAL KG', "DATA D'ENTREGA", 'SOCIA', 'MAIL', 'ID CLIENT', 'DETALLS REPARTIDORES',
-      'ID COMANDA'
+      'TOTAL KG', "DATA D'ENTREGA", 'SOCIA', 'MAIL', 'ID CLIENT', 'DETALLS REPARTIDORES'
     ])
   })
 })

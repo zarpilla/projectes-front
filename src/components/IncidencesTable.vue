@@ -44,6 +44,13 @@
             @click="setTab(tab)"
           >{{ tab.label }} <span class="count">{{ tab.count }}</span></button>
         </div>
+        <label v-if="categories.length" class="filter-select">
+          <span>Categoria</span>
+          <b-select v-model="categoryFilter" data-test="category-filter" @update:model-value="refresh">
+            <option :value="null">Totes</option>
+            <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </b-select>
+        </label>
         <label v-if="isAdmin" class="filter-select">
           <span>Sòcia</span>
           <b-select v-model="ownerFilter" @update:model-value="refresh">
@@ -80,6 +87,7 @@
                 >
                   <td class="num"><b>#{{ inc.id }}</b></td>
                   <td class="col-text">
+                    <span v-if="categoryName(inc)" class="inc-category">{{ categoryName(inc) }}</span>
                     <b>{{ inc.description }}</b>
                     <small>{{ [inc.order && inc.order.contact_trade_name, ownerName(inc)].filter(Boolean).join(" · ") }}</small>
                   </td>
@@ -117,6 +125,7 @@
                 <b>#{{ inc.id }}</b>
                 <span class="tag" :class="stateTag(inc.state)">{{ getStateLabel(inc.state) }}</span>
               </header>
+              <span v-if="categoryName(inc)" class="inc-category">{{ categoryName(inc) }}</span>
               <p class="inc-card-text">{{ inc.description }}</p>
               <small class="inc-card-meta">
                 {{ [inc.order && inc.order.contact_trade_name, ownerName(inc)].filter(Boolean).join(" · ") }}
@@ -146,6 +155,24 @@
               <span class="tag" :class="stateTag(selected.state)">{{ getStateLabel(selected.state) }}</span>
             </header>
             <dl class="facts">
+              <!-- the cause can be corrected while it is open (issues/431) -->
+              <template v-if="categories.length || categoryName(selected)">
+                <dt>Categoria</dt>
+                <dd>
+                  <b-select
+                    v-if="categories.length && selected.state !== 'closed'"
+                    :model-value="selected.category && selected.category.id"
+                    size="is-small"
+                    placeholder="Sense categoria"
+                    aria-label="Categoria"
+                    data-test="detail-category"
+                    @update:model-value="changeCategory(selected, $event)"
+                  >
+                    <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+                  </b-select>
+                  <span v-else>{{ categoryName(selected) || "Sense categoria" }}</span>
+                </dd>
+              </template>
               <dt>Comanda</dt>
               <dd>
                 <router-link v-if="selected.order && selected.order.id" :to="{ name: 'orders.view.detail', params: { id: selected.order.id } }">#{{ selected.order.id }}</router-link>
@@ -162,7 +189,7 @@
             <div class="conversation">
               <div class="message is-first">
                 <div class="message-meta"><b>{{ userName(selected.created_user) }}</b><small>{{ formatDateTime(createdOf(selected)) }}</small></div>
-                <p>{{ selected.description }}</p>
+                <p>{{ selected.description || categoryName(selected) }}</p>
               </div>
               <div v-for="(response, index) in selected.incidence_response || []" :key="index" class="message">
                 <div class="message-meta"><b>{{ userName(response.user) }}</b><small>{{ formatDateTime(response.response_date) }}</small></div>
@@ -201,6 +228,7 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatNumber } from "@/helpers/format-number";
+import { loadIncidenceCategories, categoryName, repliesText } from "@/domain/incidenceCategories";
 
 export default {
   name: "IncidencesTable",
@@ -223,6 +251,8 @@ export default {
       searchTimer: null,
       ownerFilter: null,
       owners: [],
+      categoryFilter: null,
+      categories: [],
       selected: null,
       selectedOrder: null,
       avgCloseDays: null,
@@ -236,8 +266,10 @@ export default {
       showIncidenceModal: false,
       modalIncidence: null,
       // the columns of the table (issues/029)
+      // the category and the replies too (issues/431)
       excelFields: {
         "ID": "id",
+        "Categoria": "category_name",
         "Comanda": "order.id",
         "Punt": "order.contact_trade_name",
         "Sòcia": "order.owner.fullname",
@@ -245,6 +277,7 @@ export default {
         "Estat": "state_label",
         "Creada": "created",
         "Creada per": "created_by",
+        "Respostes": "replies",
         "Tancada": "closed",
         "Tancada per": "closed_by"
       }
@@ -277,6 +310,7 @@ export default {
     // a link to one incidence (?id=) shows it, whatever its state
     const incidenceId = this.$route.query.id;
     if (incidenceId) this.stateFilter = [];
+    this.categories = await loadIncidenceCategories(service);
     this.loadData();
     if (this.isAdmin) {
       const users = (await service({ requiresAuth: true, cached: true }).get("users", { params: { _limit: -1 } })).data;
@@ -289,6 +323,18 @@ export default {
     }
   },
   methods: {
+    categoryName,
+    async changeCategory(incidence, category) {
+      if (!category || (incidence.category && incidence.category.id === category)) return;
+      try {
+        await service({ requiresAuth: true }).put(`incidences/${incidence.id}`, { category });
+        this.$buefy.toast.open({ message: "Categoria canviada", type: "is-success" });
+        await this.loadData();
+        await this.refreshSelected();
+      } catch (error) {
+        this.$buefy.toast.open({ message: "Error canviant la categoria", type: "is-danger" });
+      }
+    },
     // the incidence of the right panel, with its order (route, status)
     async select(id) {
       try {
@@ -417,6 +463,7 @@ export default {
       } else if (this.ownerFilter) {
         params['order.owner'] = this.ownerFilter;
       }
+      if (this.categoryFilter) params.category = this.categoryFilter;
       const q = (this.search || "").trim();
       if (q) {
         params["_where[_or][0][description_contains]"] = q;
@@ -460,8 +507,11 @@ export default {
           _sort: `${this.sortField}:${this.sortOrder.toUpperCase()}`,
           ...this.filterParams()
         });
+        const users = new Map((await service({ requiresAuth: true, cached: true }).get("users", { params: { _limit: -1 } })).data.map(u => [u.id, u]));
         return incidences.map(incidence => ({
           ...incidence,
+          category_name: categoryName(incidence),
+          replies: repliesText(incidence.incidence_response, users),
           state_label: this.getStateLabel(incidence.state),
           created: this.formatDate(incidence.created_at),
           created_by: userName(incidence.created_user),
@@ -835,6 +885,15 @@ export default {
 }
 .inc-card-head b {
   color: var(--a-fg);
+}
+/* the cause, above the text (issues/431) */
+.inc-category {
+  display: block;
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  color: var(--a-muted);
 }
 .inc-card-text {
   color: var(--a-fg);

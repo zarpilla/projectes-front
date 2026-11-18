@@ -10,14 +10,24 @@
             @click="cancel"/>
         </header>
         <section class="modal-card-body">
-          <b-field label="Descripció de la incidència" :type="{ 'is-danger': !description && submitted }" message="Descriu la incidència">
+          <!-- the cause, required when the entity has categories (issues/431) -->
+          <b-field v-if="categories.length" label="Categoria *" :type="{ 'is-danger': !category && submitted }" :message="!category && submitted ? 'Tria la categoria de la incidència' : ''">
+            <b-select v-model="category" placeholder="Tria la causa de la incidència" expanded data-test="incidence-category">
+              <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </b-select>
+          </b-field>
+          <b-field
+            :label="categories.length ? 'Descripció (opcional)' : 'Descripció de la incidència'"
+            :type="{ 'is-danger': !categories.length && !description && submitted }"
+            :message="categories.length ? 'Aclareix o explica els fets' : 'Descriu la incidència'"
+          >
             <b-input
               v-model="description"
               type="textarea"
               :rows="4"
               placeholder="Descriu el problema o situació..."
               maxlength="500"
-              required
+              :required="!categories.length"
             ></b-input>
           </b-field>
 
@@ -46,6 +56,7 @@
 
 <script>
 import service from "@/service/index";
+import { loadIncidenceCategories, incidenceFormError } from "@/domain/incidenceCategories";
 
 export default {
   name: "ModalBoxIncidence",
@@ -69,6 +80,8 @@ export default {
       isModalActive: false,
       description: "",
       state: "open",
+      category: null,
+      categories: [],
       submitted: false,
       isLoading: false
     };
@@ -79,6 +92,7 @@ export default {
       if (newValue) {
         // Reset form when modal opens
         this.resetForm();
+        this.loadCategories();
       }
     },
     isModalActive(newValue) {
@@ -91,7 +105,11 @@ export default {
     resetForm() {
       this.description = this.predefinedDescription || "";
       this.state = "open";
+      this.category = null;
       this.submitted = false;
+    },
+    async loadCategories() {
+      this.categories = await loadIncidenceCategories(service);
     },
     cancel() {
       this.isModalActive = false;
@@ -100,9 +118,10 @@ export default {
     async confirm() {
       this.submitted = true;
       
-      if (!this.description || !this.description.trim()) {
+      const error = incidenceFormError({ categories: this.categories, category: this.category, description: this.description });
+      if (error) {
         this.$buefy.snackbar.open({
-          message: "Si us plau, descriu la incidència",
+          message: error,
           queue: false,
           type: "is-danger"
         });
@@ -121,8 +140,9 @@ export default {
 
         // Add the new incidence
         incidences.push({
-          description: this.description.trim(),
+          description: (this.description || "").trim(),
           state: this.state,
+          ...(this.category ? { category: this.category } : {}),
           created_at: new Date().toISOString()
         });
 

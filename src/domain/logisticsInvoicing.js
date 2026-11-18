@@ -1,38 +1,7 @@
-// "Facturar": the delivered orders not invoiced yet, by member and month, and
-// the project of the quarter where the invoices go. The logistics projects are
-// named in several ways ("3T 2026 - Logística", "Logística - 2025 - 2T",
-// "Logística 2025 - 3T"…): a name with "logística", the year and "<n>T".
-
-const normalize = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-
-// { year, quarter } of a logistics project name, or null
-export const projectQuarter = name => {
-  const n = normalize(name);
-  if (!n.includes("logistica")) return null;
-  const year = n.match(/\b(20\d\d)\b/);
-  const quarter = n.match(/\b([1-4])\s*t\b/);
-  if (!year || !quarter) return null;
-  return { year: Number(year[1]), quarter: Number(quarter[1]) };
-};
-
-export const quarterOf = month => {
-  const [year, m] = month.split("-").map(Number);
-  return { year, quarter: Math.ceil(m / 3) };
-};
-
-// the project of that quarter, and the latest logistics project
-export const quarterProject = (projects, { year, quarter }) => {
-  let match = null;
-  let latest = null;
-  for (const p of projects) {
-    const q = projectQuarter(p.name);
-    if (!q) continue;
-    if (q.year === year && q.quarter === quarter && !match) match = p;
-    const key = q.year * 10 + q.quarter;
-    if (!latest || key > latest.key) latest = { key, project: p };
-  }
-  return { match, latest: latest ? latest.project : null };
-};
+// "Facturar": the delivered orders not invoiced yet, by member and month. The
+// project of the quarter where the invoices go is the API's
+// (auto-invoicing/quarter-project, issues/430), the same rule as the
+// automatic invoicing.
 
 const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
 
