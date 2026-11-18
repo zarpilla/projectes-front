@@ -211,9 +211,9 @@
               <td :colspan="grouping !== 'project' ? 6 : 5" class="has-text-muted">Cap projecte amb imports previstos {{ byProjectYear === 'all' ? '' : 'el ' + byProjectYear }}.</td>
             </tr>
             <template v-for="r in byProjectRows" :key="r.key">
-              <tr :class="{ 'is-expandable': grouping !== 'project' }">
+              <tr :class="{ 'is-expandable': grouping !== 'project', 'is-tail-group': r.tail }">
                 <th>
-                  <!-- issues/434: a type opens into its projects, a scope into its types; folded at first -->
+                  <!-- issues/434: a type or a state opens into its projects, a scope into its types; folded at first -->
                   <button
                     v-if="grouping !== 'project'"
                     type="button"
@@ -794,7 +794,7 @@ export default {
       const rows = forecastChildRows(this.forecastByProject, this.byProjectYears, this.grouping, key);
       const { key: sortKey, dir } = this.byProjectSort;
       // the children follow the table's order («Projectes» means nothing per project)
-      if (!sortKey || sortKey === "projects" && this.grouping === "type") return rows;
+      if (!sortKey || sortKey === "projects" && this.grouping !== "scope") return rows;
       return sortForecastRows(rows, sortKey, dir);
     },
     percent(share) {
@@ -1114,7 +1114,8 @@ export default {
   border-bottom-color: var(--a-accent);
 }
 .by-project-bar {
-  margin-bottom: .75rem;
+  /* in line with the box's title */
+  margin: .75rem 1.25rem;
 }
 .by-project-table .col-sort {
   border: 0;
@@ -1157,6 +1158,10 @@ export default {
 .by-project-table tr.is-child > th {
   padding-left: 2.25rem;
   font-weight: 500;
+}
+.by-project-table tbody tr.is-tail-group > * {
+  /* «Periodificats», a group apart from the states */
+  border-top: 2px solid var(--a-line);
 }
 .by-project-table tfoot tr.is-uncovered > * {
   font-weight: 700;
