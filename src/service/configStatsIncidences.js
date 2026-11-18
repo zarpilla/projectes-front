@@ -17,6 +17,11 @@ const config = {
   sortable: false,
   dataSource: {
     columns: [      
+      // issues/431: the category first, the cause of the incidences at a glance
+      {
+        name: 'category',
+        expand: false
+      },
       {
         name: 'state',
         expand: false

@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   orderTotals, periodMode, orderPeriods, topGroups,
-  incidenceTotals, incidencePeriods, resolutionBuckets, routeRates
+  incidenceTotals, incidencePeriods, resolutionBuckets, routeRates, incidenceCategories
 } from '@/domain/logisticsStats'
 
 const order = (date, { price = 10, kilograms = 5, units = 1, delivery_type = 'Normal', refrigerated = delivery_type === 'Refrigerada', route = 'R1', owner = 'A', lastmile = 'No' } = {}) =>
@@ -121,5 +121,25 @@ describe('refrigerated orders (issues/178)', () => {
     expect(orderTotals(rows).refrigerated).toBe(2)
     const days = orderPeriods(rows, { mode: 'day', year: 2026, month: 10 })
     expect(days[19]).toMatchObject({ normal: 1, refrigerated: 1 })
+  })
+})
+
+describe('logistics stats: incidences per category (issues/431)', () => {
+  const inc = (category, state_raw = 'closed') => ({ category, state_raw })
+  it('counts closed and open (wip = open) per category, the most first, no category apart', () => {
+    const rows = [inc('Retard'), inc('Retard', 'open'), inc('Retard', 'wip'), inc('Trencament'), inc(null, 'open'), inc('Sense categoria')]
+    expect(incidenceCategories(rows)).toEqual([
+      { label: 'Retard', open: 2, closed: 1, value: 3 },
+      { label: 'Sense categoria', open: 1, closed: 1, value: 2 },
+      { label: 'Trencament', open: 0, closed: 1, value: 1 }
+    ])
+  })
+  it('groups the rest past the limit', () => {
+    const rows = [inc('a'), inc('a'), inc('a'), inc('b'), inc('b'), inc('c', 'open'), inc('d')]
+    expect(incidenceCategories(rows, 3)).toEqual([
+      { label: 'a', open: 0, closed: 3, value: 3 },
+      { label: 'b', open: 0, closed: 2, value: 2 },
+      { label: 'Altres (2)', open: 1, closed: 1, value: 2, other: true }
+    ])
   })
 })

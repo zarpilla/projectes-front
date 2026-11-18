@@ -214,3 +214,22 @@ export function routeRates (incidences, routeOrders, limit = 10) {
     .sort((a, b) => b.value - a.value || b.count - a.count)
     .slice(0, limit)
 }
+
+// incidences per category (issues/431), closed and still open, the most first;
+// past `limit` the rest go together in «Altres (n)»
+export function incidenceCategories (rows, limit = 10) {
+  const groups = new Map()
+  for (const r of rows) {
+    const label = [undefined, null, '', '-'].includes(r.category) ? 'Sense categoria' : String(r.category)
+    const g = groups.get(label) || { label, open: 0, closed: 0 }
+    g[isOpen(r) ? 'open' : 'closed']++
+    groups.set(label, g)
+  }
+  const sorted = [...groups.values()]
+    .map(g => ({ ...g, value: g.open + g.closed }))
+    .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label))
+  if (sorted.length <= limit) return sorted
+  const rest = sorted.slice(limit - 1)
+  const sum = k => rest.reduce((s, g) => s + g[k], 0)
+  return [...sorted.slice(0, limit - 1), { label: `Altres (${rest.length})`, open: sum('open'), closed: sum('closed'), value: sum('value'), other: true }]
+}
