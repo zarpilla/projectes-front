@@ -194,12 +194,20 @@ describe('Avisos (issues/430)', () => {
 })
 
 describe('the option on the project (issues/430)', () => {
-  it('the office and admins may turn it on', async () => {
+  it('the office may turn it on', async () => {
     const vm = { canAutoInvoice: false }
     get.mockImplementationOnce(async () => ({ data: { permissions: [{ permission: 'orders_admin' }] } }))
     await ProjectForm.methods.loadAutoInvoicePermission.call(vm)
     expect(vm.canAutoInvoice).toBe(true)
     get.mockImplementationOnce(async () => ({ data: { permissions: [{ permission: 'projects' }] } }))
+    await ProjectForm.methods.loadAutoInvoicePermission.call(vm)
+    expect(vm.canAutoInvoice).toBe(false)
+  })
+
+  // issues/451: admins of tenants without logistics saw the switch too
+  it('an admin without the logistics office permission does not see it (issues/451)', async () => {
+    const vm = { canAutoInvoice: true }
+    get.mockImplementationOnce(async () => ({ data: { permissions: [{ permission: 'admin' }, { permission: 'projects' }] } }))
     await ProjectForm.methods.loadAutoInvoicePermission.call(vm)
     expect(vm.canAutoInvoice).toBe(false)
   })

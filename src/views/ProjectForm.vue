@@ -3213,7 +3213,9 @@ export default {
       try {
         const me = (await service({ requiresAuth: true, cached: true }).get("users/me")).data;
         const permissions = ((me && me.permissions) || []).map(p => p.permission);
-        this.canAutoInvoice = permissions.includes("orders_admin") || permissions.includes("admin");
+        // only where there is logistics, i.e. for the office (orders_admin): an
+        // admin alone may be on a tenant without logistics (issues/451)
+        this.canAutoInvoice = permissions.includes("orders_admin");
       } catch (e) {
         this.canAutoInvoice = false;
       }
