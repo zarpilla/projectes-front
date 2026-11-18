@@ -58,6 +58,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Diners"],
+      text: ["A ", { to: "/bestretes", label: "Bestretes" }, " hi ha la vista «Plantilla sencera» (o «Totes» al cercador de persones): la suma de les nòmines de tothom per mes (net, IRPF, SS, altres i total) i quantes en queden per pagar. Clicant un mes, o triant-lo a «Mes», surten les nòmines de cada persona d'aquell mes. A «Individual», «Mes» mostra només aquell mes de la persona, i al cercador només surten les persones amb jornada definida aquell any."]
+    },
+    {
+      type: "Novetats",
       modules: ["Informes", "Hores"],
       text: ["A ", { to: "/panell-dedicacio", label: "Dedicació" }, ", la taula «Jornada i conveni per persona» mostra per a cada persona les hores laborables de l'any segons la seva jornada a Persones (menys festius, vacances i lliure elecció), el màxim del conveni i el saldo, al costat de les hores previstes i fetes. Són les mateixes xifres que el «Resum hores» de cada persona."]
     },

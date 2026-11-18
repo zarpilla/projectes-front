@@ -49,7 +49,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(value, key) in months" :key="key">
+            <tr v-for="(value, key) in shownMonths" :key="key">
               <th scope="row" class="month-name">{{ monthName(key) }}</th>
               <td class="has-text-right">{{ hours(value.worked) }}</td>
               <td class="has-text-right">{{ hours(value.theoricHours) }}</td>
@@ -135,6 +135,11 @@ export default {
     year: {
       type: Number,
       default: null
+    },
+    // the «Mes» filter: only that month's row; the KPIs stay the year's (issues/449)
+    month: {
+      type: Number,
+      default: null
     }
   },
   data() {
@@ -158,6 +163,11 @@ export default {
     };
   },
   computed: {
+    shownMonths() {
+      if (!this.month) return this.months;
+      const key = String(this.month);
+      return this.months[key] ? { [key]: this.months[key] } : {};
+    },
     trashObjectName() {
       if (this.trashObject) {
         return this.trashObject.name;

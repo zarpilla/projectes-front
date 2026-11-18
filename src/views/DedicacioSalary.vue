@@ -3,7 +3,13 @@
     <title-bar :title-stack="titleStack" subtitle="Nòmines i bestretes de cada persona: hores fetes, saldo i salari mes a mes." />
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <!-- one person, or the sum of everyone (issues/449) -->
+        <div class="segmented" role="group" aria-label="Vista">
+          <button type="button" :class="{ 'is-on': !team }" @click="setTeam(false)">Individual</button>
+          <button type="button" :class="{ 'is-on': team }" @click="setTeam(true)">Plantilla sencera</button>
+        </div>
         <b-autocomplete
+          v-if="!team"
           v-model="userNameSearch"
           class="filter-grow"
           placeholder="Persona"
@@ -14,7 +20,7 @@
           :data="filteredUsers"
           field="username"
           :clearable="true"
-          @select="option => (filters.user = option ? option.id : null)"
+          @select="selectUser"
         />
         <label class="filter-select">
           <span>Any</span>
@@ -22,7 +28,6 @@
             <option v-for="(year, index) in years" :key="index" :value="year">{{ year.year }}</option>
           </b-select>
         </label>
-        <!-- a month and no person: everyone's bestretes of that month (issues/347) -->
         <label class="filter-select">
           <span>Mes</span>
           <b-select v-model="filters.month" aria-label="Mes">
@@ -31,15 +36,25 @@
           </b-select>
         </label>
       </form>
-      <div v-if="!filters.user && !filters.month" class="card empty-choice">
-        <p><b>Tria una persona</b> per veure les seves nòmines i bestretes de l'any, o <b>un mes</b> per veure les de totes les persones.</p>
-      </div>
-      <dedication-salary-month
-        v-if="!filters.user && filters.month"
-        :year="filters.year ? filters.year.year : null"
-        :month="filters.month"
-      />
-      <dedication-salary v-if="filters.user" :user="filters.user" :year="filters.year ? filters.year.year : null" />
+      <template v-if="team">
+        <!-- a month: everyone's payrolls of that month (issues/347) -->
+        <dedication-salary-month
+          v-if="filters.month"
+          :year="selectedYear"
+          :month="filters.month"
+        />
+        <dedication-salary-team
+          v-else
+          :year="selectedYear"
+          @month="month => (filters.month = month)"
+        />
+      </template>
+      <template v-else>
+        <div v-if="!filters.user" class="card empty-choice">
+          <p><b>Tria una persona</b> per veure les seves nòmines i bestretes de l'any, o <b>Plantilla sencera</b> per veure les de totes les persones.</p>
+        </div>
+        <dedication-salary v-else :user="filters.user" :year="selectedYear" :month="filters.month" />
+      </template>
     </section>
   </div>
 </template>
@@ -48,6 +63,8 @@
 import TitleBar from '@/components/TitleBar.vue'
 import DedicationSalary from '@/components/DedicationSalary.vue'
 import DedicationSalaryMonth from '@/components/DedicationSalaryMonth.vue'
+import DedicationSalaryTeam from '@/components/DedicationSalaryTeam.vue'
+import { usersWithWorkingDay } from '@/domain/teamPayrolls.js'
 import { monthFromQuery, yearFromQuery } from '@/domain/monthPayrolls.js'
 import service from '@/service/index'
 import { findCurrentUser } from '@/domain/currentUser'
@@ -60,19 +77,21 @@ export default {
   components: {
     TitleBar,
     DedicationSalary,
-    DedicationSalaryMonth
+    DedicationSalaryMonth,
+    DedicationSalaryTeam
   },
   data () {
     return {
       isLoading: false,
+      team: false,
       filters: {
         user: null,
         year: null,
         month: null
       },
       monthNames: ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'],
-      users: [],
-      usersList: [],
+      allUsers: [],
+      dedications: [],
       userNameSearch: '',
       years: []
     }
@@ -82,15 +101,18 @@ export default {
     titleStack () {
       return ['Diners', 'Bestretes']
     },
+    selectedYear () {
+      return this.filters.year ? this.filters.year.year : null
+    },
+    // only the people with a working day in the year (issues/449)
+    users () {
+      return usersWithWorkingDay(this.allUsers, this.dedications, this.selectedYear)
+    },
+    // «Totes» first: the whole staff, as «Plantilla sencera»
     filteredUsers () {
-      return this.users.filter(option => {
-        return (
-          option.username
-            .toString()
-            .toLowerCase()
-            .indexOf(this.userNameSearch.toLowerCase()) >= 0
-        )
-      })
+      const search = (this.userNameSearch || '').toLowerCase()
+      const matches = this.users.filter(option => option.username.toString().toLowerCase().indexOf(search) >= 0)
+      return 'totes'.indexOf(search) >= 0 ? [{ id: 0, username: 'Totes' }, ...matches] : matches
     }
   },
   mounted () {
@@ -100,17 +122,21 @@ export default {
     const queryYear = yearFromQuery(this.$route.query)
     this.filters.month = queryMonth
 
-    service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-      this.years = r.data
-      this.filters.year = (queryYear && this.years.find(y => Number(y.year) === queryYear)) || defaultYear(this.years)
-    })
+    this.team = !!queryMonth
 
-    service({ requiresAuth: true, cached: true }).get('users').then((r) => {
-      this.users = r.data.filter(u => !u.hidden)
-      this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.username !== 'app')))
-      this.usersList.unshift({ id: 0, username: 'Totes' })
-      const user = findCurrentUser(r.data)
-      if (user && user.id && !queryMonth) {
+    // the years, the people and their working days: light requests, no hours,
+    // whatever the number of people (issues/449)
+    Promise.all([
+      service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC'),
+      service({ requiresAuth: true, cached: true }).get('users'),
+      service({ requiresAuth: true }).get('daily-dedications?_limit=-1')
+    ]).then(([years, users, dedications]) => {
+      this.years = years.data
+      this.filters.year = (queryYear && this.years.find(y => Number(y.year) === queryYear)) || defaultYear(this.years)
+      this.allUsers = users.data
+      this.dedications = dedications.data
+      const user = findCurrentUser(users.data)
+      if (!queryMonth && user && user.id && this.users.some(u => u.id === user.id)) {
         this.userNameSearch = user.username
         this.filters.user = user.id
       }
@@ -119,6 +145,19 @@ export default {
     this.isLoading = false
   },
   methods: {
+    setTeam (team) {
+      this.team = team
+    },
+    selectUser (option) {
+      if (option && option.id === 0) {
+        // «Totes»: the whole staff
+        this.$nextTick(() => { this.userNameSearch = '' })
+        this.filters.user = null
+        this.team = true
+        return
+      }
+      this.filters.user = option ? option.id : null
+    }
   }
 }
 </script>
