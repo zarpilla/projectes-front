@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.18",
   items: [
     {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A ", { to: "/factures-proveidor", label: "Factures" }, " de la sòcia també surten els esborranys que prepara «Facturar», marcats «Esborrany», abans que l'oficina els emeti."]
+    },
+    {
       type: "Correccions",
       modules: ["Diners", "Projectes"],
       text: ["Quan un any té un «% IVA deduïble» propi a Taules auxiliars › Anys, és el que fan servir els projectes i els informes per sumar l'IVA no deduïble (prorrata). Ara ", { to: "/administracio/configuracio", label: "Configuració" }, " avisa si l'any en curs o els següents tenen un % diferent del general i permet posar-hi el general amb un clic. Canviar el % d'un any o el general recalcula els totals dels projectes en uns minuts."]
