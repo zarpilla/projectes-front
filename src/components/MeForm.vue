@@ -203,6 +203,18 @@
               <b-field label="% IVA deduïble" message="La prorrata: la part de l'IVA suportat que es pot descomptar. Cada any en pot tenir un de propi a Taules auxiliars › Anys, que és el que es fa servir en saldar l'IVA i a la tresoreria d'aquell any.">
                 <b-input v-model.number="form.options.deductible_vat_pct" type="number" step="0.01" min="0" max="100" />
               </b-field>
+              <!-- a year's own % rules over this one (issues/440) -->
+              <div v-if="overridingYears.length" class="notification is-warning is-light vat-years is-full" role="status" data-test="vat-years">
+                <p>
+                  A Taules auxiliars › Anys, {{ overridingYears.length > 1 ? "els anys" : "l'any" }} <b>{{ overridingYearsLabel }}</b>
+                  {{ overridingYears.length > 1 ? "tenen" : "té" }} un % propi, i és el que fan servir els projectes, els informes i l'IVA
+                  d'{{ overridingYears.length > 1 ? "aquells anys" : "aquell any" }}, no el {{ savedDeductiblePct }} % d'aquí.
+                </p>
+                <b-button size="is-small" type="is-warning" :loading="applyingVatPct" @click="applyVatPctToYears">
+                  Posa-hi el {{ savedDeductiblePct }} %
+                </b-button>
+                <small class="help">Els anys anteriors no es canvien: si cal, a Taules auxiliars › Anys. Els totals dels projectes es recalculen en uns minuts.</small>
+              </div>
               <b-field label="Inici de l'any fiscal" message="Els imports de la fitxa de projecte i dels informes econòmics s'agrupen per aquest any. L'IVA, les sèries de factura, les nòmines i les hores continuen per any natural.">
                 <b-select v-model.number="fiscalStartMonth" expanded>
                   <option v-for="(name, i) in fiscalMonths" :key="i" :value="i + 1">{{ name }}</option>
@@ -356,6 +368,7 @@
 
 <script>
 import service from '@/service/index';
+import { yearsOverridingConfig, overridingYearsText } from '@/domain/deductibleVatYears';
 import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 import CertificateCard from '@/components/CertificateCard.vue';
@@ -393,6 +406,9 @@ export default {
       activeSection: "cfg-entitat",
       fiscalMonths: ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'],
       savedFiscalStartMonth: null,
+      savedDeductiblePct: null,
+      vatYears: [],
+      applyingVatPct: false,
       sections: [
         { id: "cfg-entitat", label: "Entitat" },
         { id: "cfg-logo", label: "Logo" },
@@ -476,6 +492,7 @@ export default {
   async mounted() {
     await this.loadBankAccounts();
     await this.loadData();
+    await this.loadVatYears();
   },
   computed: {
     // the zones of Europe and the Atlantic islands, and the one saved
@@ -518,6 +535,13 @@ export default {
       set(value) {
         this.form.options = { ...(this.form.options || {}), default_billing_mode: value };
       }
+    },
+    // compared with the saved %, not one still being typed (issues/440)
+    overridingYears() {
+      return yearsOverridingConfig(this.vatYears, this.savedDeductiblePct, new Date().getFullYear());
+    },
+    overridingYearsLabel() {
+      return overridingYearsText(this.overridingYears);
     },
     indexSections() {
       return this.sections.filter(sec => !sec.logistics || this.logistics);
@@ -599,6 +623,28 @@ export default {
         this.loadingBankAccounts = false;
       }
     },
+    async loadVatYears() {
+      try {
+        this.vatYears = (await service({ requiresAuth: true }).get('years?_limit=-1')).data || [];
+      } catch (e) {
+        this.vatYears = [];
+      }
+    },
+    // the % of Configuració into the current and later years (issues/440)
+    async applyVatPctToYears() {
+      this.applyingVatPct = true;
+      try {
+        for (const year of this.overridingYears) {
+          await service({ requiresAuth: true }).put(`years/${year.id}`, { deductible_vat_pct: this.savedDeductiblePct });
+        }
+        await this.loadVatYears();
+        this.$buefy.snackbar.open({ message: 'Fet. Els totals dels projectes es recalculen en uns minuts.', queue: false });
+      } catch (error) {
+        this.$buefy.toast.open({ message: `Error: ${error.message}`, type: 'is-danger' });
+      } finally {
+        this.applyingVatPct = false;
+      }
+    },
     async loadData() {
       try {
         this.isLoading = true;
@@ -621,6 +667,7 @@ export default {
         this.form.task_emails = response.data.task_emails !== false;
         for (const key of COMPONENTS) this.form[key] = { ...(response.data[key] || {}) };
         this.savedFiscalStartMonth = this.fiscalStartMonth;
+        this.savedDeductiblePct = this.form.options.deductible_vat_pct;
         for (const key of Object.keys(this.tokenSet || {})) this.tokenSet[key] = !!response.data[key + '_set'];
         try {
           const user = (await service({ requiresAuth: true, cached: true }).get('users/me')).data;
@@ -666,6 +713,7 @@ export default {
 
         await service({ requiresAuth: true }).put('/me', data);
         this.savedFiscalStartMonth = this.fiscalStartMonth;
+        this.savedDeductiblePct = this.form.options.deductible_vat_pct;
         for (const key of Object.keys(tokens)) {
           if (data[key]) this.tokenSet[key] = true;
           tokens[key] = '';
@@ -689,6 +737,12 @@ export default {
 };
 </script>
 <style scoped>
+.vat-years {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+}
 .working-days {
   display: flex;
   flex-wrap: wrap;

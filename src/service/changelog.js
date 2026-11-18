@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.18",
   items: [
     {
+      type: "Correccions",
+      modules: ["Diners", "Projectes"],
+      text: ["Quan un any té un «% IVA deduïble» propi a Taules auxiliars › Anys, és el que fan servir els projectes i els informes per sumar l'IVA no deduïble (prorrata). Ara ", { to: "/administracio/configuracio", label: "Configuració" }, " avisa si l'any en curs o els següents tenen un % diferent del general i permet posar-hi el general amb un clic. Canviar el % d'un any o el general recalcula els totals dels projectes en uns minuts."]
+    },
+    {
       type: "Novetats",
       modules: ["Diners"],
       text: ["A ", { to: "/bestretes", label: "Bestretes" }, " hi ha la vista «Plantilla sencera» (o «Totes» al cercador de persones): la suma de les nòmines de tothom per mes (net, IRPF, SS, altres i total) i quantes en queden per pagar. Clicant un mes, o triant-lo a «Mes», surten les nòmines de cada persona d'aquell mes. A «Individual», «Mes» mostra només aquell mes de la persona, i al cercador només surten les persones amb jornada definida aquell any."]
