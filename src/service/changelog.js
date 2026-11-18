@@ -59,6 +59,11 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística"],
+      text: ["A ", { to: "/consulta-punt-entrega", label: "Consulta i autorització nou punt d'entrega" }, " l'oficina aprova o rebutja cada consulta, amb un missatge opcional, i la sòcia en rep un correu. D'una consulta aprovada, «Crea el punt d'entrega» obre el punt ja omplert (sòcia, nom, adreça, població i CP, franges de l'horari, notes) i el deixa enllaçat a la consulta. Les consultes decidides es poden arxivar perquè la llista no porti tot l'històric."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
       text: ["Al ", { to: "/simulador-logistic", label: "Simulador" }, " pots triar el punt d'entrega en lloc de la població: surten les rutes del punt (sense les anul·lades, amb les extraordinàries i el seu horari, i la principal la primera i ja triada) i el preu hi aplica tots els descomptes del punt: el descompte de recollida del punt i el multientrega si aquell dia ja hi ha una altra comanda al punt, a més del de volum i el recàrrec fora de temps."]
     }
   ]

@@ -1,12 +1,14 @@
 <template>
   <!-- «Consulta i autorització nou punt d'entrega» (issues/357): a member asks
        for a delivery point the service doesn't cover yet. The request is mailed
-       to the office (the incidences' address), which answers by e-mail; here
-       stays the record: who asked, when, and whether it has been answered. -->
+       to the office (the incidences' address). The office approves or rejects
+       it, the member gets a mail, and an approved one gives a button to create
+       the delivery point with what the request says; decided requests are
+       archived out of the list (issues/357, seguiment). -->
   <div class="point-request">
     <title-bar
       :title-stack="['Rutes i punts', 'Consulta nou punt']"
-      subtitle="Demana un punt d'entrega on encara no arribem: l'oficina en rebrà un correu i et respondrà per correu."
+      subtitle="Demana un punt d'entrega on encara no arribem: l'oficina en rebrà un correu i t'avisarem per correu quan l'aprovi o la rebutgi."
     />
 
     <section class="section is-main-section">
@@ -47,8 +49,16 @@
 
       <section class="a-box">
         <header class="box-head">
-          <h2>{{ isOffice ? "Consultes rebudes" : "Les meves consultes" }}</h2>
-          <span class="box-hint">{{ pendingCount }} {{ pendingCount === 1 ? "pendent" : "pendents" }} de resposta</span>
+          <h2>{{ isOffice ? (showArchived ? "Consultes arxivades" : "Consultes rebudes") : "Les meves consultes" }}</h2>
+          <span v-if="!showArchived" class="box-hint">{{ pendingCount }} {{ pendingCount === 1 ? "pendent" : "pendents" }} de resposta</span>
+          <b-switch
+            v-if="isOffice"
+            v-model="showArchived"
+            size="is-small"
+            class="ml-auto"
+            data-test="requests-archived"
+            @update:model-value="load"
+          >Mostra les arxivades</b-switch>
         </header>
         <b-loading :is-full-page="false" :model-value="isLoading" />
         <div class="table-container">
@@ -62,6 +72,7 @@
                 <th>Pes</th>
                 <th>Notes</th>
                 <th>Resposta</th>
+                <th v-if="isOffice"></th>
               </tr>
             </thead>
             <tbody>
@@ -75,20 +86,50 @@
                 <td class="pre">{{ r.schedule }}</td>
                 <td>{{ r.estimated_weight || "—" }}</td>
                 <td class="pre">{{ r.notes || "—" }}</td>
-                <td class="nowrap">
-                  <b-switch
-                    v-if="isOffice"
-                    :model-value="!!r.answered"
-                    size="is-small"
-                    data-test="request-answered"
-                    @update:model-value="setAnswered(r, $event)"
-                  >{{ r.answered ? "Resposta" : "Pendent" }}</b-switch>
-                  <span v-else class="tag" :class="r.answered ? 'is-success is-light' : 'is-warning is-light'">{{ r.answered ? "Resposta" : "Pendent" }}</span>
+                <td class="answer-cell">
+                  <span class="tag is-light" :class="stateOf(r).tag" data-test="request-state">{{ stateOf(r).text }}</span>
                   <small v-if="r.answered && r.answered_date" class="sub">{{ formatDateTime(r.answered_date) }}</small>
+                  <small v-if="r.answer" class="sub pre">{{ r.answer }}</small>
+                  <router-link
+                    v-if="r.contact && r.contact.id"
+                    :to="`/punt-entrega/${r.contact.id}`"
+                    class="sub"
+                    data-test="request-point"
+                  >Punt d'entrega: {{ r.contact.trade_name || r.contact.name || r.contact.id }}</router-link>
+                </td>
+                <td v-if="isOffice" class="request-actions">
+                  <template v-if="!r.answered">
+                    <b-button size="is-small" type="is-success" icon-left="check" data-test="request-approve" @click="decide(r, 'approved')">Aprova</b-button>
+                    <b-button size="is-small" type="is-danger" outlined icon-left="close" data-test="request-reject" @click="decide(r, 'rejected')">Rebutja</b-button>
+                  </template>
+                  <template v-else>
+                    <b-button
+                      v-if="r.status === 'approved' && !(r.contact && r.contact.id)"
+                      size="is-small"
+                      type="is-primary"
+                      icon-left="map-marker-plus"
+                      data-test="request-create-point"
+                      @click="createPoint(r)"
+                    >Crea el punt d'entrega</b-button>
+                    <b-button
+                      size="is-small"
+                      outlined
+                      :icon-left="r.archived ? 'archive-arrow-up' : 'archive-arrow-down'"
+                      data-test="request-archive"
+                      @click="setArchived(r, !r.archived)"
+                    >{{ r.archived ? "Desarxiva" : "Arxiva" }}</b-button>
+                    <b-button
+                      v-if="!r.archived"
+                      size="is-small"
+                      type="is-text"
+                      data-test="request-undo"
+                      @click="decide(r, null)"
+                    >Torna a pendent</b-button>
+                  </template>
                 </td>
               </tr>
               <tr v-if="!isLoading && !requests.length">
-                <td :colspan="isOffice ? 7 : 6" class="box-empty">Encara no hi ha cap consulta.</td>
+                <td :colspan="isOffice ? 8 : 6" class="box-empty">{{ showArchived ? "No hi ha cap consulta arxivada." : "Encara no hi ha cap consulta." }}</td>
               </tr>
             </tbody>
           </table>
@@ -103,7 +144,7 @@ import moment from "moment";
 import service from "@/service/index";
 import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
-import { emptyPointRequest, pointRequestError, isOfficeUser } from "@/domain/deliveryPointRequest";
+import { emptyPointRequest, pointRequestError, isOfficeUser, requestState } from "@/domain/deliveryPointRequest";
 
 export default {
   name: "DeliveryPointRequest",
@@ -113,6 +154,7 @@ export default {
       isLoading: true,
       isSending: false,
       submitted: false,
+      showArchived: false,
       permissions: [],
       form: emptyPointRequest(),
       requests: []
@@ -139,12 +181,13 @@ export default {
     filled(value) {
       return !!(value && String(value).trim());
     },
-    // the API keeps a member to her own requests
+    // the API keeps a member to her own requests (all of them); the office
+    // lists the archived ones apart
     async load() {
       try {
-        const { data } = await service({ requiresAuth: true }).get("delivery-point-requests", {
-          params: { _limit: -1, _sort: "id:DESC", "populate[0]": "user" }
-        });
+        const params = { _limit: -1, _sort: "id:DESC", "populate[0]": "user", "populate[1]": "contact" };
+        if (this.isOffice) params._archived = this.showArchived ? 1 : 0;
+        const { data } = await service({ requiresAuth: true }).get("delivery-point-requests", { params });
         this.requests = Array.isArray(data) ? data : [];
       } catch (e) {
         this.requests = [];
@@ -172,14 +215,57 @@ export default {
         this.isSending = false;
       }
     },
-    async setAnswered(request, answered) {
+    stateOf(request) {
+      return requestState(request);
+    },
+    async save(request, data) {
+      const { data: res } = await service({ requiresAuth: true }).put(`delivery-point-requests/${request.id}`, { data });
+      return (res && res.data ? res.data : res) || {};
+    },
+    // approve / reject, with an optional message for the member (mailed);
+    // null takes it back to pending
+    decide(request, status) {
+      if (!status) return this.applyDecision(request, null, "");
+      const approve = status === "approved";
+      this.$buefy.dialog.prompt({
+        title: approve ? "Aprova la consulta" : "Rebutja la consulta",
+        message: "La sòcia en rebrà un correu. Missatge per a ella (opcional):",
+        inputAttrs: { placeholder: approve ? "Per exemple, el dia que hi passarem" : "Per exemple, el motiu", required: false, maxlength: 1000 },
+        confirmText: approve ? "Aprova" : "Rebutja",
+        cancelText: "Cancel·la",
+        type: approve ? "is-success" : "is-danger",
+        trapFocus: true,
+        onConfirm: answer => this.applyDecision(request, status, answer)
+      });
+    },
+    async applyDecision(request, status, answer) {
+      const text = String(answer || "").trim();
       try {
-        const { data } = await service({ requiresAuth: true }).put(`delivery-point-requests/${request.id}`, { data: { answered } });
-        const saved = data && data.data ? data.data : data;
-        Object.assign(request, { answered, answered_date: saved && saved.answered_date !== undefined ? saved.answered_date : (answered ? new Date().toISOString() : null) });
+        const saved = await this.save(request, { status, answer: text });
+        Object.assign(request, {
+          status,
+          answered: !!status,
+          answer: text || null,
+          answered_date: saved.answered_date !== undefined ? saved.answered_date : (status ? new Date().toISOString() : null)
+        });
+        if (status) {
+          this.$buefy.snackbar.open({ message: `Consulta ${status === "approved" ? "aprovada" : "rebutjada"}: la sòcia en rebrà un correu`, queue: false });
+        }
       } catch (e) {
         this.$buefy.toast.open({ message: "Error desant la resposta", type: "is-danger" });
       }
+    },
+    async setArchived(request, archived) {
+      try {
+        await this.save(request, { archived });
+        this.requests = this.requests.filter(r => r.id !== request.id);
+      } catch (e) {
+        this.$buefy.toast.open({ message: "Error arxivant la consulta", type: "is-danger" });
+      }
+    },
+    // the point form, filled from the request (ContactsUserForm reads ?consulta)
+    createPoint(request) {
+      this.$router.push({ path: "/punt-entrega/0", query: { consulta: request.id } });
     },
     userName(user) {
       return user && typeof user === "object" ? user.fullname || user.username : "—";
@@ -223,6 +309,18 @@ export default {
   display: block;
   color: var(--a-muted);
   font-size: .8125rem;
+}
+.box-head .ml-auto {
+  margin-left: auto;
+}
+.request-actions {
+  white-space: nowrap;
+}
+.request-actions .button + .button {
+  margin-left: .25rem;
+}
+.answer-cell {
+  min-width: 8rem;
 }
 .requests-table .pre {
   white-space: pre-line;
