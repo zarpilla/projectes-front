@@ -2938,7 +2938,7 @@ export default {
         incidences.length ? { key: "incidence", kind: open ? "is-alert" : "is-info", icon: "alert-circle-outline", label: open ? `${open} ${open === 1 ? "incidència oberta" : "incidències obertes"}` : `${incidences.length === 1 ? "Incidència tancada" : `${incidences.length} incidències tancades`}` } : null,
         order.late_order ? { key: "express", kind: "is-alert", icon: "alert", label: `Comanda fora de temps: informada després de l'hora límit${surcharge ? ` (recàrrec +${formatNumber(surcharge, 2)} %)` : ""}` } : null,
         order.late_pickup ? { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", label: order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard" } : null,
-        this.isFutureWeek(order) ? { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", label: "Entrega prevista una setmana vinent" } : null,
+        this.isFutureWeek(order) ? { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", label: "Entrega prevista la setmana vinent" } : null,
         // the member took the next date from «Ruta tancada» (issues/363)
         order.route_redirected_from ? { key: "redirected", kind: "is-next", icon: "directions-fork", label: `Ruta tancada: redirigida des de ${order.route_redirected_from}` } : null,
         cold ? { key: "cold", kind: "is-cold", icon: "snowflake", label: "Refrigerada" } : null,
