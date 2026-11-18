@@ -170,7 +170,7 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import { startLoad } from "@/domain/latestLoad.js";
-import { periodHours, countedFestiveOn } from "@/domain/workdayLog.js";
+import { agreementYear } from "@/domain/agreementHours.js";
 import { formatNumber, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -339,176 +339,57 @@ export default {
         .get(query)
         .then(async r => {
           const loadedActivities = r.data;
-          // built for this load only, then shown at once
-          const summary = {};
-
           const yearDetails = (await yearsRequest).data[0];
-
           const festiveTypes = (await festiveTypesRequest).data;
-          const festiveNames = festiveTypes.map(ft => ft.name);
-          festiveTypes.forEach(ft => {
-            summary[ft.name] = {
-              hours: 0,
-              days: 0,
-              max: ft.max,
-              daysCurrent: 0,
-              maxIsDefault: true
-            };
-          });
-
           const festives = (await festivesRequest).data.filter(
             f =>
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
           );
-
-          // the vacation and free-choice days the figures count, so the
-          // table and the KPI agree (issues/246)
-          const personalDaysList = [];
-
           const dailyDedications = (await dedicationsRequest).data;
-
           const yearFestives = (await yearFestivesRequest).data;
-
           const userFestives = (await userFestivesRequest).data;
-
           const userYearFestives = (await userYearFestivesRequest).data;
           if (isStale()) {
             return;
           }
 
-          for (const f of yearFestives) {
-            summary[f.festive_type.name].max = f.max;
-            summary[f.festive_type.name].maxIsDefault = false;
-          }
-          for (const f of userFestives) {
-            summary[f.festive_type.name].max = f.max;
-            summary[f.festive_type.name].maxIsDefault = false;
-          }
-          for (const f of userYearFestives) {
-            summary[f.festive_type.name].max = f.max;
-            summary[f.festive_type.name].maxIsDefault = false;
-          }
-
-          var allDates = this.enumerateDaysBetweenDates();
-          var totalWorkedDays = 0;
-          var totalWorkedHours = 0;
-          var laborableDays = 0;
-          var laborableHours = 0;
-          var fullTimeDays = 0;
-          let warn = false;
-          allDates.forEach(d => {
-            const date = moment(d).format("YYYY-MM-DD");
-            const day = moment(d).day();
-            // the holiday for everyone first, whatever the order (issues/246)
-            const festive = countedFestiveOn(date, festives);
-            const dailyDedication = dailyDedications.find(
-              dd => date >= dd.from && date <= dd.to
-            );
-            if (!dailyDedication) {
-              warn = true;
-            }
-
-            // the period's weekly distribution, as Saldo d'hores (issues/238)
-            const dayHours = periodHours(dailyDedication, date);
-            const theoricHours = !festive ? dayHours : 0;
-
-            laborableHours += dayHours;
-            if (festive && dailyDedication) {
-              // the hours of that day: none for a holiday on a Saturday
-              // (it counted the daily hours, issues/246)
-              summary[festive.festive_type.name].hours += dayHours;
-              if (["Vacances", "Lliure Elecció"].includes(festive.festive_type.name)) {
-                personalDaysList.push({ date, type: festive.festive_type.name });
-              }
-              summary[festive.festive_type.name].days++;
-              if (moment(d).isBefore(moment())) {
-                summary[festive.festive_type.name].daysCurrent++;
-              }
-            }
-            // The days with jornada are those the period gives hours, the
-            // weekends of a weekly distribution included, as in Saldo d'hores
-            // (it skipped Saturdays/Sundays and counted 0-h weekdays,
-            // issues/238).
-            if (!festive && theoricHours > 0) {
-              totalWorkedDays++;
-              totalWorkedHours += theoricHours;
-            }
-            // The share of a full jornada (8 h from Monday to Friday) still
-            // counts every weekday, those with 0 h too: a "0,9,10,9,0,0,0"
-            // jornada is 70 %, not the 117 % of its 9,33 h a day (f61a83a).
-            if (!festive && dailyDedication && day !== 0 && day !== 6) {
-              fullTimeDays++;
-            }
+          // the rule is shared with Informes › Dedicació (issues/446)
+          const figures = agreementYear({
+            year: this.year,
+            periods: dailyDedications,
+            festives,
+            festiveTypes,
+            maxes: [...yearFestives, ...userFestives, ...userYearFestives],
+            workingHours: yearDetails.working_hours,
+            today: moment().format("YYYY-MM-DD")
           });
-          // One scale for everything (issues/291):
-          // - jornadaHours: hours of a day with jornada (shown, and what turns
-          //   hours into days);
-          // - share: of a full jornada, 8 h × the weekdays (f61a83a), what
-          //   scales the conveni;
-          // - a pending vacation or free day is a weekday (the maximums count
-          //   weekdays), so it takes off the hours of an average weekday,
-          //   share × 8 = hours / weekdays, master's rule; in days with jornada
-          //   it is days with jornada / weekdays of one. It took a whole
-          //   jornada a day against a conveni scaled by the share, so 5 h in
-          //   Jan–Feb and 0 h the rest gave −135 h.
-          // A flat jornada all year: share × 8 = jornadaHours, as on master.
-          const jornadaHours = totalWorkedDays ? totalWorkedHours / totalWorkedDays : 0;
-          const share = fullTimeDays ? totalWorkedHours / fullTimeDays / 8 : 0;
-          const ratio = share;
-          const weekdayHours = fullTimeDays ? totalWorkedHours / fullTimeDays : 0;
-          const weekdayDays = fullTimeDays ? totalWorkedDays / fullTimeDays : 0;
-
+          const summary = figures.summary;
+          const { calc } = figures;
           summary["Jornada"] = {
-            hours: `${jornadaHours.toFixed(2)} h/dia (${(share * 100).toFixed(
-              1
-            )}%)`,
+            hours: `${calc.dayHours.toFixed(2)} h/dia (${(calc.ratio * 100).toFixed(1)}%)`,
             days: ""
           };
-
           summary["Laborables"] = {
-            hours: totalWorkedHours,
-            days: totalWorkedDays
+            hours: figures.laborable.hours.toFixed(2),
+            days: figures.laborable.days
           };
-
-          const pending = [];
-          const baseDays = totalWorkedDays;
-          const baseHours = totalWorkedHours;
-          festiveTypes.forEach(ft => {
-            if (summary[ft.name].days < summary[ft.name].max) {              
-              const daysToAdd = summary[ft.name].max - summary[ft.name].days
-              const pendingDays = daysToAdd * weekdayDays
-              const pendingHours = daysToAdd * weekdayHours
-              pending.push({ name: ft.name, days: pendingDays, hours: pendingHours, used: summary[ft.name].days, max: summary[ft.name].max })
-              summary["Laborables"].hours = summary["Laborables"].hours - pendingHours
-              summary["Laborables"].days = summary["Laborables"].days - pendingDays
-            }              
-          });
-
-          summary["Laborables"].hours = summary["Laborables"].hours
-
           summary["Màxim Conveni"] = {
-            hours: (yearDetails.working_hours * ratio).toFixed(2),
+            hours: figures.agreement.hours.toFixed(2),
             // in days with jornada, like Laborables
-            days: jornadaHours ? yearDetails.working_hours * ratio / jornadaHours : 0
+            days: figures.agreement.days
           };
-          const label = "Saldo anual d'hores (Laborables - Conveni)"
-          summary[label] = {
-            hours: summary["Laborables"].hours - yearDetails.working_hours * ratio,           
-            days: summary["Laborables"].days - summary["Màxim Conveni"].days
+          summary["Saldo anual d'hores (Laborables - Conveni)"] = {
+            hours: figures.balance.hours.toFixed(2),
+            days: figures.balance.days
           };
-
-          summary["Laborables"].hours = summary["Laborables"].hours.toFixed(2)
-          summary[label].hours = summary[label].hours.toFixed(2)
-
-
           summary["Treballades"] = { hours: sumBy(loadedActivities, 'hours') , days: loadedActivities.filter(a => a.hours > 0).length};
           this.activities = loadedActivities;
-          this.festiveNames = festiveNames;
-          this.personalDaysList = personalDaysList;
-          this.warn = warn;
+          this.festiveNames = festiveTypes.map(ft => ft.name);
+          this.personalDaysList = figures.personalDaysList;
+          this.warn = figures.warn;
           this.summary = summary;
-          this.calc = { baseDays, baseHours, pending, ratio, dayHours: jornadaHours, weekdays: fullTimeDays, weekdayHours, weekdayDays };
+          this.calc = calc;
 
           this.isLoading = false;
         })
@@ -517,21 +398,6 @@ export default {
             this.isLoading = false;
           }
         });
-    },
-    enumerateDaysBetweenDates() {
-      var dates = [];
-      var currDate = moment(this.year, "YYYY").startOf("year");
-      const endOfYear = moment(this.year, "YYYY").endOf("year");
-      // var lastDate = endOfYear
-      // endOfYear.diff(moment()) < 0
-      //   ? moment(this.year, "YYYY").endOf("year")
-      //   : moment();
-      // var lastDate = moment()
-      dates.push(currDate.clone().toDate());
-      while (currDate.add(1, "days").diff(endOfYear) < 0) {
-        dates.push(currDate.clone().toDate());
-      }
-      return dates;
     },
     formatDMYDate(val) {
       if (!val) {

@@ -77,11 +77,12 @@ export const festiveTaken = (date, personId, festives, ownId = null) => {
 // distribution when it has one, otherwise its daily hours from Monday to
 // Friday. Saldo d'hores' rule, shared by Registre jornades, Bestretes and
 // Hores anuals so they all expect the same hours (issues/238).
-export const periodHours = (period, date) => {
+// `day` (0 = Sunday) saves parsing the date when the caller already knows it
+// (Dedicació runs this for every day of the year and every person, issues/446)
+export const periodHours = (period, date, day = moment(date, 'YYYY-MM-DD').day()) => {
   if (!period) {
     return 0
   }
-  const day = moment(date, 'YYYY-MM-DD').day()
   if (period.hoursperday) {
     const value = parseFloat(String(period.hoursperday).split(',')[day === 0 ? 6 : day - 1])
     return Number.isFinite(value) ? value : 0

@@ -42,6 +42,14 @@
         </label>
       </form>
       <dedication-charts v-if="chartRows" :rows="chartRows" :year="appliedFilters.year" :show-cost="showCost" />
+      <!-- working hours of the year and the agreement, per person (issues/446) -->
+      <dedication-agreement
+        v-if="ready && appliedFilters.year"
+        :year="appliedFilters.year"
+        :person="appliedFilters.user"
+        :users="allUsers"
+        :rows="chartRows || []"
+      />
       <dedication-est-pivot
         v-if="ready"
         :project-state="appliedFilters.project_state"
@@ -59,6 +67,7 @@
 import TitleBar from '@/components/TitleBar.vue'
 import DedicationEstPivot from '@/components/DedicationEstPivot.vue'
 import DedicationCharts from '@/components/DedicationCharts.vue'
+import DedicationAgreement from '@/components/DedicationAgreement.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { defaultYear } from '@/domain/years'
@@ -71,7 +80,8 @@ export default {
   components: {
     TitleBar,
     DedicationEstPivot,
-    DedicationCharts
+    DedicationCharts,
+    DedicationAgreement
   },
   data () {
     return {
@@ -82,6 +92,8 @@ export default {
       project_states: [],
       years: [],
       users: [],
+      // hidden ones too, for the names of the jornada table (issues/446)
+      allUsers: [],
       projects: [],
       projectSearch: '',
       // the cost of the hours (from salaries) only for people with the projects permission;
@@ -142,6 +154,7 @@ export default {
       this.years = [{ id: 0, year: 0, display: 'Tots' }, ...years.data.map(y => ({ ...y, display: y.year }))]
       // the API gives her only her own done hours (issues/188): the planned hours and
       // the KPIs (persones, projectes, previstes) are hers too, not everyone's (issues/223)
+      this.allUsers = this.canPickPerson ? users.data : [{ id: me.data.id, username: me.data.username }]
       this.users = this.canPickPerson
         ? [{ id: 0, username: 'Totes' }, ...users.data.filter(u => !u.hidden)]
         : [{ id: me.data.id, username: me.data.username }]

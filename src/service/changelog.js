@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.18",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Informes", "Hores"],
+      text: ["A ", { to: "/panell-dedicacio", label: "Dedicació" }, ", la taula «Jornada i conveni per persona» mostra per a cada persona les hores laborables de l'any segons la seva jornada a Persones (menys festius, vacances i lliure elecció), el màxim del conveni i el saldo, al costat de les hores previstes i fetes. Són les mateixes xifres que el «Resum hores» de cada persona."]
+    }
+  ]
+},
+{
   date: "2026.11.17",
   items: [
     {
