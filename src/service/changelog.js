@@ -65,6 +65,11 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Logística"],
       text: ["Al ", { to: "/simulador-logistic", label: "Simulador" }, " pots triar el punt d'entrega en lloc de la població: surten les rutes del punt (sense les anul·lades, amb les extraordinàries i el seu horari, i la principal la primera i ja triada) i el preu hi aplica tots els descomptes del punt: el descompte de recollida del punt i el multientrega si aquell dia ja hi ha una altra comanda al punt, a més del de volum i el recàrrec fora de temps."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística", "Plataforma"],
+      text: ["Els camps amb errors o que falten tornen a sortir en vermell a tots els formularis. A la fitxa de punt d'entrega (", { to: "/clientes", label: "Punts d'entrega" }, "), en desar, cada camp en vermell diu què hi falta (també el sector i els horaris de contacte), l'avís diu quins camps cal revisar, i el vermell desapareix en corregir-los."]
     }
   ]
 },

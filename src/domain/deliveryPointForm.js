@@ -42,3 +42,58 @@ export const townDeliveryText = (routes, linkOf) => {
   const text = joinAnd(parts);
   return text ? text[0].toUpperCase() + text.slice(1) : "";
 };
+
+// issues/448: what a field in red needs, shown under it, and the snackbar
+// naming the fields to fix instead of a bare «camps incorrectes»
+export const POINT_FIELD_LABELS = {
+  owner: "Contacte de",
+  city: "Població",
+  postcode: "CP",
+  address: "Adreça",
+  trade_name: "Nom comercial",
+  sector: "Sector",
+  nif: "NIF",
+  time_slot_1_ini: "Horari de contacte 1",
+  time_slot_2_ini: "Horari de contacte 2",
+  phone: "Telèfon"
+};
+
+const REQUIRED = {
+  owner: "Tria de qui és el punt d'entrega",
+  city: "Tria una població de la llista",
+  postcode: "Indica el codi postal",
+  address: "Indica l'adreça",
+  sector: "Tria un sector",
+  nif: "Indica el NIF, o genera'n un si és un particular",
+  phone: "Necessitem un telèfon de 9 dígits com a mínim"
+};
+
+// the message of each field in error; slot errors come from validateTimeSlots
+export const pointFieldErrors = (errors, slotErrors, { postcodeMessage, tradeNameMessage } = {}) => {
+  const slotMessage = n => {
+    const own = (slotErrors || [])
+      .map(e => e[`time_slot_${n}_ini`] || e[`time_slot_${n}_end`])
+      .filter(Boolean);
+    if (own.length) return own.join(". ");
+    const any = (slotErrors || []).find(e => e.time_slots);
+    return any ? any.time_slots : "";
+  };
+  const out = {};
+  for (const field of Object.keys(POINT_FIELD_LABELS)) {
+    if (!errors || !errors[field]) continue;
+    if (field === "time_slot_1_ini") out[field] = slotMessage(1);
+    else if (field === "time_slot_2_ini") out[field] = slotMessage(2);
+    else if (field === "trade_name") out[field] = tradeNameMessage || "Indica el nom comercial";
+    else if (field === "postcode" && postcodeMessage) out[field] = postcodeMessage;
+    else out[field] = REQUIRED[field];
+  }
+  return out;
+};
+
+// «Revisa els camps en vermell: Població, NIF i Telèfon»
+export const pointErrorsSnackbar = errors => {
+  const names = Object.keys(POINT_FIELD_LABELS)
+    .filter(field => errors && errors[field])
+    .map(field => POINT_FIELD_LABELS[field]);
+  return names.length ? `Revisa els camps en vermell: ${joinAnd(names)}` : "";
+};
