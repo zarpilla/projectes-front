@@ -65,6 +65,11 @@ export const CHANGELOG = [
       type: "Correccions",
       modules: ["Plataforma"],
       text: "En mode fosc, la llista dels desplegables (com el de l'any a Ingressos i despeses) es veia blanca amb lletra gris clar. Ara tots els desplegables tenen el fons fosc i la lletra clara."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística", "Plataforma"],
+      text: ["Els camps amb errors o que falten tornen a sortir en vermell a tots els formularis. A la fitxa de punt d'entrega (", { to: "/clientes", label: "Punts d'entrega" }, "), en desar, cada camp en vermell diu què hi falta (també el sector i els horaris de contacte), l'avís diu quins camps cal revisar, i el vermell desapareix en corregir-los."]
     }
   ]
 },

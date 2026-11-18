@@ -215,6 +215,25 @@ a {
   border-color: var(--a-muted);
 }
 
+/* a field in error stays red: Bulma 1 colours it through its variables, which
+   the border-color above hides (issues/448) */
+.input.is-danger, .textarea.is-danger, .select.is-danger select, .taginput .taginput-container.is-danger {
+  border-color: var(--a-danger-fg);
+
+  &:focus, &.is-focused, &:focus-within {
+    border-color: var(--a-danger-fg);
+    box-shadow: 0 0 0 3px var(--a-danger-bg);
+  }
+}
+
+.select.is-danger:not(.is-multiple):not(.is-loading)::after {
+  border-color: var(--a-danger-fg);
+}
+
+.help.is-danger {
+  color: var(--a-danger-fg);
+}
+
 .label {
   color: var(--a-fg);
   font-weight: 700;

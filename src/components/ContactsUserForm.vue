@@ -13,6 +13,7 @@
                 label="Contacte de *"
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
                 :type="{ 'is-danger': errors['owner'] && submitted }"
+                :message="shownErrors.owner"
               >
                 <b-select
                   v-model="form.owner"
@@ -37,7 +38,7 @@
 
               <b-field
                 label="Població *"
-                message="Si vols que ens aturem a una població que no apareix a la llista, posa’t en contacte amb l'oficina abans de continuar"
+                :message="shownErrors.city || 'Si vols que ens aturem a una població que no apareix a la llista, posa’t en contacte amb l\'oficina abans de continuar'"
                 :type="{ 'is-danger': errors['city'] && submitted }"
               >
                 <b-autocomplete
@@ -57,7 +58,7 @@
               <b-field
                 label="CP *"
                 :type="{ 'is-danger': errors['postcode'] && submitted }"
-                :message="errors['postcode'] && submitted && form.postcode ? postcodeMessage : ''"
+                :message="shownErrors.postcode"
               >
                 <b-input v-model="form.postcode" required />
               </b-field>
@@ -65,6 +66,7 @@
               <b-field
                 label="Adreça *"
                 :type="{ 'is-danger': errors['address'] && submitted }"
+                :message="shownErrors.address"
               >
                 <b-input v-model="form.address" required type="text" />
               </b-field>
@@ -74,12 +76,16 @@
               <b-field
                 label="Nom comercial *"
                 :type="{ 'is-danger': errors['trade_name'] && submitted }"
-                :message="errors['trade_name'] && submitted ? tradeNameRequired : 'Aquest és el nom de referència a ESSTrapis'"
+                :message="shownErrors.trade_name || 'Aquest és el nom de referència a ESSTrapis'"
               >
                 <b-input v-model="form.trade_name" required />
               </b-field>
 
-              <b-field label="Sector *">
+              <b-field
+                label="Sector *"
+                :type="{ 'is-danger': !!shownErrors.sector }"
+                :message="shownErrors.sector"
+              >
                 <div class="is-flex is-flex-wrap-wrap">
                   <div v-for="(sector, index) in sectors" :key="index">
                     <b-button
@@ -104,7 +110,7 @@
               <b-field
                 label="NIF *"
                 :type="{ 'is-danger': errors['nif'] && submitted }"
-                :message="nifHelp"
+                :message="shownErrors.nif || nifHelp"
               >
                 <div class="nif-row">
                   <b-input v-model="form.nif" />
@@ -143,13 +149,13 @@
                 Per a un particular, l'horari de contacte és sempre de 8 a 19 h.
               </p>
 
-              <b-field label="Horari de contacte 1 *">
+              <b-field label="Horari de contacte 1 *" :class="{ 'has-error': shownErrors.time_slot_1_ini }">
                 <b-field
                   label=""
                   :type="{
                     'is-danger': errors['time_slot_1_ini'] && submitted
                   }"
-                  message="Parleu amb l’establiment! No és l’horari d’obertura al públic! Indiqueu el màxim horari al que podem entregar les comandes. Necessitem franges el màxim d’àmplies, mínim 3 hores d’obertura."
+                  :message="shownErrors.time_slot_1_ini || slotHelp"
                 >
                   <b-checkbox
                     v-model="slot1Closed"
@@ -207,13 +213,13 @@
                 </b-field>
               </b-field>
 
-              <b-field label="Horari de contacte 2 *">
+              <b-field label="Horari de contacte 2 *" :class="{ 'has-error': shownErrors.time_slot_2_ini }">
                 <b-field
                   label=""
                   :type="{
                     'is-danger': errors['time_slot_2_ini'] && submitted
                   }"
-                  message="Parleu amb l’establiment! No és l’horari d’obertura al públic! Indiqueu el màxim horari al que podem entregar les comandes. Necessitem franges el màxim d’àmplies, mínim 3 hores d’obertura."
+                  :message="shownErrors.time_slot_2_ini || slotHelp"
                 >
                   <b-checkbox
                     v-model="slot2Closed"
@@ -275,7 +281,7 @@
               <b-field
                 label="Telèfon *"
                 :type="{ 'is-danger': errors['phone'] && submitted }"
-                message="Necessitem un número de telèfon vàlid, pots posar espais o guions per separar o no, com vulguis, però ha de tenir 9 dígits com a mínim."
+                :message="shownErrors.phone || 'Necessitem un número de telèfon vàlid, pots posar espais o guions per separar o no, com vulguis, però ha de tenir 9 dígits com a mínim.'"
               >
                 <b-input v-model="form.phone" required />
               </b-field>
@@ -420,7 +426,14 @@ import { memberMayEdit, townKey, driverLocksDiscount, driverLocksOwner } from "@
 import { TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
 import { scrollToField } from "@/helpers/scrollToField.js";
 import { indexLinks } from "@/domain/cityRoutes.js";
-import { NIF_HELP, PARTICULAR_HOURS, isParticularSector, townDeliveryText } from "@/domain/deliveryPointForm.js";
+import {
+  NIF_HELP,
+  PARTICULAR_HOURS,
+  isParticularSector,
+  townDeliveryText,
+  pointFieldErrors,
+  pointErrorsSnackbar
+} from "@/domain/deliveryPointForm.js";
 
 export default {
   name: "ContactUsersForm",
@@ -469,7 +482,6 @@ export default {
       forceCanEdit: false,
       readOnly: false,
       townPostcodes: {},
-      slotErrors: [],
       slot1Closed: false,
       slot2Closed: false,
       routes: [],
@@ -534,6 +546,20 @@ export default {
             .toLowerCase()
             .indexOf(this.citySearch.toLowerCase()) >= 0
         );
+      });
+    },
+    // validated live, so a slot turns back to normal once fixed (issues/448)
+    slotErrors() {
+      return this.validateTimeSlots();
+    },
+    slotHelp: () =>
+      "Parleu amb l’establiment! No és l’horari d’obertura al públic! Indiqueu el màxim horari al que podem entregar les comandes. Necessitem franges el màxim d’àmplies, mínim 3 hores d’obertura.",
+    // the message under each field in red, once the user tried to save (issues/448)
+    shownErrors() {
+      if (!this.submitted) return {};
+      return pointFieldErrors(this.errors, this.slotErrors, {
+        postcodeMessage: this.form.postcode ? POSTCODE_MESSAGE : "",
+        tradeNameMessage: TRADE_NAME_REQUIRED
       });
     },
     errors() {
@@ -804,11 +830,10 @@ export default {
         if (!this.form.name) {
           this.form.name = this.form.trade_name;
         }
-        this.slotErrors = this.validateTimeSlots();
         // if any key of this.errors is true, return
         if (Object.values(this.errors).some(e => e)) {
           this.$buefy.snackbar.open({
-            message: this.errors.trade_name ? TRADE_NAME_REQUIRED : "Error. Hi ha camps incorrectes",
+            message: pointErrorsSnackbar(this.errors),
             queue: false,
             type: "is-danger"
           });
@@ -1201,6 +1226,11 @@ export default {
 }
 .nif-row .control {
   flex: 1;
+}
+/* the label of a field in error turns red too (issues/448) */
+.point-form :deep(.field:has(> .help.is-danger) > .label),
+.point-form :deep(.has-error > .label) {
+  color: var(--a-danger-fg);
 }
 .town-delivery {
   margin-bottom: .75rem;
