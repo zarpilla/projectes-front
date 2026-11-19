@@ -134,8 +134,10 @@
         >
         <b-table v-if="form && phase.incomes" :data="phase.incomes" ref="table"
           :row-class="row => lineRowClass(row, phase, 'incomes')"
-          :paginated="isPaginated && phase.incomes.length > 10"
+          :paginated="linesPaginated(phase, 'incomes')"
           :per-page="perPage"
+          :current-page="linePage(phase, 'incomes')"
+          @update:current-page="page => setLinePage(phase, 'incomes', page)"
           pagination-position="top"
           :pagination-simple="true"
         >
@@ -358,7 +360,7 @@
                   <b-icon icon="trash-can" size="is-small" />
                 </button>
                 <button
-                  v-if="props.index === phase.incomes.length - 1"
+                  v-if="showAddLine(phase, 'incomes', props)"
                   class="button is-small line-action ml-2"
                   title="Afegeix una línia"
                   aria-label="Afegeix una línia"
@@ -504,8 +506,10 @@
         >
         <b-table v-if="form && phase.expenses" :data="phase.expenses" ref="table"
           :row-class="row => lineRowClass(row, phase, 'expenses')"
-        :paginated="isPaginated && phase.expenses.length > 10"
+          :paginated="linesPaginated(phase, 'expenses')"
           :per-page="perPage"
+          :current-page="linePage(phase, 'expenses')"
+          @update:current-page="page => setLinePage(phase, 'expenses', page)"
           pagination-position="top"
           :pagination-simple="true">
           <b-table-column v-if="canReorder" label="" width="20" cell-class="col-drag" header-class="col-drag" v-slot="props">
@@ -721,7 +725,7 @@
                   <b-icon icon="trash-can" size="is-small" />
                 </button>                
                 <button
-                  v-if="props.index === phase.expenses.length - 1"
+                  v-if="showAddLine(phase, 'expenses', props)"
                   class="button is-small line-action ml-2"
                   title="Afegeix una línia"
                   aria-label="Afegeix una línia"
@@ -983,6 +987,8 @@ export default {
   },
   data() {
     return {
+      // current page of each paginated line table, per phase (issues/453)
+      linePages: new Map(),
       // issues/055: drawn once, kept drawn
       rendered: !this.deferRender,
       // phases folded by the user (key: phase id, or index for unsaved ones)
@@ -1715,6 +1721,29 @@ export default {
       });
     },
 
+    linesPaginated(phase, kind) {
+      return this.isPaginated && (phase[kind] || []).length > 10;
+    },
+    linePage(phase, kind) {
+      return (this.linePages.get(phase) || {})[kind] || 1;
+    },
+    setLinePage(phase, kind, page) {
+      this.linePages.set(phase, { ...(this.linePages.get(phase) || {}), [kind]: page });
+    },
+    // The «Afegeix una línia» button goes on the last line. The table's row
+    // index counts from 0 on every page, so a paginated table also shows it on
+    // the last row of each page: with 11 lines, page 1 had none (issues/453).
+    showAddLine(phase, kind, props) {
+      const lines = phase[kind] || [];
+      if (props.row === lines[lines.length - 1]) return true;
+      return this.linesPaginated(phase, kind) && props.index === this.perPage - 1;
+    },
+    // after adding a line, show the page that holds it
+    showLastLinePage(phase, kind) {
+      if (!this.linesPaginated(phase, kind)) return;
+      this.setLinePage(phase, kind, Math.ceil(phase[kind].length / this.perPage));
+    },
+
     addSubPhase(phase) {
       // Check if in incomes mode and if there are unassigned documents from parent
       if (this.mode === 'incomes' && this.unassignedDocuments && this.unassignedDocuments.length > 0) {
@@ -1761,6 +1790,7 @@ export default {
         date: autoAssign ? this.calculatePaymentDate() : this.defaultLineDate(),
         dirty: true
       });
+      this.showLastLinePage(phase, "incomes");
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,
@@ -1815,6 +1845,7 @@ export default {
         date: autoAssign ? this.calculatePaymentDate() : this.defaultLineDate(),
         dirty: true
       });
+      this.showLastLinePage(phase, "expenses");
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,

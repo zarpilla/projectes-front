@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.19",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "Quan una fase té més de 10 ingressos o despeses, el botó + per afegir una línia ja surt a totes les pàgines de la taula, i després d'afegir-la es mostra la pàgina on ha quedat."
+    }
+  ]
+},
+{
   date: "2026.11.18",
   items: [
     {
