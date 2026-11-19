@@ -58,3 +58,16 @@ describe('the contact form payload', async () => {
     expect(contactPayload({ name: 'Y' })).toEqual({ name: 'Y', capital_contributions: [] })
   })
 })
+
+// issues/436: Configuració › «Aportacions de capital a Tresoreria a partir del»
+describe('capital contributions to Tresoreria option', () => {
+  it('is on with a cut-off date; switched on takes today, keeps an earlier date', async () => {
+    const { capitalToTreasuryOn, setCapitalToTreasury } = await import('@/domain/capitalContributions')
+    expect(capitalToTreasuryOn(null)).toBe(false)
+    expect(capitalToTreasuryOn({ capital_treasury_from: null })).toBe(false)
+    expect(setCapitalToTreasury({ treasury: true }, true, '2026-11-19')).toEqual({ treasury: true, capital_treasury_from: '2026-11-19' })
+    expect(setCapitalToTreasury({ capital_treasury_from: '2026-11-13' }, true, '2026-11-19').capital_treasury_from).toBe('2026-11-13')
+    expect(setCapitalToTreasury({ capital_treasury_from: '2026-11-13' }, false)).toEqual({ capital_treasury_from: null })
+    expect(capitalToTreasuryOn(setCapitalToTreasury(undefined, true))).toBe(true)
+  })
+})

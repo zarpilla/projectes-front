@@ -575,7 +575,13 @@
             :searchable="columnFilters"
             v-slot="props"
           >
-            {{ props.row.contact }}
+            <!-- a capital contribution's annotation is edited from the contact (issues/436) -->
+            <router-link
+              v-if="props.row.contact_id"
+              :to="{ name: 'contacts.edit', params: { id: props.row.contact_id } }"
+              title="Es modifica des del contacte"
+            >{{ props.row.contact }}</router-link>
+            <span v-else>{{ props.row.contact }}</span>
           </b-table-column>
           <b-table-column
             label="Compte bancari"

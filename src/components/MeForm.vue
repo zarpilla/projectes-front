@@ -320,6 +320,16 @@
                 <small>A la pestanya Planificació de cada projecte, les tasques amb data surten al final del Gantt: com una barra si tenen data d'inici i data límit, o com un punt si només tenen data límit.</small>
               </b-checkbox>
             </label>
+            <!-- issues/436 -->
+            <label class="option-row">
+              <b-checkbox v-model="capitalToTreasury" data-test="capital-treasury">
+                <b>Aportacions de capital a Tresoreria</b>
+                <small>Les aportacions al capital que s'entrin a Contactes a partir de la data indicada surten a Tresoreria com a «Aportació de capital» i el nom de la persona, al compte per defecte. Compta el dia en què s'entren, no la data de l'aportació: les entrades abans no s'hi afegeixen (es pressuposa que ja hi són). Si es canvia o s'esborra l'aportació, també es canvia o s'esborra a Tresoreria; es modifiquen des del contacte.</small>
+              </b-checkbox>
+            </label>
+            <b-field v-if="capitalToTreasury" label="A partir del" class="capital-treasury-from">
+              <date-field v-model="form.options.capital_treasury_from" label="Aportacions a Tresoreria a partir del" />
+            </b-field>
             <label class="option-row">
               <b-checkbox v-model="form.task_emails">
                 <b>Avisos de tasques per correu</b>
@@ -371,6 +381,8 @@ import service from '@/service/index';
 import { yearsOverridingConfig, overridingYearsText } from '@/domain/deductibleVatYears';
 import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
+import DateField from '@/components/DateField.vue';
+import { capitalToTreasuryOn, setCapitalToTreasury } from '@/domain/capitalContributions';
 import CertificateCard from '@/components/CertificateCard.vue';
 import ReadCacheCard from '@/components/ReadCacheCard.vue';
 import { DEFAULT_LATE_ORDER_MESSAGE, DEFAULT_LATE_PICKUP_MESSAGE, DEFAULT_ROUTE_CLOSED_MESSAGE, workingDaysOf } from '@/domain/lateOrders';
@@ -382,6 +394,7 @@ export default {
   name: 'MeForm',
   components: {
     CardComponent,
+    DateField,
     CertificateCard,
     ReadCacheCard
   },
@@ -553,6 +566,15 @@ export default {
       },
       set(value) {
         this.form.options = { ...(this.form.options || {}), showTasksInGantt: value };
+      }
+    },
+    // issues/436: on = a cut-off date (today when switched on)
+    capitalToTreasury: {
+      get() {
+        return capitalToTreasuryOn(this.form.options);
+      },
+      set(value) {
+        this.form.options = setCapitalToTreasury(this.form.options, value);
       }
     },
     logoUrl() {
@@ -892,6 +914,11 @@ export default {
 }
 .cfg-grid + .option-row {
   margin-top: 1.25rem;
+}
+/* the cut-off date under its checkbox (issues/436) */
+.capital-treasury-from {
+  max-width: 16rem;
+  margin: -.25rem 0 1rem 1.75rem;
 }
 .option-row small {
   display: block;

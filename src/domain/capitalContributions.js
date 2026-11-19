@@ -55,3 +55,15 @@ export function contactPayload (form) {
   const { partner_amount, partner_amount_date, ...data } = form // eslint-disable-line no-unused-vars
   return { ...data, capital_contributions: cleanContributions(form.capital_contributions) }
 }
+
+/**
+ * Configuració › «Aportacions de capital a Tresoreria» (issues/436): on is a
+ * cut-off date in `options.capital_treasury_from`, today when switched on
+ * (an earlier one is kept); off is null.
+ */
+export const capitalToTreasuryOn = options => !!(options && options.capital_treasury_from)
+
+export function setCapitalToTreasury (options, on, today = new Date().toLocaleDateString('sv-SE')) {
+  const current = options && options.capital_treasury_from
+  return { ...(options || {}), capital_treasury_from: on ? current || today : null }
+}
