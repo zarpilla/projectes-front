@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.20",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Quan una sòcia canvia el punt d'entrega d'una comanda des de l'edició ràpida (llapis) de ", { to: "/comandes", label: "Comandes" }, ", la comanda ja agafa el nom, l'adreça i l'horari del punt nou. Abans la llista continuava mostrant el punt anterior."]
+    }
+  ]
+},
+{
   date: "2026.11.19",
   items: [
     {
