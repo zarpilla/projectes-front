@@ -423,10 +423,18 @@
               {{ t.label }}<template v-if="t.count !== null"> · {{ t.count }}</template>
             </button>
           </div>
-          <!-- issues/456: by the check of «Accions» and the yellow signal; several at once -->
-          <div class="segmented validation-filters" role="group" aria-label="Validació">
+          <!-- issues/456: two filters, independent of each other: with a document or
+               expected, and by the check of «Accions» -->
+          <div
+            v-for="g in validationFilterGroups"
+            :key="g.label"
+            class="segmented validation-filters"
+            :class="g.cls"
+            role="group"
+            :aria-label="g.label"
+          >
             <button
-              v-for="f in validationFilters"
+              v-for="f in g.filters"
               :key="f.id"
               type="button"
               :class="{ 'is-on': validationFilter.includes(f.id) }"
@@ -632,7 +640,7 @@
           <b-table-column label="Accions" v-slot="props">
             <!-- Warning icon for non-executed movements before today -->
             <b-icon
-              v-if="isExpected(props.row)"
+              v-if="isExpected(props.row) && isBeforeToday(props.row.datef)"
               icon="alert"
               class="has-text-warning mr-2"
               size="is-small"
@@ -707,7 +715,7 @@ import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday, PROJECT_FILTER_MODES, projectFilterOptions, projectIdsOfFilter } from "@/domain/projectTreasury.js";
 import { canValidate, validationAction } from "@/domain/treasuryValidation.js";
 import { escapeHtml } from "@/helpers/safeHtml";
-import { checkKey, checkShown, isPending, needsSettleDate, tickCheck, prunePending, changeMessage, runPendingChecks, VALIDATION_FILTERS, validationFilterMatch } from "@/domain/treasuryPendingChecks.js";
+import { checkKey, checkShown, isPending, needsSettleDate, tickCheck, prunePending, changeMessage, runPendingChecks, DOCUMENT_FILTERS, VALIDATION_FILTERS, validationFilterMatch } from "@/domain/treasuryPendingChecks.js";
 import { dateEditKey, isoOfDatef, movementDateChanges, saveMovementDates } from "@/domain/treasuryMovementDates.js";
 
 const MOVEMENTS_ALL_KEY = "TresoreriaTable.movementsAll";
@@ -956,12 +964,16 @@ export default {
     pendingDateChanges() {
       return movementDateChanges(this.dateEdits, this.treasuryData);
     },
-    validationFilters() {
+    validationFilterGroups() {
       const rows = this.treasuryDataDesc.filter(r => this.isMovement(r));
-      return VALIDATION_FILTERS.map(f => ({
+      const withCounts = list => list.map(f => ({
         ...f,
         count: rows.filter(r => validationFilterMatch(r, [f.id], this.isExpected, canValidate)).length
       }));
+      return [
+        { label: "Document", cls: "document-filters", filters: withCounts(DOCUMENT_FILTERS) },
+        { label: "Validació", cls: "check-filters", filters: withCounts(VALIDATION_FILTERS) }
+      ];
     },
     movementTabs() {
       const rows = this.treasuryDataDesc.filter(r => this.isMovement(r));
@@ -1334,9 +1346,10 @@ export default {
       return r.datef && this.isBeforeToday(r.datef) ? "past" : "next";
     },
     // planned (not paid, not real) and its date is gone: the header's «Endarrerits»
-    // the yellow signal of «Accions»: planned, not executed, its day gone (issues/456 «Esperats»)
+    // planned, no document behind it yet (issues/456 «Esperats»); with its day
+    // gone it has the yellow signal in «Accions»
     isExpected(r) {
-      return !(r.paid || r.real) && this.isBeforeToday(r.datef);
+      return !(r.paid || r.real);
     },
     toggleValidationFilter(id) {
       const on = this.validationFilter.includes(id);

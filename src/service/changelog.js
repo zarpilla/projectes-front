@@ -64,7 +64,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Diners"],
-      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › «Moviments bancaris», els filtres «Validats», «No validats» i «Esperats» (els previstos amb el senyal groc), sols o junts."]
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › «Moviments bancaris», dos filtres nous que es poden combinar: «Assignats» / «Esperats» (amb document o encara previstos sense) i «Validats» / «No validats» (per la casella d'«Accions»). Per exemple, «Assignats» + «No validats» són els moviments que falta comprovar amb el banc."]
     },
     {
       type: "Millores",

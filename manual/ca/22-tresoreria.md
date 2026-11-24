@@ -88,9 +88,15 @@ Tots els moviments, un per fila, amb la **Data**, l'**Import**, el **Saldo** des
 bancari**. La taula s'obre a la pàgina dels moviments d'avui.
 
 - **Tots**, **Pròxims** (d'avui endavant) i **Anteriors** (abans d'avui) filtren per data, tant els moviments previstos com els executats. La xifra **Endarrerits** de dalt obre la llista dels moviments previstos amb la data ja passada.
-- **Validats**, **No validats** i **Esperats** filtren per la columna **Accions**: els moviments amb el check
-  marcat, els que tenen la casella buida, i els previstos amb el senyal groc (la data ja ha passat i encara no
-  s'han cobrat ni pagat). Se'n poden activar uns quants alhora: surten els moviments de qualsevol dels triats.
+- Dos filtres més, independents entre ells:
+  - **Assignats** / **Esperats**: els moviments amb un document al darrere (factura, despesa, nòmina…) o els
+    previstos que encara no en tenen cap («Despesa esperada», «Ingrés esperat»…). Quan la data d'un esperat ja ha
+    passat, a **Accions** surt el senyal groc.
+  - **Validats** / **No validats**: els moviments amb el check d'**Accions** marcat o amb la casella buida.
+
+  Dins de cada filtre podeu prémer un botó o tots dos (tots dos és com no filtrar). Els dos filtres es combinen:
+  per exemple, **Assignats** + **No validats** són els moviments amb document que encara heu de comprovar amb el
+  banc.
 - **Cerca concepte, projecte o contacte**, i **Filtres per columna** per filtrar cada columna.
 - A **Accions**, la casella marca un moviment com a **validat** (comprovat amb el banc). En una factura o
   despesa encara **pendent**, a més, la marca com a **cobrada o pagada** (vegeu el pas 3). Les caselles no es

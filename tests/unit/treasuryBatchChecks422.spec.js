@@ -162,7 +162,8 @@ describe('TresoreriaTable (issues/422)', () => {
 })
 
 // issues/456: «Valida accions», light green / light red pending checks,
-// «[document] validat» notifications and the Validats / No validats / Esperats filter
+// «[document] validat» notifications, and two independent filters:
+// Assignats / Esperats and Validats / No validats
 import { changeMessage, validationFilterMatch } from '@/domain/treasuryPendingChecks.js'
 import { canValidate } from '@/domain/treasuryValidation.js'
 
@@ -176,21 +177,28 @@ describe('issues/456', () => {
     expect(changeMessage(settle, 1, 2, 'és un esborrany')).toBe('F-10: és un esborrany · 1 de 2')
   })
 
-  it('the filters, alone or together, by the line as it loaded', () => {
-    const expected = (r) => !(r.paid || r.real) && r.datef < '20261109'
+  it('two independent filters: Assignats/Esperats and Validats/No validats', () => {
+    const expected = (r) => !(r.paid || r.real)
     const rows = {
       validated: expense({ is_validated: true }),
       unvalidated: expense(),
-      planned: { datef: '20261001', concept: 'Previst', total_amount: 10, paid: false, real: false, settle: null },
-      future: { datef: '20261201', concept: 'Futur', total_amount: 10, paid: false, real: false, settle: null }
+      pendingDoc: invoice(),
+      planned: { datef: '20261001', type: 'Despesa esperada', concept: 'Previst', total_amount: -10, paid: false, real: false, settle: null },
+      future: { datef: '20261201', type: 'Ingrés esperat', concept: 'Futur', total_amount: 10, paid: false, real: false, settle: null }
     }
     const shown = (chosen) => Object.keys(rows).filter(k => validationFilterMatch(rows[k], chosen, expected, canValidate))
-    expect(shown([])).toEqual(['validated', 'unvalidated', 'planned', 'future'])
+    expect(shown([])).toEqual(Object.keys(rows))
+    // document group: past and future planned lines are «Esperats»
+    expect(shown(['expected'])).toEqual(['planned', 'future'])
+    expect(shown(['assigned'])).toEqual(['validated', 'unvalidated', 'pendingDoc'])
+    expect(shown(['assigned', 'expected'])).toEqual(Object.keys(rows))
+    // validation group
     expect(shown(['validated'])).toEqual(['validated'])
-    expect(shown(['unvalidated'])).toEqual(['unvalidated'])
-    expect(shown(['expected'])).toEqual(['planned'])
-    expect(shown(['validated', 'expected'])).toEqual(['validated', 'planned'])
-    expect(shown(['validated', 'unvalidated', 'expected'])).toEqual(['validated', 'unvalidated', 'planned'])
+    expect(shown(['unvalidated'])).toEqual(['unvalidated', 'pendingDoc'])
+    expect(shown(['validated', 'unvalidated'])).toEqual(['validated', 'unvalidated', 'pendingDoc'])
+    // the groups narrow each other
+    expect(shown(['assigned', 'unvalidated'])).toEqual(['unvalidated', 'pendingDoc'])
+    expect(shown(['expected', 'validated'])).toEqual([])
   })
 
   async function mountRows (rows) {
@@ -223,13 +231,18 @@ describe('issues/456', () => {
   })
 
   it('the filter buttons narrow the movements list', async () => {
-    const w = await mountRows([expense(), expense({ validation_key: 'received-invoices:8', concept: 'R-8', is_validated: true })])
-    const buttons = w.findAll('.validation-filters button')
-    expect(buttons.map(b => b.text())).toEqual(['Validats · 1', 'No validats · 1', 'Esperats · 0'])
-    await buttons[0].trigger('click')
+    const w = await mountRows([expense(), expense({ validation_key: 'received-invoices:8', concept: 'R-8', is_validated: true }),
+      { datef: '20261001', type: 'Despesa esperada', concept: 'Previst', total_amount: -10, paid: false, real: false }])
+    expect(w.findAll('.document-filters button').map(b => b.text())).toEqual(['Assignats · 2', 'Esperats · 1'])
+    const check = w.findAll('.check-filters button')
+    expect(check.map(b => b.text())).toEqual(['Validats · 1', 'No validats · 1'])
+    await check[0].trigger('click')
     expect(w.vm.movementsShown.map(r => r.concept)).toEqual(['R-8'])
-    await buttons[1].trigger('click')
+    await check[1].trigger('click')
     expect(w.vm.movementsShown).toHaveLength(2)
+    // plus «Esperats» in the other group: nothing is both
+    await w.findAll('.document-filters button')[1].trigger('click')
+    expect(w.vm.movementsShown).toHaveLength(0)
     w.unmount()
   })
 })

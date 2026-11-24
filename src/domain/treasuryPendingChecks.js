@@ -97,29 +97,38 @@ export function changeMessage(change, n, total, error) {
   return error ? `${name}: ${error}${progress}` : `${name} ${changeLabel(change)}${progress}`;
 }
 
-// «Validats», «No validats», «Esperats» (issues/456): any of them on at once,
-// a line shows when it is in one of the chosen; none chosen, every line.
-// Validated or not goes by the line as it loaded, so a line ticked while
-// «No validats» is on stays in the list until «Valida accions».
-export const VALIDATION_FILTERS = [
-  { id: "validated", label: "Validats" },
-  { id: "unvalidated", label: "No validats" },
+// Two filters of Moviments bancaris (issues/456), independent of each other:
+//   - document: «Assignats» (a document behind it) / «Esperats» (planned, no
+//     document yet: «Despesa esperada», «Ingrés esperat»…);
+//   - validation: «Validats» / «No validats», by the check of «Accions».
+// Within a group, the chosen buttons add up (none or both: no filter); the two
+// groups narrow each other. Validated or not goes by the line as it loaded, so
+// a line ticked while «No validats» is on stays until «Valida accions».
+export const DOCUMENT_FILTERS = [
+  { id: "assigned", label: "Assignats" },
   { id: "expected", label: "Esperats" }
 ];
+export const VALIDATION_FILTERS = [
+  { id: "validated", label: "Validats" },
+  { id: "unvalidated", label: "No validats" }
+];
+
+const groupMatch = (chosen, group, test) => {
+  const on = group.filter(f => chosen.includes(f.id));
+  return !on.length || on.some(f => test(f.id));
+};
 
 /**
  * @param {object} row the Tresoreria line
- * @param {string[]} chosen ids of VALIDATION_FILTERS
- * @param {(row: object) => boolean} isExpected the yellow «Moviment previst pendent» signal
+ * @param {string[]} chosen ids of DOCUMENT_FILTERS and VALIDATION_FILTERS
+ * @param {(row: object) => boolean} isExpected planned, no document yet
  * @param {(row: object) => boolean} hasCheck whether «Accions» has a check for it
  */
 export function validationFilterMatch(row, chosen, isExpected, hasCheck) {
   if (!chosen || !chosen.length) return true;
-  const validated = hasCheck(row) && Boolean(row.is_validated);
-  const unvalidated = hasCheck(row) && !row.is_validated;
-  return (chosen.includes("validated") && validated) ||
-    (chosen.includes("unvalidated") && unvalidated) ||
-    (chosen.includes("expected") && isExpected(row));
+  const expected = isExpected(row);
+  return groupMatch(chosen, DOCUMENT_FILTERS, id => (id === "expected" ? expected : !expected)) &&
+    groupMatch(chosen, VALIDATION_FILTERS, id => hasCheck(row) && (id === "validated") === Boolean(row.is_validated));
 }
 
 async function sendChange(change) {
