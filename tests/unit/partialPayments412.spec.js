@@ -74,13 +74,13 @@ describe('partial payments (issues/412)', () => {
 describe('DocumentForm partial payments (issues/412)', () => {
   const { computed, methods } = DocumentForm
 
-  it('are offered on invoices, incomes and expenses, not on quotes or payrolls', () => {
+  it('are offered on invoices, incomes and expenses (and bestretes, issues/460), not on quotes', () => {
     const allowed = type => computed.partialPaymentsAllowed.call({ type })
     expect(['emitted-invoices', 'received-incomes', 'received-invoices', 'received-expenses'].map(allowed)).toEqual([
       true, true, true, true
     ])
     expect(allowed('quotes')).toBe(false)
-    expect(allowed('payrolls')).toBe(false)
+    expect(allowed('payrolls')).toBe(true)
   })
 
   it('refuses to save more than the total', async () => {

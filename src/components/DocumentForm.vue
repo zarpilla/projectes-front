@@ -806,10 +806,10 @@
                 </div>
                 <p v-if="hasPartialPayments" class="help" :class="{ 'is-danger': partialPaymentsExceed }">
                   <template v-if="partialPaymentsExceed">
-                    Els {{ isIncome ? "cobraments" : "pagaments" }} ({{ formatMoney(partialPaymentsPaid) }}) superen el total ({{ formatMoney(total) }})
+                    Els {{ isIncome ? "cobraments" : "pagaments" }} ({{ formatMoney(partialPaymentsPaid) }}) superen {{ type === "payrolls" ? "el net" : "el total" }} ({{ formatMoney(partialPaymentsDoc.total) }})
                   </template>
                   <template v-else>
-                    {{ isIncome ? "Cobrat" : "Pagat" }} {{ formatMoney(partialPaymentsPaid) }} de {{ formatMoney(total) }} · pendent {{ formatMoney(partialPaymentsPending) }}
+                    {{ isIncome ? "Cobrat" : "Pagat" }} {{ formatMoney(partialPaymentsPaid) }} de {{ formatMoney(partialPaymentsDoc.total) }}{{ type === "payrolls" ? " (net)" : "" }} · pendent {{ formatMoney(partialPaymentsPending) }}
                   </template>
                 </p>
                 <b-button size="is-small" icon-left="plus" @click="addPartialPayment">
@@ -1139,7 +1139,7 @@ import { documentPayload } from "@/domain/documentPayload.js";
 import { documentDatesForPickers, documentDatesForApi, estimatedPaymentFrom, setPaid, setPaidDate, setAccepted, setAcceptedDate } from "@/domain/documentDates.js";
 import { budgetLineTotal, documentLineQuantity } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
-import { PARTIAL_PAYMENT_TYPES, hasPartialPayments, paidAmount, pendingAmount, exceedsTotal, newPartialPayment, applyPartialPaymentsToForm } from "@/domain/partialPayments.js";
+import { PARTIAL_PAYMENT_TYPES, partialPaymentsTotal, hasPartialPayments, paidAmount, pendingAmount, exceedsTotal, newPartialPayment, applyPartialPaymentsToForm } from "@/domain/partialPayments.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 
@@ -1381,7 +1381,9 @@ export default {
       return this.partialPaymentsAllowed && hasPartialPayments(this.form);
     },
     partialPaymentsDoc() {
-      return { partial_payments: this.form.partial_payments, total: this.total };
+      // a bestreta's payments add up to its net (issues/460)
+      const total = this.type === "payrolls" ? partialPaymentsTotal(this.type, this.form) : this.total;
+      return { partial_payments: this.form.partial_payments, total };
     },
     partialPaymentsPaid() {
       return paidAmount(this.partialPaymentsDoc);
@@ -3085,6 +3087,8 @@ export default {
         parseFloat(this.form.other_base)
       ).toFixed(2);
       this.form.total = payrollTotal(this.form.total_base, this.form.ss_base);
+      // the partial payments go by the net (issues/460)
+      if (this.hasPartialPayments) this.partialPaymentsChanged();
     },
     // it takes a few seconds: the buttons spin meanwhile, a second click
     // doesn't ask it again, and a failure says so

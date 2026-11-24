@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.24",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Diners"],
+      text: ["Les ", { to: "/bestretes", label: "Bestretes" }, " es poden pagar en diverses vegades, com les factures i les despeses: a «Pagament», «Afegeix un pagament parcial» amb la data i l'import. Sumen fins al net, la bestreta queda «Pagada en part» fins que hi arriben, i a Tresoreria cada pagament és un moviment que es valida pel seu compte."]
+    }
+  ]
+},
+{
   date: "2026.11.20",
   items: [
     {
