@@ -54,6 +54,26 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.24",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", les caselles d'«Accions» de «Moviments bancaris» ja no es desen a cada clic: marqueu-ne totes les que calgui (queden de color verd clar, o vermell clar si en desmarqueu una de validada) i premeu «Valida accions», al costat d'«Edita dates». Es desen una darrere l'altra, amb un avís «… validat» per a cadascuna, i si sortiu sense validar-les la pantalla us avisa."]
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › «Moviments bancaris», dos filtres nous que es poden combinar: «Assignats» / «Esperats» (amb document o encara previstos sense) i «Validats» / «No validats» (per la casella d'«Accions»). Per exemple, «Assignats» + «No validats» són els moviments que falta comprovar amb el banc."]
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria?pestanya=conciliacio", label: "Tresoreria › Conciliació" }, ", «Accepta» deixa el moviment pendent de validar: accepteu-ne tots els que calgui i premeu «Valida», al costat de «Puja un extracte». Es concilien un darrere l'altre, amb un avís «… conciliat» per a cadascun."]
+    }
+  ]
+},
+{
   date: "2026.11.20",
   items: [
     {

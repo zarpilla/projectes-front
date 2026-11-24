@@ -61,6 +61,13 @@ A la columna **Conciliació** de cada moviment pendent hi ha la millor proposta,
 proposta és bona, n'hi ha prou de clicar **Accepta**. **Tots** mostra també els conciliats: l'etiqueta en diu
 com, i «automàtic» si s'han conciliat sols.
 
+**Accepta** encara no concilia res: el moviment queda «Pendent de validar» (amb **Treu** el torneu a deixar com
+estava). Accepteu-ne tots els que calgui i, al final, premeu **Valida**, al costat de **Puja un extracte**: es
+concilien un darrere l'altre i a baix surt un avís per a cadascun («F-10 conciliat · 2 de 5»). Si algun no es
+pot conciliar, us ho diu i continua pendent de validar. **Descarta els acceptats** els desfà tots sense
+conciliar-ne cap, i si sortiu de Tresoreria (o tanqueu la pestanya) amb moviments acceptats sense validar, la
+pantalla us avisa.
+
 ![Tots els moviments de l'extracte](img/39-conciliacio-bancaria/05-tots.png)
 
 ### 2. Resoldre els pendents

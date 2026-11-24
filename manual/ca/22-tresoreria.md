@@ -88,9 +88,19 @@ Tots els moviments, un per fila, amb la **Data**, l'**Import**, el **Saldo** des
 bancari**. La taula s'obre a la pàgina dels moviments d'avui.
 
 - **Tots**, **Pròxims** (d'avui endavant) i **Anteriors** (abans d'avui) filtren per data, tant els moviments previstos com els executats. La xifra **Endarrerits** de dalt obre la llista dels moviments previstos amb la data ja passada.
+- Dos filtres més, independents entre ells:
+  - **Assignats** / **Esperats**: els moviments amb un document al darrere (factura, despesa, nòmina…) o els
+    previstos que encara no en tenen cap («Despesa esperada», «Ingrés esperat»…). Quan la data d'un esperat ja ha
+    passat, a **Accions** surt el senyal groc.
+  - **Validats** / **No validats**: els moviments amb el check d'**Accions** marcat o amb la casella buida.
+
+  Dins de cada filtre podeu prémer un botó o tots dos (tots dos és com no filtrar). Els dos filtres es combinen:
+  per exemple, **Assignats** + **No validats** són els moviments amb document que encara heu de comprovar amb el
+  banc.
 - **Cerca concepte, projecte o contacte**, i **Filtres per columna** per filtrar cada columna.
 - A **Accions**, la casella marca un moviment com a **validat** (comprovat amb el banc). En una factura o
-  despesa encara **pendent**, a més, la marca com a **cobrada o pagada** (vegeu el pas 3).
+  despesa encara **pendent**, a més, la marca com a **cobrada o pagada** (vegeu el pas 3). Les caselles no es
+  desen fins que premeu **Valida accions**.
 
 ![Els moviments bancaris](img/22-tresoreria/05-moviments.png)
 
@@ -121,13 +131,22 @@ Cada bloc té el seu botó **Enviar**.
 
 ### 3. Marcar un cobrament o un pagament amb el check
 
+Marqueu (o desmarqueu) totes les caselles que calgui i, al final, premeu **Valida accions**, al
+costat d'**Edita dates**. Fins aleshores no es desa res: una casella marcada queda de color **verd clar**, i
+una que ja estava validada i desmarqueu, de color **vermell clar**; el botó diu quantes n'hi ha. En prémer-lo,
+es desen una per una i a baix veureu com avança («F-10 validat · 2 de 5»). Si alguna no es pot desar (per exemple, una factura en esborrany), us ho diu i continua marcada per
+tornar-ho a provar. **Descarta les marques** les desfà sense desar-ne cap.
+
+Si sortiu de Tresoreria (o tanqueu la pestanya del navegador) amb caselles sense validar, la pantalla us
+avisa: si continueu, es perden.
+
 El check de la columna **Accions** de **Moviments bancaris** també serveix per a les factures emeses, els
 altres ingressos, les factures rebudes i les despeses que encara estan **pendents**. Passant el ratolí per
 sobre, diu què farà: «Marcar com a cobrat i validat» o «Marcar com a pagat i validat».
 
 - Si la data de la línia ja ha passat, el document queda **cobrat o pagat amb aquella data**, i la línia,
   validada.
-- Si la data encara no ha arribat, la pantalla demana quin dia s'ha cobrat o pagat (avui o abans, mai una
+- Si la data encara no ha arribat, en marcar-la la pantalla demana quin dia s'ha cobrat o pagat (avui o abans, mai una
   data futura). La data prevista del document i la de les seves línies al projecte passen a aquest dia.
 - Si el document ja tenia cobraments o pagaments parcials, el que queda pendent s'afegeix com un parcial més.
 - També funciona amb una factura rebuda que ja no és «Modificable».
@@ -137,7 +156,7 @@ marcar: primer s'ha d'emetre.
 
 ![La data d'un cobrament que estava previst més endavant](img/22-tresoreria/07-marcar-cobrat.png)
 
-**Treure el check** desfà el que va fer: el document torna a pendent, amb les dates d'abans. Si algú ha
+**Treure el check** (i validar) desfà el que va fer: el document torna a pendent, amb les dates d'abans. Si algú ha
 canviat el document després (per exemple, n'ha corregit la data de pagament), només es treu la validació i
 el document es queda com està.
 
@@ -146,7 +165,9 @@ el document es queda com està.
 **El saldo d'avui no coincideix amb el del banc.** Afegiu un **saldo real** al compte amb la data i l'import de
 l'extracte.
 
-**He marcat una factura com a cobrada per error.** Traieu el check: torna a pendent.
+**He marcat una factura com a cobrada per error.** Si encara no heu validat, torneu a clicar la casella o
+premeu **Descarta les marques**. Si ja està validada, traieu el check i premeu **Valida accions**:
+torna a pendent.
 
 **Un cobrament previst surt en un mes que no toca.** La data surt de la **Previsió pag.** de la línia del projecte
 (o de la **Previsió cobrament** de la factura). Canvieu-la allà.
