@@ -46,12 +46,12 @@ anual** (treballades − teòriques de tot l'any), **Saldo hores avui** i **Sala
 | **Treballades**, **Teòriques** | Hores imputades i hores de jornada del mes. |
 | **Saldo**, **Saldo acumulat** | La diferència del mes i la de l'any fins aquell mes. |
 | **Salari** | El salari del mes segons la jornada. Si la bestreta desada té un altre import, surt el *teòric* i, en vermell, el que hi ha *a la nòmina*. |
-| **Nòmina** | **Sense nòmina**, **Per pagar** o **Pagada**. |
+| **Nòmina** | **Sense nòmina**, **Per pagar**, **Pagada en part** (té pagaments parcials que encara no arriben al net) o **Pagada**. |
 
 Botons de cada mes:
 
 - **Crea**: crea la bestreta del mes (si encara no n'hi ha).
-- **Paga**: la marca com a pagada.
+- **Paga**: la marca com a pagada. Si ja tenia pagaments parcials, hi afegeix el que falta del net, amb la data de la nòmina.
 - L'ull (**Mostra la nòmina**) l'obre en una pestanya nova.
 - La paperera l'esborra. Si s'havia canviat a mà, ho pregunta abans.
 
@@ -60,7 +60,11 @@ Botons de cada mes:
 ![Una bestreta](img/20-bestretes/03-nomina.png)
 
 - **Document**: any, mes, persona i data d'**Emissió**.
-- **Pagament**: **Pagada** (i la data) i el **Compte bancari** des d'on es paga.
+- **Pagament**: **Pagada** (i la data) i el **Compte bancari** des d'on es paga. Si el net es paga en diverses
+  vegades, **Afegeix un pagament parcial** per a cadascuna, amb la data i l'import: sumen fins al **net** (no
+  fins a la despesa total), **Pagada** i la data es posen soles quan arriben al net, i no el poden superar. A
+  Tresoreria, cada pagament és un moviment «Nòmina pagada (parcial)» que es valida pel seu compte, i el que
+  falta surt com a «Nòmina esperada (pendent)» a la data del net.
 - **Detall**: el **Salari base**, l'**IRPF a càrrec de la treballadora**, els **Altres a càrrec de la
   treballadora** (contingències, atur…), el **Salari net a percebre**, la **SS a càrrec de la cooperativa** i
   la **Despesa total**. Cada import (llevat del salari base) té la seva data de pagament, que és la que fa

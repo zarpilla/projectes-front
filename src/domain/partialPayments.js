@@ -7,7 +7,11 @@ import moment from 'moment'
 // paid once they add up to the total, on the date of the last one. They can't
 // add up to more than the total.
 
-export const PARTIAL_PAYMENT_TYPES = ['emitted-invoices', 'received-incomes', 'received-invoices', 'received-expenses']
+// Bestretes too (issues/460): there they add up to the net, what the person gets
+export const PARTIAL_PAYMENT_TYPES = ['emitted-invoices', 'received-incomes', 'received-invoices', 'received-expenses', 'payrolls']
+
+/** What the partial payments of a document of this type add up to. */
+export const partialPaymentsTotal = (type, form) => Number(form && (type === 'payrolls' ? form.net_base : form.total)) || 0
 
 const cents = v => Math.round((Number(v) || 0) * 100)
 
@@ -23,6 +27,9 @@ export const paidAmount = doc => partialPayments(doc).reduce((acc, p) => acc + c
 
 /** What is still to collect or to pay: the total less the partial payments. */
 export const pendingAmount = doc => (cents(doc && doc.total) - cents(paidAmount(doc))) / 100
+
+/** A bestreta with some of its net paid, not all (issues/460): «Pagada en part». */
+export const isPaidInPart = doc => hasPartialPayments(doc) && !(doc && doc.paid)
 
 /** Some collected or paid, not all of it. */
 export const isPartiallyPaid = doc => hasPartialPayments(doc) && !doc.paid_date && pendingAmount(doc) !== 0

@@ -41,6 +41,7 @@
             <td>{{ date(row.netDate) }}</td>
             <td>
               <span v-if="row.paid" class="tag is-success is-light">Pagada</span>
+              <span v-else-if="row.paidInPart" class="tag is-info is-light" title="Té pagaments parcials: «Paga» hi afegeix el que falta">Pagada en part</span>
               <span v-else class="tag is-warning is-light">Per pagar</span>
             </td>
             <td>

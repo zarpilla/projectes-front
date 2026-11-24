@@ -57,6 +57,11 @@ export const CHANGELOG = [
   date: "2026.11.24",
   items: [
     {
+      type: "Novetats",
+      modules: ["Diners"],
+      text: ["Les ", { to: "/bestretes", label: "Bestretes" }, " es poden pagar en diverses vegades, com les factures i les despeses: a «Pagament», «Afegeix un pagament parcial» amb la data i l'import. Sumen fins al net, la bestreta queda «Pagada en part» fins que hi arriben, i a Tresoreria cada pagament és un moviment que es valida pel seu compte."]
+    },
+    {
       type: "Millores",
       modules: ["Diners"],
       text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", les caselles d'«Accions» de «Moviments bancaris» ja no es desen a cada clic: marqueu-ne totes les que calgui (queden de color verd clar, o vermell clar si en desmarqueu una de validada) i premeu «Valida accions», al costat d'«Edita dates». Es desen una darrere l'altra, amb un avís «… validat» per a cadascuna, i si sortiu sense validar-les la pantalla us avisa."]

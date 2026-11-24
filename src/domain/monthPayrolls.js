@@ -3,6 +3,7 @@
 // their totals. A payroll may point at a deleted user (issues/279).
 
 import { payrollUserName } from "./payrollLabel.js";
+import { isPaidInPart } from "./partialPayments.js";
 
 const num = (value) => Number(value) || 0;
 const round2 = (value) => Math.round(value * 100) / 100;
@@ -26,6 +27,8 @@ export function monthPayrollRows(payrolls, year, month) {
       bankAccount: p.bank_account && p.bank_account.name ? p.bank_account.name : null,
       netDate: p.net_date || null,
       paid: !!p.paid,
+      // some of the net paid, not all (issues/460)
+      paidInPart: isPaidInPart(p),
       emitted: p.emitted || null
     }))
     .sort((a, b) => a.person.localeCompare(b.person, "ca"));

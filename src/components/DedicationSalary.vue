@@ -66,6 +66,7 @@
               <td>
                 <span v-if="!hasPayroll(key)" class="tag">Sense nòmina</span>
                 <span v-else-if="payrollDetail(key).paid" class="tag is-success is-light">Pagada</span>
+                <span v-else-if="isPaidInPart(payrollDetail(key))" class="tag is-info is-light" title="Té pagaments parcials: «Paga» hi afegeix el que falta">Pagada en part</span>
                 <span v-else class="tag is-warning is-light">Per pagar</span>
               </td>
               <td>
@@ -120,6 +121,7 @@ import { isSalaryDay, periodMonthlySalary } from "@/domain/payrollSalary.js";
 
 const WORKED_LABEL = "Total hores treballades + vacances";
 import { startLoad } from "@/domain/latestLoad.js";
+import { isPaidInPart } from "@/domain/partialPayments.js";
 import { formatNumber, formatMoney, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -196,6 +198,7 @@ export default {
     this.getActivities();
   },
   methods: {
+    isPaidInPart,
     // the payroll saved for the month has another base than the theoretical salary
     payrollDiffers(key, value) {
       const payroll = this.hasPayroll(key);
