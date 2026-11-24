@@ -72,10 +72,13 @@ describe('TresoreriaTable settles a pending document (issues/415)', () => {
     return w
   }
 
+  // issues/422: the click is kept and «Valida cobraments/pagaments» sends it
   it("marks it collected on the line's date and reloads", async () => {
     api.post.mockResolvedValue({ data: { validation_key: 'emitted-invoices:10', paid: true } })
     const w = await mountWith([row({})])
     await w.vm.toggleValidation(w.vm.treasuryData[0])
+    expect(api.post).not.toHaveBeenCalled()
+    await w.vm.validateChecks()
     expect(api.post).toHaveBeenCalledWith('treasury-validations/settle', { entity_type: 'emitted-invoices', entity_id: 10, date: '2026-10-20' })
     expect(w.vm.getData).toHaveBeenCalled()
   })
@@ -84,10 +87,11 @@ describe('TresoreriaTable settles a pending document (issues/415)', () => {
     const w = await mountWith([row({ datef: '29991231' })])
     w.vm.askSettleDate = vi.fn(async () => null)
     await w.vm.toggleValidation(w.vm.treasuryData[0])
-    expect(api.post).not.toHaveBeenCalled()
+    expect(w.vm.pendingCheckList).toHaveLength(0)
     w.vm.askSettleDate = vi.fn(async () => '2026-11-02')
     api.post.mockResolvedValue({ data: {} })
     await w.vm.toggleValidation(w.vm.treasuryData[0])
+    await w.vm.validateChecks()
     expect(api.post).toHaveBeenCalledWith('treasury-validations/settle', expect.objectContaining({ date: '2026-11-02' }))
   })
 
@@ -95,7 +99,8 @@ describe('TresoreriaTable settles a pending document (issues/415)', () => {
     api.post.mockResolvedValue({ data: { validated: false, reverted: true } })
     const w = await mountWith([row({ settle: null, paid: true, is_validated: true })])
     await w.vm.toggleValidation(w.vm.treasuryData[0])
-    expect(api.post).toHaveBeenCalledWith('treasury-validations/toggle', { entity_type: 'emitted-invoices', entity_id: 10, sub_type: null })
+    await w.vm.validateChecks()
+    expect(api.post).toHaveBeenCalledWith('treasury-validations/toggle', { entity_type: 'emitted-invoices', entity_id: 10, sub_type: null, validated: false })
     expect(w.vm.getData).toHaveBeenCalled()
   })
 })

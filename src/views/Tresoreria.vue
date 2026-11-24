@@ -17,7 +17,7 @@
         </button>
       </div>
       <bank-reconciliation v-if="tab === 'conciliacio'" />
-      <tresoreria-table v-else />
+      <tresoreria-table v-else ref="table" />
     </section>
   </div>
 </template>
@@ -58,9 +58,23 @@ export default {
         : 'Saldo, previsió per mesos i moviments dels comptes bancaris.'
     }
   },
+  // issues/422: the checks of «Accions» not sent yet are lost when leaving
+  beforeRouteLeave (to, from, next) {
+    this.confirmLeave(next)
+  },
   methods: {
+    confirmLeave (next) {
+      const table = this.$refs.table
+      if (!table || !table.confirmLeaveChecks) return next()
+      table.confirmLeaveChecks(ok => (ok ? next() : next(false)))
+    },
     selectTab (id) {
       if (id === this.tab) return
+      this.confirmLeave(ok => {
+        if (ok !== false) this.showTab(id)
+      })
+    },
+    showTab (id) {
       const query = { ...this.$route.query }
       if (id === 'conciliacio') query.pestanya = 'conciliacio'
       else delete query.pestanya
