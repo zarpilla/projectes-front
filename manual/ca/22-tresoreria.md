@@ -88,10 +88,13 @@ Tots els moviments, un per fila, amb la **Data**, l'**Import**, el **Saldo** des
 bancari**. La taula s'obre a la pàgina dels moviments d'avui.
 
 - **Tots**, **Pròxims** (d'avui endavant) i **Anteriors** (abans d'avui) filtren per data, tant els moviments previstos com els executats. La xifra **Endarrerits** de dalt obre la llista dels moviments previstos amb la data ja passada.
+- **Validats**, **No validats** i **Esperats** filtren per la columna **Accions**: els moviments amb el check
+  marcat, els que tenen la casella buida, i els previstos amb el senyal groc (la data ja ha passat i encara no
+  s'han cobrat ni pagat). Se'n poden activar uns quants alhora: surten els moviments de qualsevol dels triats.
 - **Cerca concepte, projecte o contacte**, i **Filtres per columna** per filtrar cada columna.
 - A **Accions**, la casella marca un moviment com a **validat** (comprovat amb el banc). En una factura o
   despesa encara **pendent**, a més, la marca com a **cobrada o pagada** (vegeu el pas 3). Les caselles no es
-  desen fins que premeu **Valida cobraments/pagaments**.
+  desen fins que premeu **Valida accions**.
 
 ![Els moviments bancaris](img/22-tresoreria/05-moviments.png)
 
@@ -122,10 +125,10 @@ Cada bloc té el seu botó **Enviar**.
 
 ### 3. Marcar un cobrament o un pagament amb el check
 
-Marqueu (o desmarqueu) totes les caselles que calgui i, al final, premeu **Valida cobraments/pagaments**, al
-costat d'**Edita dates**. Fins aleshores no es desa res: les caselles canviades tenen un cercle groc i el botó
-diu quantes n'hi ha. En prémer-lo, es desen una per una i a baix a la dreta veureu com avança («2 de 5 · F-10:
-cobrat»). Si alguna no es pot desar (per exemple, una factura en esborrany), us ho diu i continua marcada per
+Marqueu (o desmarqueu) totes les caselles que calgui i, al final, premeu **Valida accions**, al
+costat d'**Edita dates**. Fins aleshores no es desa res: una casella marcada queda de color **verd clar**, i
+una que ja estava validada i desmarqueu, de color **vermell clar**; el botó diu quantes n'hi ha. En prémer-lo,
+es desen una per una i a baix veureu com avança («F-10 validat · 2 de 5»). Si alguna no es pot desar (per exemple, una factura en esborrany), us ho diu i continua marcada per
 tornar-ho a provar. **Descarta les marques** les desfà sense desar-ne cap.
 
 Si sortiu de Tresoreria (o tanqueu la pestanya del navegador) amb caselles sense validar, la pantalla us
@@ -157,7 +160,7 @@ el document es queda com està.
 l'extracte.
 
 **He marcat una factura com a cobrada per error.** Si encara no heu validat, torneu a clicar la casella o
-premeu **Descarta les marques**. Si ja està validada, traieu el check i premeu **Valida cobraments/pagaments**:
+premeu **Descarta les marques**. Si ja està validada, traieu el check i premeu **Valida accions**:
 torna a pendent.
 
 **Un cobrament previst surt en un mes que no toca.** La data surt de la **Previsió pag.** de la línia del projecte

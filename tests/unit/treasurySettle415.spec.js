@@ -72,7 +72,7 @@ describe('TresoreriaTable settles a pending document (issues/415)', () => {
     return w
   }
 
-  // issues/422: the click is kept and «Valida cobraments/pagaments» sends it
+  // issues/422: the click is kept and «Valida accions» sends it
   it("marks it collected on the line's date and reloads", async () => {
     api.post.mockResolvedValue({ data: { validation_key: 'emitted-invoices:10', paid: true } })
     const w = await mountWith([row({})])

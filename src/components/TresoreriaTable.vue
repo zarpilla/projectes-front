@@ -370,7 +370,7 @@
       <header class="report-box-head">
         <h2>Moviments bancaris</h2>
         <div class="head-actions">
-          <!-- issues/422: the checks of «Accions» are kept here and sent together -->
+          <!-- issues/422, issues/456: the checks of «Accions» are kept here and sent together -->
           <b-button
             v-if="pendingCheckList.length"
             size="is-small"
@@ -391,7 +391,7 @@
             :title="pendingCheckList.length ? 'Desa les caselles que has marcat o desmarcat a «Accions»' : 'Marca o desmarca les caselles d\'«Accions» i desa-les totes juntes amb aquest botó'"
             @click="validateChecks"
           >
-            Valida cobraments/pagaments{{ pendingCheckList.length ? ` (${pendingCheckList.length})` : "" }}
+            Valida accions{{ pendingCheckList.length ? ` (${pendingCheckList.length})` : "" }}
           </b-button>
           <!-- issues/370: change the dates of the pending movements, saved together -->
           <template v-if="dateEditMode">
@@ -421,6 +421,19 @@
           <div class="segmented" role="group" aria-label="Moviments">
             <button v-for="t in movementTabs" :key="t.id" type="button" :class="{ 'is-on': movementsTab === t.id }" @click="movementsTab = t.id">
               {{ t.label }}<template v-if="t.count !== null"> · {{ t.count }}</template>
+            </button>
+          </div>
+          <!-- issues/456: by the check of «Accions» and the yellow signal; several at once -->
+          <div class="segmented validation-filters" role="group" aria-label="Validació">
+            <button
+              v-for="f in validationFilters"
+              :key="f.id"
+              type="button"
+              :class="{ 'is-on': validationFilter.includes(f.id) }"
+              :aria-pressed="validationFilter.includes(f.id) ? 'true' : 'false'"
+              @click="toggleValidationFilter(f.id)"
+            >
+              {{ f.label }} · {{ f.count }}
             </button>
           </div>
           <b-input v-model="movementsSearch" class="filter-search" icon="magnify" placeholder="Cerca concepte, projecte o contacte" aria-label="Cerca moviments" />
@@ -619,7 +632,7 @@
           <b-table-column label="Accions" v-slot="props">
             <!-- Warning icon for non-executed movements before today -->
             <b-icon
-              v-if="!(props.row.paid || props.row.real) && isBeforeToday(props.row.datef)"
+              v-if="isExpected(props.row)"
               icon="alert"
               class="has-text-warning mr-2"
               size="is-small"
@@ -627,14 +640,15 @@
             />
             <!-- Validation checkbox for real movements; on a pending document
                  it also marks it collected or paid (issues/415). A click is
-                 kept on the page until «Valida cobraments/pagaments» (issues/422) -->
+                 kept on the page until «Valida accions» (issues/422, issues/456):
+                 light green when ticked, light red when a validated one is unticked -->
             <b-checkbox
               v-if="canValidate(props.row)"
               :key="`${checkKey(props.row)}:${checkRender}`"
               :model-value="checkShown(pendingChecks, props.row)"
               @update:model-value="toggleValidation(props.row)"
               class="mr-2"
-              :class="{ 'is-pending-check': isPending(pendingChecks, props.row) }"
+              :class="pendingCheckClass(props.row)"
               :title="validationTitle(props.row)"
             />
             <!-- <button
@@ -693,7 +707,7 @@ import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday, PROJECT_FILTER_MODES, projectFilterOptions, projectIdsOfFilter } from "@/domain/projectTreasury.js";
 import { canValidate, validationAction } from "@/domain/treasuryValidation.js";
 import { escapeHtml } from "@/helpers/safeHtml";
-import { checkKey, checkShown, isPending, needsSettleDate, tickCheck, prunePending, changeLabel, runPendingChecks } from "@/domain/treasuryPendingChecks.js";
+import { checkKey, checkShown, isPending, needsSettleDate, tickCheck, prunePending, changeMessage, runPendingChecks, VALIDATION_FILTERS, validationFilterMatch } from "@/domain/treasuryPendingChecks.js";
 import { dateEditKey, isoOfDatef, movementDateChanges, saveMovementDates } from "@/domain/treasuryMovementDates.js";
 
 const MOVEMENTS_ALL_KEY = "TresoreriaTable.movementsAll";
@@ -757,6 +771,8 @@ export default {
       showLater: false,
       hoverYm: null,
       movementsTab: "all",
+      // issues/456: «Validats» / «No validats» / «Esperats», any of them
+      validationFilter: [],
       opsOpen: false,
       movementsSearch: "",
       selectedBankAccountIds: [],
@@ -940,6 +956,13 @@ export default {
     pendingDateChanges() {
       return movementDateChanges(this.dateEdits, this.treasuryData);
     },
+    validationFilters() {
+      const rows = this.treasuryDataDesc.filter(r => this.isMovement(r));
+      return VALIDATION_FILTERS.map(f => ({
+        ...f,
+        count: rows.filter(r => validationFilterMatch(r, [f.id], this.isExpected, canValidate)).length
+      }));
+    },
     movementTabs() {
       const rows = this.treasuryDataDesc.filter(r => this.isMovement(r));
       return [
@@ -960,6 +983,7 @@ export default {
           if (!this.isMovement(r)) return false;
           if (this.movementsTab === "overdue" ? !this.isOverdue(r) : this.movementState(r) !== this.movementsTab) return false;
         }
+        if (this.validationFilter.length && (!this.isMovement(r) || !validationFilterMatch(r, this.validationFilter, this.isExpected, canValidate))) return false;
         if (!q) return true;
         return [r.concept, r.project_name, r.contact, r.type].some(v => v && String(v).toLowerCase().includes(q));
       });
@@ -1310,6 +1334,14 @@ export default {
       return r.datef && this.isBeforeToday(r.datef) ? "past" : "next";
     },
     // planned (not paid, not real) and its date is gone: the header's «Endarrerits»
+    // the yellow signal of «Accions»: planned, not executed, its day gone (issues/456 «Esperats»)
+    isExpected(r) {
+      return !(r.paid || r.real) && this.isBeforeToday(r.datef);
+    },
+    toggleValidationFilter(id) {
+      const on = this.validationFilter.includes(id);
+      this.validationFilter = on ? this.validationFilter.filter(x => x !== id) : [...this.validationFilter, id];
+    },
     isOverdue(r) {
       return !r.paid && !r.real && !!r.datef && this.isBeforeToday(r.datef);
     },
@@ -1598,8 +1630,13 @@ export default {
     checkKey,
     checkShown,
     isPending,
+    pendingCheckClass(row) {
+      const change = this.pendingChecks[checkKey(row)];
+      if (!change) return null;
+      return change.checked ? "is-pending-check is-pending-on" : "is-pending-check is-pending-off";
+    },
     validationTitle(row) {
-      if (isPending(this.pendingChecks, row)) return "Canvi pendent: prem «Valida cobraments/pagaments» per desar-lo";
+      if (isPending(this.pendingChecks, row)) return "Canvi pendent: prem «Valida accions» per desar-lo";
       if (row.is_validated) return "Moviment validat";
       if (validationAction(row) === "settle") return row.total_amount > 0 ? "Marcar com a cobrat i validat" : "Marcar com a pagat i validat";
       return "Marcar com validat";
@@ -1619,7 +1656,7 @@ export default {
         });
       });
     },
-    // issues/422: a click only marks the line; «Valida cobraments/pagaments»
+    // issues/422: a click only marks the line; «Valida accions»
     // sends the changes (issues/415: a pending document is marked collected or
     // paid on the line's date, or on the one asked for a future line)
     async toggleValidation(row) {
@@ -1643,7 +1680,7 @@ export default {
         this.$buefy.snackbar.open({ message: `Validant ${total} moviment${total === 1 ? "" : "s"}…`, queue: false });
         const { done, failed } = await runPendingChecks(changes, (n, change, error) => {
           this.$buefy.snackbar.open({
-            message: error ? `${n} de ${total} · ${change.concept}: ${error}` : `${n} de ${total} · ${change.concept}: ${changeLabel(change)}`,
+            message: changeMessage(change, n, total, error),
             type: error ? "is-danger" : undefined,
             duration: error ? 8000 : 3500,
             queue: false
@@ -1685,7 +1722,7 @@ export default {
       if (!n) return done(true);
       this.$buefy.dialog.confirm({
         title: "Marques sense validar",
-        message: `Has marcat o desmarcat ${n} casell${n === 1 ? "a" : "es"} a «Accions» sense prémer «Valida cobraments/pagaments». Si continues, ${n === 1 ? "es perdrà" : "es perdran"} i no se'n desarà cap.`,
+        message: `Has marcat o desmarcat ${n} casell${n === 1 ? "a" : "es"} a «Accions» sense prémer «Valida accions». Si continues, ${n === 1 ? "es perdrà" : "es perdran"} i no se'n desarà cap.`,
         confirmText,
         cancelText: "Torna a Tresoreria",
         type: "is-warning",
@@ -1739,10 +1776,16 @@ export default {
 .movement-date {
   width: 9.5rem;
 }
-/* issues/422: a check changed but not sent yet */
-.b-checkbox.checkbox.is-pending-check :deep(input[type="checkbox"] + .check) {
-  outline: 3px solid var(--a-warn-line);
-  outline-offset: 2px;
+/* issues/422, issues/456: a check changed but not sent yet: light green when
+   ticked, light red when a validated line is unticked */
+.b-checkbox.checkbox.is-pending-on :deep(input[type="checkbox"] + .check),
+.b-checkbox.checkbox.is-pending-on :deep(input[type="checkbox"]:checked + .check) {
+  background-color: color-mix(in srgb, var(--a-pos) 40%, var(--a-surface));
+  border-color: var(--a-pos);
+}
+.b-checkbox.checkbox.is-pending-off :deep(input[type="checkbox"] + .check) {
+  background-color: var(--a-danger-bg);
+  border-color: var(--a-danger-fg);
 }
 .movement-date.is-changed {
   border-color: var(--a-warn-line);

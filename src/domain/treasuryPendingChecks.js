@@ -1,6 +1,7 @@
-// Tresoreria › Moviments bancaris (issues/422): ticking or unticking the check
-// of «Accions» no longer saves on each click. Each change is kept on the page,
-// keyed by the line's check, and «Valida cobraments/pagaments» sends them all,
+// Tresoreria › Moviments bancaris (issues/422, issues/456): ticking or
+// unticking the check of «Accions» no longer saves on each click. Each change
+// is kept on the page (light green when ticked, light red when a validated line
+// is unticked), keyed by the line's check, and «Valida accions» sends them all,
 // one after the other, with the endpoints a single click used:
 //   - a pending document ticked: marked collected or paid on its date
 //     (treasury-validations/settle, issues/415);
@@ -83,10 +84,42 @@ export function prunePending(pending, rows) {
   return next;
 }
 
-// «cobrat» / «pagat» / «validat» / «validació treta»: what the change does
+// «validat» / «validació treta»: what the change did (issues/456: a pending
+// document ticked is «validat» too, it is also marked collected or paid)
 export function changeLabel(change) {
-  if (change.op === "settle") return change.amount > 0 ? "cobrat" : "pagat";
   return change.checked ? "validat" : "validació treta";
+}
+
+// the notification after each one is sent (issues/456): «F-10 validat · 2 de 5»
+export function changeMessage(change, n, total, error) {
+  const name = change.concept || "Moviment";
+  const progress = total > 1 ? ` · ${n} de ${total}` : "";
+  return error ? `${name}: ${error}${progress}` : `${name} ${changeLabel(change)}${progress}`;
+}
+
+// «Validats», «No validats», «Esperats» (issues/456): any of them on at once,
+// a line shows when it is in one of the chosen; none chosen, every line.
+// Validated or not goes by the line as it loaded, so a line ticked while
+// «No validats» is on stays in the list until «Valida accions».
+export const VALIDATION_FILTERS = [
+  { id: "validated", label: "Validats" },
+  { id: "unvalidated", label: "No validats" },
+  { id: "expected", label: "Esperats" }
+];
+
+/**
+ * @param {object} row the Tresoreria line
+ * @param {string[]} chosen ids of VALIDATION_FILTERS
+ * @param {(row: object) => boolean} isExpected the yellow «Moviment previst pendent» signal
+ * @param {(row: object) => boolean} hasCheck whether «Accions» has a check for it
+ */
+export function validationFilterMatch(row, chosen, isExpected, hasCheck) {
+  if (!chosen || !chosen.length) return true;
+  const validated = hasCheck(row) && Boolean(row.is_validated);
+  const unvalidated = hasCheck(row) && !row.is_validated;
+  return (chosen.includes("validated") && validated) ||
+    (chosen.includes("unvalidated") && unvalidated) ||
+    (chosen.includes("expected") && isExpected(row));
 }
 
 async function sendChange(change) {

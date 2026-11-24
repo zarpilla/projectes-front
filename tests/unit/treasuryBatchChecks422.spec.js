@@ -133,7 +133,7 @@ describe('TresoreriaTable (issues/422)', () => {
     expect(api.post).not.toHaveBeenCalled()
     await flushPromises()
     const button = w.find('.checks-validate')
-    expect(button.text()).toContain('Valida cobraments/pagaments (2)')
+    expect(button.text()).toContain('Valida accions (2)')
     await w.vm.validateChecks()
     expect(api.post).toHaveBeenCalledTimes(2)
     expect(w.vm.getData).toHaveBeenCalledTimes(1)
@@ -156,7 +156,80 @@ describe('TresoreriaTable (issues/422)', () => {
     w.vm.confirmLeaveChecks(leave)
     await flushPromises()
     expect(leave).not.toHaveBeenCalled()
-    expect(document.body.textContent).toContain('sense prémer «Valida cobraments/pagaments»')
+    expect(document.body.textContent).toContain('sense prémer «Valida accions»')
+    w.unmount()
+  })
+})
+
+// issues/456: «Valida accions», light green / light red pending checks,
+// «[document] validat» notifications and the Validats / No validats / Esperats filter
+import { changeMessage, validationFilterMatch } from '@/domain/treasuryPendingChecks.js'
+import { canValidate } from '@/domain/treasuryValidation.js'
+
+describe('issues/456', () => {
+  it('each saved movement says «[document] validat»', () => {
+    const settle = tickCheck({}, invoice(), TODAY)['emitted-invoices:10']
+    expect(changeMessage(settle, 2, 5)).toBe('F-10 validat · 2 de 5')
+    expect(changeMessage(settle, 1, 1)).toBe('F-10 validat')
+    const off = tickCheck({}, expense({ is_validated: true }), TODAY)['received-invoices:7']
+    expect(changeMessage(off, 1, 1)).toBe('R-7 validació treta')
+    expect(changeMessage(settle, 1, 2, 'és un esborrany')).toBe('F-10: és un esborrany · 1 de 2')
+  })
+
+  it('the filters, alone or together, by the line as it loaded', () => {
+    const expected = (r) => !(r.paid || r.real) && r.datef < '20261109'
+    const rows = {
+      validated: expense({ is_validated: true }),
+      unvalidated: expense(),
+      planned: { datef: '20261001', concept: 'Previst', total_amount: 10, paid: false, real: false, settle: null },
+      future: { datef: '20261201', concept: 'Futur', total_amount: 10, paid: false, real: false, settle: null }
+    }
+    const shown = (chosen) => Object.keys(rows).filter(k => validationFilterMatch(rows[k], chosen, expected, canValidate))
+    expect(shown([])).toEqual(['validated', 'unvalidated', 'planned', 'future'])
+    expect(shown(['validated'])).toEqual(['validated'])
+    expect(shown(['unvalidated'])).toEqual(['unvalidated'])
+    expect(shown(['expected'])).toEqual(['planned'])
+    expect(shown(['validated', 'expected'])).toEqual(['validated', 'planned'])
+    expect(shown(['validated', 'unvalidated', 'expected'])).toEqual(['validated', 'unvalidated', 'planned'])
+  })
+
+  async function mountRows (rows) {
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }] })
+    await router.push('/')
+    const w = mount(TresoreriaTable, {
+      attachTo: document.body,
+      global: {
+        plugins: [createPinia(), Buefy, router],
+        stubs: { TreasuryAnnotationInput: true, PivotViews: true, ModalBoxInvoicing: true },
+        config: { warnHandler: () => {} }
+      }
+    })
+    w.vm.getData = vi.fn(async () => {})
+    await w.setData({ selectedYear: 2026, treasuryData: rows })
+    await flushPromises()
+    return w
+  }
+
+  it('a ticked line is light green, an unticked validated one light red', async () => {
+    const w = await mountRows([expense(), expense({ validation_key: 'received-invoices:8', concept: 'R-8', is_validated: true })])
+    await w.vm.toggleValidation(w.vm.treasuryData[0])
+    await w.vm.toggleValidation(w.vm.treasuryData[1])
+    expect(w.vm.pendingCheckClass(w.vm.treasuryData[0])).toContain('is-pending-on')
+    expect(w.vm.pendingCheckClass(w.vm.treasuryData[1])).toContain('is-pending-off')
+    await flushPromises()
+    expect(w.findAll('.is-pending-on').length).toBe(1)
+    expect(w.findAll('.is-pending-off').length).toBe(1)
+    w.unmount()
+  })
+
+  it('the filter buttons narrow the movements list', async () => {
+    const w = await mountRows([expense(), expense({ validation_key: 'received-invoices:8', concept: 'R-8', is_validated: true })])
+    const buttons = w.findAll('.validation-filters button')
+    expect(buttons.map(b => b.text())).toEqual(['Validats · 1', 'No validats · 1', 'Esperats · 0'])
+    await buttons[0].trigger('click')
+    expect(w.vm.movementsShown.map(r => r.concept)).toEqual(['R-8'])
+    await buttons[1].trigger('click')
+    expect(w.vm.movementsShown).toHaveLength(2)
     w.unmount()
   })
 })
