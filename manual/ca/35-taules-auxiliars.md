@@ -46,6 +46,7 @@ cal, es pot canviar de nom o deixar de fer-lo servir.
 | **Estratègies** | Les línies estratègiques de l'entitat (informe d'estratègies). |
 | **Tipus de dedicació** | La classificació de les hores (H1 facturable, H2 gestió…). |
 | **Estats de tasca** | Les columnes del tauler de tasques; l'última és la d'acabades. Vegeu [10. Tasques](10-tasques.md). |
+| **Temes de tasca** | Una segona manera d'agrupar les tasques, a més de l'estat (àrees, línies de feina…): columnes del tauler per tema, grups i filtre de la llista. L'**Ordre** és el de les columnes. Vegeu [10. Tasques](10-tasques.md). |
 
 **Diners**
 

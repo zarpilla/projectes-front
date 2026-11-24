@@ -16,7 +16,9 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'strategy', label: 'Estratègies' },
       { entity: 'dedication-type', label: 'Tipus de dedicació' },
       { entity: 'activity-type', label: "Tipus d'activitat" },
-      { entity: 'task-state', label: 'Estats de tasca' }
+      { entity: 'task-state', label: 'Estats de tasca' },
+      // a second grouping of the tasks besides the state (issues/461)
+      { entity: 'task-topic', label: 'Temes de tasca' }
     ]
   },
   {

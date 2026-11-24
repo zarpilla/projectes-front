@@ -41,6 +41,14 @@
           />
         </label>
         <span class="filter-spacer"></span>
+        <!-- «Temes de tasca» (issues/461): the board's columns by state or by topic -->
+        <label v-if="mode === 'board' && topics.length" class="filter-select">
+          <span>Columnes per</span>
+          <b-select :model-value="boardView" @update:model-value="setBoardView">
+            <option value="state">Estat</option>
+            <option value="topic">Tema</option>
+          </b-select>
+        </label>
         <div class="segmented" role="group" aria-label="Vista">
           <button type="button" :class="{ 'is-on': mode === 'board' }" :aria-pressed="mode === 'board'" @click="setMode('board')">Tauler</button>
           <button type="button" :class="{ 'is-on': mode === 'list' }" :aria-pressed="mode === 'list'" @click="setMode('list')">Llista</button>
@@ -82,6 +90,14 @@
             <option v-for="a in activityTypes" :key="a.id" :value="a.id">{{ a.name }}</option>
           </b-select>
         </label>
+        <label v-if="topics.length" class="filter-select">
+          <span>Tema</span>
+          <b-select v-model="listFilters.topic">
+            <option value="all">Tots</option>
+            <option :value="0">Sense tema</option>
+            <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
+          </b-select>
+        </label>
         <b-checkbox v-model="showArchived">Mostra les arxivades</b-checkbox>
         <span class="filter-spacer"></span>
         <label v-if="mode === 'list'" class="filter-select">
@@ -89,6 +105,7 @@
           <b-select v-model="groupBy">
             <option value="due">Venciment</option>
             <option value="state">Estat</option>
+            <option v-if="topics.length" value="topic">Tema</option>
             <option value="project">Projecte</option>
             <option value="person">Persona</option>
           </b-select>
@@ -101,7 +118,7 @@
         :user="filters.user"
         :project="filters.project"
         :search="search"
-        view="state"
+        :view="topics.length ? boardView : 'state'"
         :mode="mode"
         :list-filters="listFilters"
         :group-by="groupBy"
@@ -134,6 +151,16 @@ function savedMode() {
   }
 }
 
+// columns of the board: by state or by topic (issues/461), remembered per browser
+const BOARD_VIEW_KEY = "tasksBoardView";
+function savedBoardView() {
+  try {
+    return localStorage.getItem(BOARD_VIEW_KEY) === "topic" ? "topic" : "state";
+  } catch {
+    return "state";
+  }
+}
+
 export default {
   name: "TasksView",
   components: {
@@ -147,6 +174,8 @@ export default {
     return {
       isLoading: false,
       states: [],
+      topics: [],
+      boardView: savedBoardView(),
       activityTypes: [],
       userNameSearch: "",
       projectNameSearch: "",
@@ -157,7 +186,7 @@ export default {
         project: null
       },
       mode: savedMode(),
-      listFilters: { state: "open", due: "all", priority: "all", activityType: "all" },
+      listFilters: { state: "open", due: "all", priority: "all", activityType: "all", topic: "all" },
       groupBy: "due",
       showArchived: false,
       search: "",
@@ -203,6 +232,7 @@ export default {
     this.projects = (await service({ requiresAuth: true }).get("projects/basic?_limit=-1")).data.filter((p) => p.project_state !== 2)
 
     this.states = (await service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")).data
+    this.topics = (await service({ requiresAuth: true, cached: true }).get("task-topics?_sort=order&_limit=-1")).data
     this.activityTypes = (await service({ requiresAuth: true, cached: true }).get("activity-types/basic?_limit=-1")).data
       .slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "ca"))
 
@@ -233,6 +263,14 @@ export default {
       const taskId = Number(this.$route && this.$route.query && this.$route.query.task);
       if (taskId && this.$refs.board) this.$refs.board.openTaskById(taskId);
     },
+    setBoardView(view) {
+      this.boardView = view;
+      try {
+        localStorage.setItem(BOARD_VIEW_KEY, view);
+      } catch {
+        // private window: the choice lasts until reload
+      }
+    },
     setMode(mode) {
       this.mode = mode;
       try {
@@ -244,8 +282,8 @@ export default {
     newTask() {
       const board = this.$refs.board;
       if (!board) return;
-      if (this.mode !== "board") board.addTask(null);
-      else board.addTask(board.lists[0]);
+      // the first state; by topic, without topic (not the first column's)
+      board.addTask(null);
     }
   }
 };

@@ -15,6 +15,17 @@ export function doneStateId (states) {
 
 const stateId = state => (state && typeof state === 'object' ? state.id : state)
 
+// «Temes de tasca» (issues/461): a second grouping besides the state, picked by
+// the entity (areas, lines of work…). A task has one or none (0).
+export const NO_TOPIC = { id: 0, name: 'Sense tema' }
+export const topicId = task => stateId(task && task.task_topic) || 0
+
+/** Columns of the board by topic: the topics by order, then «Sense tema». */
+export function topicColumns (topics = []) {
+  const sorted = [...topics].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || String(a.name).localeCompare(String(b.name), 'ca'))
+  return [...sorted, NO_TOPIC]
+}
+
 export function isDone (task, states) {
   const done = doneStateId(states)
   return done !== null && stateId(task.task_state) === done
@@ -47,11 +58,12 @@ export function dueBucket (task, states, today = moment().format('YYYY-MM-DD')) 
 /**
  * Filters of the list. `state`: 'open' (not done, the default), 'all', 'done' or a
  * state id; `due`: 'all', 'late', 'week' (late or in the next 7 days) or 'none';
- * `activityType`: an id, 0 for "no Funció", 'all' (or null) for all; `priority`:
+ * `activityType`: an id, 0 for "no Funció", 'all' (or null) for all; `topic`: the
+ * same for the «Tema» (0 = «Sense tema»); `priority`:
  * 'high' | 'normal' | 'low' or 'all'; `search` matches the name,
  * the description and the project.
  */
-export function filterTasks (tasks, { state = 'open', due = 'all', activityType = null, priority = 'all', search = '' } = {}, states = [], today = moment().format('YYYY-MM-DD')) {
+export function filterTasks (tasks, { state = 'open', due = 'all', activityType = null, topic = 'all', priority = 'all', search = '' } = {}, states = [], today = moment().format('YYYY-MM-DD')) {
   const q = (search || '').trim().toLowerCase()
   return tasks.filter(t => {
     if (state === 'open' && isDone(t, states)) return false
@@ -67,6 +79,7 @@ export function filterTasks (tasks, { state = 'open', due = 'all', activityType 
       const id = stateId(t.activity_type) || 0
       if (id !== activityType) return false
     }
+    if (topic !== null && topic !== undefined && topic !== 'all' && topicId(t) !== topic) return false
     if (priority && priority !== 'all' && (t.priority || 'normal') !== priority) return false
     if (q && ![t.name, t.description, t.project && t.project.name].some(x => x && String(x).toLowerCase().includes(q))) return false
     return true
@@ -81,15 +94,18 @@ const SORTS = {
 }
 
 /**
- * Sorted copy. 'due' puts tasks without date last in both directions; 'state' follows
- * the states' order.
+ * Sorted copy. 'due' puts tasks without date last in both directions; 'state' and
+ * 'topic' follow the order of the states and of the topics («Sense tema» last).
  */
-export function sortTasks (tasks, key = 'due', dir = 'asc', states = []) {
+export function sortTasks (tasks, key = 'due', dir = 'asc', states = [], topics = []) {
   const sign = dir === 'desc' ? -1 : 1
   const order = new Map(states.map(s => [s.id, s.order ?? 0]))
+  const topicOrder = new Map(topicColumns(topics).map((t, i) => [t.id, i]))
   const value = key === 'state'
     ? t => order.get(stateId(t.task_state)) ?? 9999
-    : SORTS[key] || (t => t.due_date || null)
+    : key === 'topic'
+      ? t => topicOrder.get(topicId(t)) ?? 9999
+      : SORTS[key] || (t => t.due_date || null)
   return [...tasks].sort((a, b) => {
     const va = value(a)
     const vb = value(b)
@@ -108,7 +124,17 @@ export function sortTasks (tasks, key = 'due', dir = 'asc', states = []) {
  * task added from the group starts with. By person, a task with several people is in
  * each of their groups.
  */
-export function groupTasks (tasks, by, states = [], today = moment().format('YYYY-MM-DD')) {
+export function groupTasks (tasks, by, states = [], today = moment().format('YYYY-MM-DD'), topics = []) {
+  if (by === 'topic') {
+    const groups = topicColumns(topics).map(t => ({
+      key: 'topic-' + t.id, title: t.name, tasks: [], prefill: { task_topic: t.id ? t : null }
+    }))
+    tasks.forEach(t => {
+      const g = groups.find(g => g.key === 'topic-' + topicId(t)) || groups[groups.length - 1]
+      g.tasks.push(t)
+    })
+    return groups.filter(g => g.tasks.length)
+  }
   if (by === 'state') {
     const groups = states.map(s => ({ key: 'state-' + s.id, title: s.name, tasks: [], prefill: { task_state: s } }))
     tasks.forEach(t => {
@@ -288,6 +314,7 @@ export function templateItems (tasks) {
     name: t.name,
     description: t.description || null,
     activity_type: t.activity_type && t.activity_type.id ? t.activity_type.id : null,
+    task_topic: topicId(t) || null,
     priority: priorityOf(t),
     estimated_hours: t.estimated_hours ?? null,
     recurrence: t.recurrence || null,
@@ -305,6 +332,7 @@ export function tasksFromTemplate (items, { project, from, stateId, users = [], 
     description: i.description || null,
     project,
     activity_type: i.activity_type || null,
+    task_topic: i.task_topic || null,
     priority: i.priority || 'normal',
     estimated_hours: i.estimated_hours ?? null,
     recurrence: i.recurrence || null,

@@ -10,6 +10,7 @@
       :projects="projects"
       :project="project"
       :states="states"
+      :topics="topics"
       :logged-hours="loggedHours"
       @log-hours="logHours"
     />
@@ -30,6 +31,7 @@
       v-if="mode === 'list'"
       :tasks="listTasks"
       :states="states"
+      :topics="topics"
       :users="users"
       :group-by="groupBy"
       :logged-hours="loggedHours"
@@ -44,7 +46,7 @@
       @open="showTask"
       @add="addTask(null, $event)"
     />
-    <!-- Redesign A: one column per state (or activity type), quiet cards; the
+    <!-- Redesign A: one column per state (or topic, or activity type), quiet cards; the
          drag and drop zones are the same as before -->
     <div v-else class="tasks-board">
       <div v-for="(state, i) in lists" :key="state.id" class="task-list-content">
@@ -129,7 +131,9 @@
                     <b-icon icon="clock-outline" custom-size="default" />{{ formatHours(hoursOf(task).done) }}<template v-if="hoursOf(task).estimate !== null">/{{ formatHours(hoursOf(task).estimate) }}</template>
                   </span>
                   <span v-if="task.recurrence" class="task-chip" :title="recurrenceLabel(task.recurrence)"><b-icon icon="repeat" custom-size="default" /></span>
-                  <span v-if="view === 'state' && task.activity_type && task.activity_type.name" class="task-chip is-type">{{ task.activity_type.name }}</span>
+                  <span v-if="view !== 'topic' && task.task_topic && task.task_topic.name" class="task-chip is-topic">{{ task.task_topic.name }}</span>
+                  <span v-if="view === 'topic' && task.task_state && task.task_state.name" class="task-chip">{{ task.task_state.name }}</span>
+                  <span v-if="view !== 'list' && task.activity_type && task.activity_type.name" class="task-chip is-type">{{ task.activity_type.name }}</span>
                   <span v-if="view === 'list' && task.task_state" class="task-chip is-type">{{ task.task_state.name }}</span>
                   <span class="task-people">
                     <span
@@ -182,7 +186,7 @@ import { useMainStore } from "@/stores/main.js";
 import _ from "lodash";
 import getConfig from '@/config'
 import { currentUserId } from "@/domain/currentUser";
-import { isOverdue, isDone, filterTasks, tasksQuery, kanbanViewQuery, taskHours, formatHours, recurrenceLabel } from "@/domain/tasks";
+import { isOverdue, isDone, filterTasks, tasksQuery, kanbanViewQuery, taskHours, formatHours, recurrenceLabel, topicColumns, topicId } from "@/domain/tasks";
 import { markdownToText } from "@/domain/markdown";
 import { useTaskAlerts } from "@/stores/taskAlerts";
 
@@ -208,6 +212,8 @@ export default {
       isLoading: false,
       tasks: [],
       states: [],
+      // «Temes de tasca» (issues/461)
+      topics: [],
       userNameSearch: "",
       projectNameSearch: "",
       // users: [],
@@ -257,6 +263,8 @@ export default {
       type: Array,
       default: [],
     },
+    // board columns: 'state', 'topic' («Temes de tasca», issues/461) or 'list' (the
+    // project's Funcions, in the project's Tasques tab)
     view: {
       type: String,
       default: 'list'
@@ -346,6 +354,9 @@ export default {
           return [cap]
         }        
       }
+      else if (this.view === 'topic') {
+        return topicColumns(this.topics)
+      }
       else {
         return this.states
       }
@@ -353,6 +364,9 @@ export default {
     listKey() {
       if (this.view === 'list') {
         return 'activity_type'
+      }
+      else if (this.view === 'topic') {
+        return 'task_topic'
       }
       else {
         return 'task_state'
@@ -381,9 +395,7 @@ export default {
     maxCardsInState() {
       const max = this.lists.map((s) => 0);
       this.lists.forEach((s, i) => {
-        max[i] = this.activeTasks.filter(
-          (t) => t[this.listKey] && t[this.listKey].id === s.id
-        ).length;
+        max[i] = this.activeTasks.filter((t) => this.columnId(t) === s.id).length;
       });
       return max;
     },
@@ -396,9 +408,7 @@ export default {
     cardOrderView() {
       const cardOrder = [];
       this.lists.forEach((s) => {
-        const tasks = this.activeTasks.filter(
-          (t) => t[this.listKey] && t[this.listKey].id === s.id
-        ) // .map((t, i) => { return { ...t, order: t.order != null ? t.order : i*10 }})
+        const tasks = this.activeTasks.filter((t) => this.columnId(t) === s.id)
         cardOrder.push(tasks);
       });
       return cardOrder;
@@ -424,6 +434,9 @@ export default {
 
       this.states = (
         await service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")
+      ).data;
+      this.topics = (
+        await service({ requiresAuth: true, cached: true }).get("task-topics?_sort=order&_limit=-1")
       ).data;
 
       // the person filter runs on the server (it loaded every task and filtered here)
@@ -616,6 +629,10 @@ export default {
       if (item && item.activity_type && !item.activity_type.id) {
         item.activity_type = null
       }
+      // the «Sense tema» column
+      if (item.task_topic && !item.task_topic.id) {
+        item.task_topic = null
+      }
       
       item.order = j + 5
       this.reOrderCards()
@@ -670,7 +687,9 @@ export default {
     addTask(state, prefill = {}) {
       const initial = !state
         ? { activity_type: 0, task_state: this.states[0] }
-        : this.view === 'state' ? { activity_type: 0, task_state: state } : { activity_type: state, task_state: this.states[0] }
+        : this.view === 'state' ? { activity_type: 0, task_state: state }
+        : this.view === 'topic' ? { activity_type: 0, task_state: this.states[0], task_topic: state.id ? state : null }
+        : { activity_type: state, task_state: this.states[0] }
       const filterUser = this.user ? this.users.find(u => u.id === this.user) : null
       this.taskObject = {
         ...initial,
@@ -817,6 +836,11 @@ export default {
     hiddenCount(i) {
       if (this.search.trim()) return 0;
       return Math.max(0, (this.cardOrderViewSorted[i] || []).length - this.shownCards(i).length);
+    },
+    // the board column of a task (id 0: «Sense tema», no Funció)
+    columnId(task) {
+      if (this.listKey === 'task_topic') return topicId(task)
+      return task[this.listKey] ? task[this.listKey].id : undefined
     },
     // the last state counts as "done" (no overdue warning for finished tasks)
     isOverdue(task) {
@@ -1025,6 +1049,10 @@ export default {
 .task-chip.is-done {
   background: var(--a-accent-soft);
   color: var(--a-accent-hover);
+}
+.task-chip.is-topic {
+  background: transparent;
+  border: 1px solid var(--a-input);
 }
 .task-chip.is-type {
   background: var(--a-info-bg);

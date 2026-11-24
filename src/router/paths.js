@@ -83,6 +83,7 @@ export const ENTITY_SLUGS = {
   'dedication-type': 'tipus-dedicacio',
   'activity-type': 'tipus-activitat',
   'task-state': 'estats-tasca',
+  'task-topic': 'temes-tasca',
   'bank-account': 'comptes-bancaris',
   'payment-method': 'metodes-pagament',
   serie: 'series',

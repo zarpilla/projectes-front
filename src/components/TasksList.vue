@@ -12,6 +12,14 @@
           {{ s.name }}
         </b-dropdown-item>
       </b-dropdown>
+      <b-dropdown v-if="topics.length" aria-role="list" :scrollable="true" max-height="18rem">
+        <template #trigger>
+          <b-button size="is-small" icon-right="menu-down">Tema</b-button>
+        </template>
+        <b-dropdown-item v-for="t in topicOptions" :key="t.id" aria-role="listitem" @click="bulk({ task_topic: t.id || null })">
+          {{ t.name }}
+        </b-dropdown-item>
+      </b-dropdown>
       <b-dropdown aria-role="list" :scrollable="true" max-height="18rem">
         <template #trigger>
           <b-button size="is-small" icon-right="menu-down">Assigna</b-button>
@@ -134,6 +142,23 @@
                   </b-dropdown-item>
                 </b-dropdown>
               </td>
+              <td v-if="topics.length">
+                <b-dropdown aria-role="list" :mobile-modal="false" :scrollable="true" max-height="18rem">
+                  <template #trigger>
+                    <button type="button" class="tl-topic" :class="{ 'is-empty': !topicOf(task) }" :aria-label="'Tema: ' + topicName(task) + '. Canvia el tema'">
+                      {{ topicName(task) }}<b-icon icon="menu-down" custom-size="default" />
+                    </button>
+                  </template>
+                  <b-dropdown-item
+                    v-for="t in topicOptions"
+                    :key="t.id"
+                    aria-role="listitem"
+                    @click="change(task, { task_topic: t.id || null })"
+                  >
+                    {{ t.name }}
+                  </b-dropdown-item>
+                </b-dropdown>
+              </td>
               <td>
                 <span class="tl-people">
                   <span v-for="u in task.users_permissions_users" :key="u.id" class="tl-avatar" :title="u.username">{{ initials(u.username) }}</span>
@@ -196,7 +221,7 @@
 import moment from "moment";
 import DateField from "@/components/DateField.vue";
 import {
-  groupTasks, sortTasks, isOverdue, isDone, isStale, updatedLabel,
+  groupTasks, sortTasks, isOverdue, isDone, isStale, updatedLabel, topicColumns, topicId,
   PRIORITIES, priorityOf, priorityLabel, recurrenceLabel, taskHours, formatHours
 } from "@/domain/tasks";
 
@@ -208,6 +233,8 @@ export default {
   props: {
     tasks: { type: Array, default: () => [] },
     states: { type: Array, default: () => [] },
+    // «Temes de tasca» (issues/461): the Tema column only when there are some
+    topics: { type: Array, default: () => [] },
     users: { type: Array, default: () => [] },
     groupBy: { type: String, default: "due" },
     loggedHours: { type: Object, default: () => ({}) }
@@ -223,21 +250,28 @@ export default {
       expanded: {},
       today: moment().format("YYYY-MM-DD"),
       priorities: PRIORITIES,
-      columns: [
+    };
+  },
+  computed: {
+    columns() {
+      return [
         { key: "name", title: "Tasca", sort: true },
         { key: "priority", title: "Prioritat", sort: true },
         { key: "state", title: "Estat", sort: true },
+        ...(this.topics.length ? [{ key: "topic", title: "Tema", sort: true }] : []),
         { key: "people", title: "Persones" },
         { key: "due", title: "Data límit", sort: true },
         { key: "hours", title: "Hores" },
         { key: "updated", title: "Actualitzada", sort: true }
-      ]
-    };
-  },
-  computed: {
+      ];
+    },
+    // the topics by order, then «Sense tema»
+    topicOptions() {
+      return topicColumns(this.topics);
+    },
     groups() {
-      const sorted = sortTasks(this.tasks, this.sortKey, this.sortDir, this.states);
-      return groupTasks(sorted, this.groupBy, this.states, this.today);
+      const sorted = sortTasks(this.tasks, this.sortKey, this.sortDir, this.states, this.topics);
+      return groupTasks(sorted, this.groupBy, this.states, this.today, this.topics);
     },
     allSelected() {
       return this.tasks.length > 0 && this.tasks.every(t => this.selected.includes(t.id));
@@ -329,6 +363,14 @@ export default {
       const s = this.states.find(s => s.id === id);
       return s ? s.name : "—";
     },
+    topicOf(task) {
+      const id = topicId(task);
+      return id ? this.topics.find(t => t.id === id) || task.task_topic : null;
+    },
+    topicName(task) {
+      const topic = this.topicOf(task);
+      return topic && topic.name ? topic.name : "Sense tema";
+    },
     stateClass(task) {
       if (isDone(task, this.states)) return "is-success is-light";
       const first = this.states.length && this.states.reduce((a, b) => ((b.order ?? 0) < (a.order ?? 0) ? b : a));
@@ -370,6 +412,21 @@ export default {
 .tl-bulk > b {
   color: var(--a-accent);
   margin-right: .5rem;
+}
+.tl-topic {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: .875rem;
+  color: var(--a-fg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tl-topic.is-empty {
+  color: var(--a-muted);
 }
 .tl-spacer {
   flex: 1;

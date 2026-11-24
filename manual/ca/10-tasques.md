@@ -28,6 +28,10 @@ projecte nou.
   **Administració › Taules auxiliars › Estats de tasca** (vegeu [35. Taules auxiliars](35-taules-auxiliars.md)).
   L'últim estat de la llista és el que compta com a **acabat**: les tasques que hi són no surten com a
   vençudes, i és el que fa repetir una tasca recurrent.
+- Els **temes** serveixen per agrupar les tasques d'una altra manera, a més de pel seu estat: per
+  àrees de l'organització, per línies de feina… Cada entitat crea els seus a **Administració › Taules
+  auxiliars › Temes de tasca**, amb un nom i un **Ordre** (el de les columnes i els grups). Una tasca
+  pot tenir un tema o cap. Mentre no n'hi ha cap, a la pantalla no surt res de temes.
 - La **Funció** d'una tasca és una de les funcions (tipus d'activitat) del projecte. Només es pot triar si
   el projecte en té.
 
@@ -59,6 +63,13 @@ que es repeteixen, una icona de fletxes.
 - El **+** de cada columna crea una tasca en aquell estat.
 - Cada columna mostra les 12 primeres targetes; **Mostra'n N més** ensenya la resta.
 
+**Columnes per tema.** Si l'entitat té temes, a dalt a la dreta surt **Columnes per**: **Estat** (el
+tauler de sempre) o **Tema**. Per tema, hi ha una columna per a cada tema, per ordre, i al final
+**Sense tema**. Arrossegar una targeta a una altra columna li canvia el tema, no l'estat; l'estat surt
+a la targeta. El **+** d'una columna crea una tasca amb aquell tema i el primer estat. Per estat, el tema
+de cada tasca surt a la targeta. L'aplicació recorda la tria en cada navegador, i l'ordre de les targetes
+es desa a part per a cada forma de veure el tauler.
+
 ### Llista
 
 Les tasques en una taula agrupada, per veure moltes tasques alhora i canviar-ne unes quantes de cop.
@@ -69,21 +80,25 @@ Les tasques en una taula agrupada, per veure moltes tasques alhora i canviar-ne 
 - **Venciment**: **Vençudes**, **Vençudes i pròxims 7 dies** o **Sense data**.
 - **Prioritat** i **Funció**: només les d'aquella prioritat o funció (**Sense funció** per a les que no en
   tenen).
+- **Tema** (si l'entitat en té): només les d'aquell tema, o **Sense tema**.
 - **Mostra les arxivades**: hi afegeix les tasques arxivades, amb l'enllaç **Recupera** per tornar-les a
   la llista.
 - **Agrupa per**: **Venciment** (Vençudes, Pròxims 7 dies, Més endavant, Sense data), **Estat**,
-  **Projecte** o **Persona**. Si es tria Persona, una tasca de dues persones surt a tots dos grups.
+  **Tema** (si n'hi ha), **Projecte** o **Persona**. Si es tria Persona, una tasca de dues persones surt a tots dos grups.
 
-Clicant els títols **Tasca**, **Prioritat**, **Estat**, **Data límit** o **Actualitzada** s'ordena la
-taula per aquella columna (un altre clic, a l'inrevés). A cada fila es pot canviar directament la
-**prioritat**, l'**estat** i la **data límit**. **Afegeix una tasca** al final d'un grup crea una tasca
-amb el que té el grup (el seu estat, projecte o persona).
+Clicant els títols **Tasca**, **Prioritat**, **Estat**, **Tema**, **Data límit** o **Actualitzada**
+s'ordena la taula per aquella columna (un altre clic, a l'inrevés); per tema, segueix l'ordre dels temes
+i les tasques sense tema van al final. A cada fila es pot canviar directament la **prioritat**,
+l'**estat**, el **tema** i la **data límit**. **Afegeix una tasca** al final d'un grup crea una tasca
+amb el que té el grup (el seu estat, tema, projecte o persona). La columna **Tema** només hi és si
+l'entitat té temes.
 
 La columna **Actualitzada** surt en taronja quan fa més de 15 dies que ningú no ha tocat una tasca
 oberta.
 
 **Canviar moltes tasques alhora**: es marquen les caselles de l'esquerra i apareix una barra amb
-**Estat**, **Assigna** (afegeix una persona), **Prioritat**, **Data límit** i **Arxiva**.
+**Estat**, **Tema** (si n'hi ha), **Assigna** (afegeix una persona), **Prioritat**, **Data límit** i
+**Arxiva**.
 
 ![Dues tasques seleccionades i la barra d'accions](img/10-tasques/03-llista-seleccio.png)
 
@@ -147,6 +162,7 @@ Només qui ha escrit un comentari el pot **Edita**r o **Esborra**r.
 |---|---|
 | Nom | Obligatori. Es pot canviar clicant-hi, a dalt de tot. |
 | Estat | Un dels estats de la llista. |
+| Tema | Opcional, un dels temes de l'entitat. Només surt si n'hi ha. |
 | Prioritat | **Alta**, **Normal** (la de les tasques noves) o **Baixa**. |
 | Persones | Qui la fa. Rep un correu quan l'hi afegeixen (vegeu [Avisos per correu](#avisos-per-correu)). |
 | Projecte | Opcional. A la pestanya Tasques d'un projecte ja ve triat. |
@@ -319,6 +335,12 @@ arxivades** i cliqueu **Recupera**.
 
 **No puc comentar.** Cal desar la tasca primer.
 
+**Vull agrupar les tasques per àrees, però si canvio els estats deixen de sortir les acabades.** Els
+estats han de ser les fases de la feina (l'últim és el d'acabades). Per a les àrees, creeu **Temes de
+tasca** i trieu **Columnes per › Tema** al tauler o **Agrupa per › Tema** a la llista.
+
+**Si esborro un tema, què passa amb les seves tasques?** No s'esborren: es queden sense tema.
+
 **No puc triar la funció.** El projecte no té funcions, o la tasca no té projecte.
 
 **He acabat una tasca que es repeteix i no en veig la següent.** Surt a l'estat inicial amb la data del
@@ -329,4 +351,4 @@ període següent; a la llista, comproveu el filtre **Venciment**.
 - [09. Planificació (Gantt)](09-planificacio-gantt.md)
 - [13. Imputar hores dedicades](13-imputar-hores.md)
 - [34. Configuració general de l'entitat](34-configuracio-general.md)
-- [35. Taules auxiliars](35-taules-auxiliars.md) (estats de tasca)
+- [35. Taules auxiliars](35-taules-auxiliars.md) (estats i temes de tasca)

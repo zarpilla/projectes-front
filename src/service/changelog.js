@@ -58,6 +58,16 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Projectes"],
+      text: ["Temes de tasca: a més de l'estat, les ", { to: "/tasques", label: "Tasques" }, " es poden agrupar per temes (àrees, línies de feina…) que cada entitat crea a ", { to: "/administracio/temes-tasca", label: "Taules auxiliars › Temes de tasca" }, ". Al tauler, «Columnes per» › «Tema» posa una columna per tema i arrossegar una targeta li canvia el tema sense tocar-ne l'estat; a la llista, la columna «Tema», el filtre i «Agrupa per» › «Tema». Els estats continuen sent els mateixos per a totes les tasques."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: ["A Taules auxiliars, «Estats de tasca» i «Regions» tornen a deixar canviar el nom i crear-ne de nous (donaven «Error guardant: Forbidden»)."]
+    },
+    {
+      type: "Novetats",
       modules: ["Diners"],
       text: ["Les ", { to: "/bestretes", label: "Bestretes" }, " es poden pagar en diverses vegades, com les factures i les despeses: a «Pagament», «Afegeix un pagament parcial» amb la data i l'import. Sumen fins al net, la bestreta queda «Pagada en part» fins que hi arriben, i a Tresoreria cada pagament és un moviment que es valida pel seu compte."]
     },

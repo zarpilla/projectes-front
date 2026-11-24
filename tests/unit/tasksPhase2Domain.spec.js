@@ -62,8 +62,8 @@ describe('templates', () => {
       { name: 'Factura', due_date: '2026-10-20', estimated_hours: 2 }
     ])
     expect(items).toEqual([
-      { name: 'Acta', description: null, activity_type: 7, priority: 'high', estimated_hours: null, recurrence: null, start_days: 0, due_days: 2, checklist: ['Enviar'] },
-      { name: 'Factura', description: null, activity_type: null, priority: 'normal', estimated_hours: 2, recurrence: null, start_days: null, due_days: 10, checklist: [] }
+      { name: 'Acta', description: null, activity_type: 7, task_topic: null, priority: 'high', estimated_hours: null, recurrence: null, start_days: 0, due_days: 2, checklist: ['Enviar'] },
+      { name: 'Factura', description: null, activity_type: null, task_topic: null, priority: 'normal', estimated_hours: 2, recurrence: null, start_days: null, due_days: 10, checklist: [] }
     ])
     const tasks = tasksFromTemplate(items, { project: 4, from: '2027-01-01', stateId: 1, createdBy: 5 })
     expect(tasks[0]).toMatchObject({ name: 'Acta', project: 4, start_date: '2027-01-01', due_date: '2027-01-03', task_state: 1, created: 5, checklist: [{ name: 'Enviar', done: false }] })

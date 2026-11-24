@@ -174,6 +174,17 @@
               </div>
             </div>
 
+            <!-- «Temes de tasca» (issues/461): only when the entity has some -->
+            <div v-if="topics.length" class="field">
+              <label class="label" for="tm-topic">Tema</label>
+              <div class="select is-fullwidth">
+                <select id="tm-topic" v-model="form.task_topic">
+                  <option :value="null">Sense tema</option>
+                  <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
+                </select>
+              </div>
+            </div>
+
             <div class="field">
               <span class="label">Prioritat</span>
               <div class="segmented tm-prio" role="group" aria-label="Prioritat">
@@ -312,6 +323,7 @@ const emptyForm = () => ({
   due_date: null,
   start_date: null,
   task_state: null,
+  task_topic: null,
   users_permissions_users: [],
   project: null,
   activity_type: null,
@@ -333,6 +345,8 @@ export default {
     projects: { type: Array, default: () => [] },
     project: { type: Number, default: null },
     states: { type: Array, default: () => [] },
+    // «Temes de tasca», by order (issues/461)
+    topics: { type: Array, default: () => [] },
     // hours logged per task id (GET tasks/hours)
     loggedHours: { type: Object, default: () => ({}) }
   },
@@ -439,6 +453,7 @@ export default {
       const form = { ...emptyForm(), ...t };
       form.id = t.id && t.id > 0 ? t.id : -1;
       form.task_state = idOf(t.task_state) || (this.states[0] && this.states[0].id) || null;
+      form.task_topic = idOf(t.task_topic);
       form.priority = priorityOf(t);
       form.recurrence = t.recurrence || null;
       form.description = t.description || "";
@@ -477,6 +492,7 @@ export default {
     currentForm() {
       const form = JSON.parse(JSON.stringify(this.form));
       form.task_state = idOf(form.task_state);
+      form.task_topic = idOf(form.task_topic);
       form.project = idOf(form.project);
       // no Funció: null (it sent 0 or { id: 0 })
       form.activity_type = idOf(form.activity_type);
