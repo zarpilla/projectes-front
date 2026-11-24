@@ -56,6 +56,13 @@
               pot verificar el contacte. Revisa les dades abans d'aplicar-les.
             </span>
           </div>
+          <b-field v-if="!invoiceMatchedContact && parsedInvoice && parsedInvoice.vendor_name" class="invoice-create-vendor">
+            <b-checkbox v-model="invoiceCreateVendor">
+              Crea la proveïdora <strong>{{ parsedInvoice.vendor_name }}</strong>
+              <span v-if="parsedInvoice.vendor_tax_id">(NIF/CIF {{ parsedInvoice.vendor_tax_id }})</span>
+              en aplicar les dades
+            </b-checkbox>
+          </b-field>
 
           <!-- the parser's own checks: lines that don't add up, missing fields -->
           <div
@@ -147,6 +154,7 @@
           </button>
           <button
             class="button is-primary"
+            :class="{ 'is-loading': invoiceCreatingVendor }"
             type="button"
             @click="applyParsedInvoice"
           >
@@ -1161,7 +1169,7 @@ import DocumentHistory from "@/components/DocumentHistory.vue";
 
 // Services
 import service from "@/service/index";
-import { findContactByTaxId, linesFromParsedInvoice, parsedInvoiceWarnings } from "@/service/parsedInvoice.js";
+import { matchVendorContact, newVendorContact, linesFromParsedInvoice, parsedInvoiceWarnings } from "@/service/parsedInvoice.js";
 import getConfig from "@/config";
 import { payrollCode, payrollLabel, payrollTotal } from "@/domain/payrollForm";
 import { upperCase } from "lodash";
@@ -1238,6 +1246,8 @@ export default {
       isInvoiceModalActive: false,
       parsedInvoice: null,
       invoiceMatchedContact: null,
+      invoiceCreateVendor: false,
+      invoiceCreatingVendor: false,
       toReal: false,
       exitAfterSave: false,
       minEmittedDate: moment()
@@ -3291,10 +3301,9 @@ export default {
             : data;
 
         this.parsedInvoice = invoice;
-        // Check the extracted tax id against existing contacts (by nif).
-        this.invoiceMatchedContact = this.findContactByTaxId(
-          invoice && invoice.vendor_tax_id
-        );
+        // Existing contact by tax id, else by name; nobody → offer to create it
+        this.invoiceMatchedContact = matchVendorContact(this.clients, invoice);
+        this.invoiceCreateVendor = !this.invoiceMatchedContact;
         this.isInvoiceModalActive = true;
       } catch (error) {
         console.error("Invoice parse error", error);
@@ -3315,14 +3324,6 @@ export default {
     closeInvoiceModal() {
       this.isInvoiceModalActive = false;
     },
-    /**
-     * Find an existing contact whose `nif` matches the given vendor tax id.
-     * Returns the contact object or null.
-     */
-    findContactByTaxId(taxId) {
-      // "ESB73347494" finds the contact saved as "B73347494" and vice versa
-      return findContactByTaxId(this.clients, taxId);
-    },
     formatInvoiceDate(value) {
       if (!value) return "—";
       const parsed = moment(value, [
@@ -3334,7 +3335,20 @@ export default {
         ? parsed.format("DD/MM/YYYY")
         : String(value);
     },
-    applyParsedInvoice() {
+    async createParsedVendor(data) {
+      let contactTypes = [];
+      try {
+        contactTypes = (await service({ requiresAuth: true }).get("contact-types")).data || [];
+      } catch (e) {
+        // created without a type
+      }
+      const payload = newVendorContact(data, contactTypes);
+      if (!payload) return null;
+      const created = (await service({ requiresAuth: true }).post("contacts", payload)).data;
+      await this.refreshClients();
+      return this.clients.find(c => c.id === created.id) || created;
+    },
+    async applyParsedInvoice() {
       const data = this.parsedInvoice;
       if (!data) {
         this.isInvoiceModalActive = false;
@@ -3360,23 +3374,28 @@ export default {
         }
       }
 
-      // Vendor -> prefer the contact matched by tax id, otherwise fall back
-      // to a fuzzy match on the vendor name.
-      const contact =
-        this.invoiceMatchedContact ||
-        (data.vendor_name
-          ? this.clients.find(
-              c =>
-                c.name &&
-                c.name
-                  .toLowerCase()
-                  .includes(String(data.vendor_name).toLowerCase())
-            )
-          : null);
+      // Vendor: the contact matched by tax id or name, or a new one
+      let contact = this.invoiceMatchedContact;
+      if (!contact && this.invoiceCreateVendor) {
+        this.invoiceCreatingVendor = true;
+        try {
+          contact = await this.createParsedVendor(data);
+        } catch (error) {
+          console.error("Create vendor error", error);
+          this.$buefy.snackbar.open({
+            message: "No s'ha pogut crear la proveïdora",
+            type: "is-danger",
+            queue: false
+          });
+        } finally {
+          this.invoiceCreatingVendor = false;
+        }
+      }
       if (contact) {
-        this.form.contact = contact.id;
+        // the whole contact, as picking it in the search box does: with only
+        // its id saving said it had no NIF until it was picked again
         this.clientSearch = contact.name;
-        this.contact = contact;
+        this.clientSelected(contact);
       }
 
       // Line items: net unit price, VAT and IRPF per line

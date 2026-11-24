@@ -24,6 +24,33 @@ export function findContactByTaxId(contacts, taxId) {
   return (contacts || []).find((c) => taxIdsMatch(c.nif, taxId)) || null;
 }
 
+// Fallback when the tax id finds nobody: a contact whose name contains the
+// vendor name, ignoring case ("Acme" finds "ACME SL").
+export function findContactByName(contacts, name) {
+  const wanted = String(name || "").trim().toLowerCase();
+  if (!wanted) return null;
+  return (contacts || []).find((c) => c.name && c.name.toLowerCase().includes(wanted)) || null;
+}
+
+// The contact the form selects: by tax id first, then by name.
+export function matchVendorContact(contacts, data) {
+  if (!data) return null;
+  return findContactByTaxId(contacts, data.vendor_tax_id) || findContactByName(contacts, data.vendor_name);
+}
+
+// New provider from the PDF: name and NIF as printed, typed «Proveïdora» when
+// the tenant has that contact type.
+export function newVendorContact(data, contactTypes) {
+  const name = String((data && data.vendor_name) || "").trim();
+  if (!name) return null;
+  const type = (contactTypes || []).find((t) => /^prove/i.test(String(t.name || "")));
+  return {
+    name,
+    nif: (data.vendor_tax_id && String(data.vendor_tax_id).trim()) || null,
+    contact_types: type ? [type.id] : [],
+  };
+}
+
 const num = (v, fallback = 0) => {
   const n = parseFloat(v);
   return isNaN(n) ? fallback : n;
