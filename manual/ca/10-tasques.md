@@ -32,6 +32,8 @@ projecte nou.
   àrees de l'organització, per línies de feina… Cada entitat crea els seus a **Administració › Taules
   auxiliars › Temes de tasca**, amb un nom i un **Ordre** (el de les columnes i els grups). Una tasca
   pot tenir un tema o cap. Mentre no n'hi ha cap, a la pantalla no surt res de temes.
+
+![Taules auxiliars › Temes de tasca](img/10-tasques/16-temes-taula.png)
 - La **Funció** d'una tasca és una de les funcions (tipus d'activitat) del projecte. Només es pot triar si
   el projecte en té.
 
@@ -70,6 +72,8 @@ a la targeta. El **+** d'una columna crea una tasca amb aquell tema i el primer 
 de cada tasca surt a la targeta. L'aplicació recorda la tria en cada navegador, i l'ordre de les targetes
 es desa a part per a cada forma de veure el tauler.
 
+![El tauler amb una columna per tema](img/10-tasques/17-tauler-temes.png)
+
 ### Llista
 
 Les tasques en una taula agrupada, per veure moltes tasques alhora i canviar-ne unes quantes de cop.
@@ -92,6 +96,8 @@ i les tasques sense tema van al final. A cada fila es pot canviar directament la
 l'**estat**, el **tema** i la **data límit**. **Afegeix una tasca** al final d'un grup crea una tasca
 amb el que té el grup (el seu estat, tema, projecte o persona). La columna **Tema** només hi és si
 l'entitat té temes.
+
+![La llista agrupada per tema](img/10-tasques/18-llista-temes.png)
 
 La columna **Actualitzada** surt en taronja quan fa més de 15 dies que ningú no ha tocat una tasca
 oberta.
