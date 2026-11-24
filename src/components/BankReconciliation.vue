@@ -49,6 +49,22 @@
             <span>Puja un extracte</span>
           </span>
         </b-upload>
+        <!-- issues/455: the accepted movements wait here and are saved together -->
+        <b-button
+          size="is-small"
+          icon-left="check-all"
+          class="recon-validate"
+          :type="queueList.length ? 'is-primary' : null"
+          :loading="validating"
+          :disabled="!queueList.length"
+          :title="queueList.length ? 'Concilia els moviments acceptats' : 'Accepta les propostes i concilia-les totes juntes amb aquest botó'"
+          @click="validateQueue"
+        >
+          Valida{{ queueList.length ? ` (${queueList.length})` : "" }}
+        </b-button>
+        <b-button v-if="queueList.length" size="is-small" icon-left="close" class="recon-discard" :disabled="validating" @click="confirmDiscardQueue">
+          Descarta els acceptats
+        </b-button>
         <b-button size="is-small" icon-left="auto-fix" @click="runAuto">Concilia automàticament</b-button>
       </div>
     </form>
@@ -103,7 +119,11 @@
             <b :class="props.row.amount < 0 ? 'has-text-danger' : 'has-text-success'">{{ money(props.row.amount) }}</b>
           </b-table-column>
           <b-table-column label="Conciliació" v-slot="props">
-            <template v-if="props.row.status === 'pending'">
+            <template v-if="props.row.status === 'pending' && queue[props.row.id]">
+              <span class="tag is-warning is-light recon-queued">Pendent de validar</span>
+              {{ queue[props.row.id].label }}
+            </template>
+            <template v-else-if="props.row.status === 'pending'">
               <span v-if="props.row.suggestions && props.row.suggestions.length" class="recon-suggest">
                 <span class="tag is-light" :class="props.row.suggestions[0].auto ? 'is-success' : 'is-info'">{{ suggestionLabel(props.row.suggestions[0]) }}</span>
                 {{ linesSummary(props.row.suggestions[0].lines) }}
@@ -119,7 +139,17 @@
           </b-table-column>
           <b-table-column label="" v-slot="props">
             <b-button
-              v-if="props.row.status === 'pending' && props.row.suggestions && props.row.suggestions.length && props.row.suggestions[0].kind !== 'partial'"
+              v-if="props.row.status === 'pending' && queue[props.row.id]"
+              size="is-small"
+              outlined
+              class="recon-unqueue"
+              title="Treu-lo dels pendents de validar"
+              @click.stop="unqueueMovement(props.row)"
+            >
+              Treu
+            </b-button>
+            <b-button
+              v-else-if="props.row.status === 'pending' && props.row.suggestions && props.row.suggestions.length && props.row.suggestions[0].kind !== 'partial'"
               size="is-small"
               type="is-primary"
               outlined
@@ -389,6 +419,8 @@ import {
   reconciliationApi,
   errorMessage
 } from "@/domain/bankReconciliation.js";
+import { escapeHtml } from "@/helpers/safeHtml";
+import { queueAccept, unqueue, pruneQueue, runQueue, queueMessage } from "@/domain/reconciliationQueue.js";
 
 const relationId = (v) => (v && typeof v === "object" ? v.id : v || null);
 
@@ -423,10 +455,16 @@ export default {
       projects: [],
       contacts: [],
       documentTypes: [],
-      lookupsLoaded: false
+      lookupsLoaded: false,
+      // issues/455: movement id → accepted suggestion waiting for «Valida»
+      queue: {},
+      validating: false
     };
   },
   computed: {
+    queueList() {
+      return Object.values(this.queue);
+    },
     kpis() {
       const pending = this.movements.filter((m) => m.status === "pending");
       const sum = (list) => Math.round(list.reduce((s, m) => s + m.amount, 0) * 100) / 100;
@@ -457,7 +495,11 @@ export default {
       if (tab === "imports") this.loadImports();
     }
   },
+  beforeUnmount() {
+    window.removeEventListener("beforeunload", this.warnUnsentQueue);
+  },
   async mounted() {
+    window.addEventListener("beforeunload", this.warnUnsentQueue);
     this.bankAccounts = (await service({ requiresAuth: true }).get("bank-accounts?_limit=-1")).data || [];
     this.load();
   },
@@ -493,6 +535,7 @@ export default {
         const answer = await reconciliationApi.load({ status: this.status, ...(this.bankAccount ? { bank_account: this.bankAccount } : {}) });
         if (isStale()) return;
         this.movements = (answer && answer.movements) || [];
+        this.queue = pruneQueue(this.queue, this.movements, this.status);
         if (this.current) this.current = this.movements.find((m) => m.id === this.current.id) || null;
       } catch (error) {
         this.fail(error, "No s'han pogut carregar els moviments");
@@ -593,9 +636,71 @@ export default {
         this.isLoading = false;
       }
     },
+    // issues/455: accepting only queues it; «Valida» reconciles them all
     acceptSuggestion(movement, s) {
-      const lines = s.kind === "partial" ? [{ id: s.lines[0].id, amount: movement.amount }] : s.lines.map((l) => ({ id: l.id }));
-      return this.run(() => reconciliationApi.accept(movement.id, lines), "Moviment conciliat");
+      const r = queueAccept(this.queue, movement, s);
+      if (r.error) return this.fail(null, r.error);
+      this.queue = r.queue;
+      this.detailOpen = false;
+    },
+    unqueueMovement(movement) {
+      this.queue = unqueue(this.queue, movement.id);
+    },
+    async validateQueue() {
+      const entries = this.queueList;
+      if (!entries.length || this.validating) return;
+      const total = entries.length;
+      this.validating = true;
+      try {
+        const { done, failed } = await runQueue(entries, reconciliationApi.accept, (n, entry, error) => {
+          this.$buefy.snackbar.open({
+            message: queueMessage(entry, n, total, error),
+            type: error ? "is-danger" : undefined,
+            duration: error ? 8000 : 3500,
+            queue: false
+          });
+        });
+        let next = this.queue;
+        for (const id of done) next = unqueue(next, id);
+        this.queue = next;
+        if (failed.length) {
+          this.$buefy.dialog.alert({
+            title: "Alguns moviments no s'han pogut conciliar",
+            message: `S'han conciliat ${done.length} de ${total}. Els que falten continuen pendents de validar:<ul class="mt-2">${failed
+              .map((f) => `<li>${escapeHtml(f.label)}: ${escapeHtml(f.message)}</li>`)
+              .join("")}</ul>`,
+            type: "is-warning"
+          });
+        } else {
+          this.done(`Fet: ${done.length} moviment${done.length === 1 ? "" : "s"} conciliat${done.length === 1 ? "" : "s"}`);
+        }
+        await this.load();
+      } finally {
+        this.validating = false;
+      }
+    },
+    confirmDiscardQueue() {
+      this.confirmLeaveQueue((ok) => ok && (this.queue = {}), "Descarta'ls");
+    },
+    // leaving with accepted movements not validated loses them; `done(true)` leaves
+    confirmLeaveQueue(done, confirmText = "Surt i descarta'ls") {
+      const n = this.queueList.length;
+      if (!n) return done(true);
+      this.$buefy.dialog.confirm({
+        title: "Moviments sense validar",
+        message: `Has acceptat ${n} moviment${n === 1 ? "" : "s"} sense prémer «Valida». Si continues, no ${n === 1 ? "es conciliarà" : "se'n conciliarà cap"}.`,
+        confirmText,
+        cancelText: "Torna a Conciliació",
+        type: "is-warning",
+        hasIcon: true,
+        onConfirm: () => done(true),
+        onCancel: () => done(false)
+      });
+    },
+    warnUnsentQueue(event) {
+      if (!this.queueList.length) return;
+      event.preventDefault();
+      event.returnValue = "";
     },
     acceptPicked() {
       return this.run(() => reconciliationApi.accept(this.current.id, acceptPayload(this.picked)), "Moviment conciliat");
