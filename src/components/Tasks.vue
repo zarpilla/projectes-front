@@ -395,7 +395,7 @@ export default {
     maxCardsInState() {
       const max = this.lists.map((s) => 0);
       this.lists.forEach((s, i) => {
-        max[i] = this.activeTasks.filter((t) => this.columnId(t) === s.id).length;
+        max[i] = this.boardTasks.filter((t) => this.columnId(t) === s.id).length;
       });
       return max;
     },
@@ -405,10 +405,16 @@ export default {
     activeTasks() {
       return this.tasks.filter(t => t.archived === false).map(t => { return { ...t, activity_type: t.activity_type && t.activity_type.id ? t.activity_type : { id: 0 } } })
     },
+    // the board's cards. By topic, the finished ones (last state) are hidden: they
+    // stay in «Acabades» of the board by state until they are archived (issues/463)
+    boardTasks() {
+      if (this.view !== 'topic') return this.activeTasks
+      return this.activeTasks.filter(t => !isDone(t, this.states))
+    },
     cardOrderView() {
       const cardOrder = [];
       this.lists.forEach((s) => {
-        const tasks = this.activeTasks.filter((t) => this.columnId(t) === s.id)
+        const tasks = this.boardTasks.filter((t) => this.columnId(t) === s.id)
         cardOrder.push(tasks);
       });
       return cardOrder;

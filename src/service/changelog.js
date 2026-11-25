@@ -54,6 +54,16 @@ export const visibleChangelog = (permissions, changelog = CHANGELOG) =>
 
 export const CHANGELOG = [
 {
+  date: "2026.11.25",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: ["Al tauler de ", { to: "/tasques", label: "Tasques" }, " amb «Columnes per» › «Tema», les tasques acabades (les del darrer estat) ja no hi surten: es queden al darrer estat del tauler per estat fins que s'arxiven."]
+    }
+  ]
+},
+{
   date: "2026.11.24",
   items: [
     {

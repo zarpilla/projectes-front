@@ -68,7 +68,9 @@ que es repeteixen, una icona de fletxes.
 **Columnes per tema.** Si l'entitat té temes, a dalt a la dreta surt **Columnes per**: **Estat** (el
 tauler de sempre) o **Tema**. Per tema, hi ha una columna per a cada tema, per ordre, i al final
 **Sense tema**. Arrossegar una targeta a una altra columna li canvia el tema, no l'estat; l'estat surt
-a la targeta. El **+** d'una columna crea una tasca amb aquell tema i el primer estat. Per estat, el tema
+a la targeta. Les tasques acabades (les del darrer estat, es digui com es digui) no surten al tauler per
+tema: es queden al darrer estat del tauler per estat fins que s'arxiven. El **+** d'una columna crea una
+tasca amb aquell tema i el primer estat. Per estat, el tema
 de cada tasca surt a la targeta. L'aplicació recorda la tria en cada navegador, i l'ordre de les targetes
 es desa a part per a cada forma de veure el tauler.
 
